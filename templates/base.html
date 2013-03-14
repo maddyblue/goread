@@ -12,7 +12,13 @@
 			<ul class="nav pull-right">
 				<li class="dropdown">
 				{{if .User}}
-					<a href="#">{{.User}}</a>
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						{{.User}}
+						<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a href="{{ url "logout" }}">logout</a></li>
+					</ul>
 				{{else}}
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						log in / sign up
