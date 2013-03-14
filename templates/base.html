@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app>
 <head>
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
+	<style>
+		[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+			display: none;
+		}
+	</style>
 </head>
-<body>
+<body ng-controller="GoreadCtrl">
 	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
 			<a class="brand" href="{{ url "main" }}">go read</a>
@@ -17,6 +22,8 @@
 						<b class="caret"></b>
 					</a>
 					<ul class="dropdown-menu">
+						<li><a href="#" ng-click="shown = 'import-xml'">import xml</a></li>
+						<li class="divider"></li>
 						<li><a href="{{ url "logout" }}">logout</a></li>
 					</ul>
 				{{else}}
@@ -32,15 +39,26 @@
 			</ul>
 		</div>
 	</div>
-	<div class="container">
+	<div class="container" class="ng-cloak">
 		<div class="row">
+			<div class="span8" ng-show="shown == 'import-xml'">
+				<form id="import-xml-form" enctype="multipart/form-data" method="POST" action="{{ url "import-xml" }}">
+					<fieldset>
+						<label>Reader XML file:
+							<input type="file" name="file">
+						<label>
+						<button ng-click="importXml()" type="submit" class="btn">import</button>
+					</fieldset>
+				</form>
+			</div>
 		</div>
 	</div>
 
 	<script src="{{.Jquery}}"></script>
 	<script src="{{.BootstrapJs}}"></script>
+	<script src="/static/js/site.js"></script>
+	<script src="/static/js/jquery.form.js"></script>
 	<script src="{{.Angular}}"></script>
-	<script src="{{.Site}}"></script>
 
 	{{.MiniProfiler}}
 </body>

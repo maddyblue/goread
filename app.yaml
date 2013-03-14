@@ -11,5 +11,9 @@ handlers:
   login: required
   script: _go_app
 
+- url: /user/.*
+  login: required
+  script: _go_app
+
 - url: /.*
   script: _go_app

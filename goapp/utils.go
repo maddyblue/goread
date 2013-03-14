@@ -36,7 +36,6 @@ type Includes struct {
 	BootstrapJs  string
 	Jquery       string
 	MiniProfiler template.HTML
-	Site         string
 	User         *User
 }
 
@@ -72,7 +71,6 @@ func includes(c mpg.Context) *Includes {
 		BootstrapJs:  BootstrapJs,
 		Jquery:       Jquery,
 		MiniProfiler: c.P.Includes(),
-		Site:         "/static/js/site.js",
 	}
 
 	if u := user.Current(c); u != nil {
