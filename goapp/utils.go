@@ -78,7 +78,7 @@ func includes(c mpg.Context) *Includes {
 	if u := user.Current(c); u != nil {
 		gn := goon.FromContext(c)
 		user := new(User)
-		if _, err := gn.GetById(user, u.ID, 0, nil); err == nil {
+		if e, err := gn.GetById(user, u.ID, 0, nil); err == nil && !e.NotFound {
 			i.User = user
 		}
 	}
