@@ -54,7 +54,6 @@ func init() {
 	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
 	http.Handle("/", router)
 
-	miniprofiler.Position = "right"
 	miniprofiler.ShowControls = false
 }
 
