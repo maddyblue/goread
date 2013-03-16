@@ -48,7 +48,7 @@
 			<div class="span6">
 				<h3>Feeds:</h3>
 				<ul>
-					<li ng-repeat="f in feeds" ng-bind="f.Url"></li>
+					<li ng-repeat="f in feeds" ng-bind="f.Title || f.Url"></li>
 				</ul>
 			</div>
 		{{end}}
