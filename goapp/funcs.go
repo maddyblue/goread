@@ -46,12 +46,12 @@ func eq(args ...interface{}) bool {
 	return false
 }
 
-func url(name string, pairs ...string) string {
+func routeUrl(name string, pairs ...string) string {
 	u, _ := router.Get(name).URL(pairs...)
 	return u.String()
 }
 
 var funcs = template.FuncMap{
 	"eq":  eq,
-	"url": url,
+	"url": routeUrl,
 }

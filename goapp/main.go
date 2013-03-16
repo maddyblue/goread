@@ -75,14 +75,13 @@ func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.Redirect(w, r, url("main"), http.StatusFound)
+	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
 func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if u, err := user.LogoutURL(c, url("main")); err == nil {
 		http.Redirect(w, r, u, http.StatusFound)
 	} else {
-		http.Redirect(w, r, url("main"), http.StatusFound)
+		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
 }
 
