@@ -17,7 +17,10 @@
 package goapp
 
 import (
+	"appengine/urlfetch"
 	"appengine/user"
+	"code.google.com/p/goauth2/oauth"
+	"encoding/json"
 	"encoding/xml"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
@@ -47,6 +50,8 @@ func init() {
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/user/import/xml", mpg.NewHandler(ImportXml)).Name("import-xml")
+	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
+	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
 	http.Handle("/", router)
 
 	miniprofiler.Position = "right"
@@ -80,6 +85,7 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, url("main"), http.StatusFound)
 	}
 }
+
 func ImportXml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	type outline struct {
 		Outline []outline `xml:"outline"`
@@ -104,5 +110,43 @@ func ImportXml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+}
+
+func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, oauth_conf.AuthCodeURL(""), http.StatusFound)
+}
+
+func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	t := &oauth.Transport{
+		Config:    oauth_conf,
+		Transport: &urlfetch.Transport{Context: c},
+	}
+	t.Exchange(r.FormValue("code"))
+	cl := t.Client()
+	resp, err := cl.Get("https://www.google.com/reader/api/0/subscription/list?output=json")
+	if err != nil {
+		serveError(w, err)
+		return
+	}
+	b, _ := ioutil.ReadAll(resp.Body)
+
+	v := struct {
+		Subscriptions []struct {
+			Id string `json:"id"`
+			Title string `json:"title"`
+			HtmlUrl string `json:"htmlUrl"`
+			Sortid string `json:"sortid"`
+			Categories []struct {
+				Id string `json:"id"`
+				Label string `json:"label"`
+			} `json:"categories"`
+		} `json:"subscriptions"`
+	}{}
+	json.Unmarshal(b, &v)
+
+	for _, sub := range v.Subscriptions {
+		// add feed to user
+		_ = sub
 	}
 }

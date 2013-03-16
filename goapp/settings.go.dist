@@ -1,0 +1,34 @@
+package goapp
+
+import (
+	"appengine"
+	"code.google.com/p/goauth2/oauth"
+)
+
+var (
+	GOOGLE_CLIENT_ID     string
+	GOOGLE_CLIENT_SECRET string
+	GOOGLE_REDIRECT      string
+	oauth_conf           *oauth.Config
+)
+
+func init() {
+	if appengine.IsDevAppServer() {
+		GOOGLE_CLIENT_ID = ""
+		GOOGLE_CLIENT_SECRET = ""
+		GOOGLE_REDIRECT = "http://localhost:8080/oauth2callback"
+	} else {
+		GOOGLE_CLIENT_ID = ""
+		GOOGLE_CLIENT_SECRET = ""
+		GOOGLE_REDIRECT = "http://go-read.appspot.com/oauth2callback"
+	}
+
+	oauth_conf = &oauth.Config{
+		ClientId:     GOOGLE_CLIENT_ID,
+		ClientSecret: GOOGLE_CLIENT_SECRET,
+		Scope:        "https://www.google.com/reader/api/",
+		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
+		TokenURL:     "https://accounts.google.com/o/oauth2/token",
+		RedirectURL:  GOOGLE_REDIRECT,
+	}
+}
