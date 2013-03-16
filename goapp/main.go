@@ -285,7 +285,7 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		ts = append(ts, taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
 			"user":   {cu.ID},
 			"label":  label,
-			"feed":   {sub.HtmlUrl},
+			"feed":   {sub.Id[5:]},
 			"title":  {sub.Title},
 			"sortid": {sub.Sortid},
 		}))
