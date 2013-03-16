@@ -22,8 +22,10 @@
 						<b class="caret"></b>
 					</a>
 					<ul class="dropdown-menu">
-						<li><a href="#" ng-click="shown = 'import-xml'">import xml</a></li>
 						<li><a href="{{url "import-reader"}}">import google reader</a></li>
+						<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
+						<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
+						<li><a id="refresh" href="#" ng-click="refresh()" data-url="{{url "list-feeds"}}">refresh</a></li>
 						<li class="divider"></li>
 						<li><a href="{{ url "logout" }}">logout</a></li>
 					</ul>
@@ -42,13 +44,33 @@
 	</div>
 	<div class="container" class="ng-cloak">
 		<div class="row">
-			<div class="span8" ng-show="shown == 'import-xml'">
-				<form id="import-xml-form" enctype="multipart/form-data" method="POST" action="{{ url "import-xml" }}">
+		{{if .User}}
+			<div class="span6">
+				<h3>Feeds:</h3>
+				<ul>
+					<li ng-repeat="f in feeds" ng-bind="f.Url"></li>
+				</ul>
+			</div>
+		{{end}}
+
+			<div class="span6" ng-show="shown == 'import-opml'">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{ url "import-opml" }}">
 					<fieldset>
-						<label>Reader XML file:
+						<label>Reader OPML file:
 							<input type="file" name="file">
 						<label>
-						<button ng-click="importXml()" type="submit" class="btn">import</button>
+						<button ng-click="importOpml()" type="submit" class="btn">import</button>
+					</fieldset>
+				</form>
+			</div>
+
+			<div class="span6" ng-show="shown == 'add-subscription'">
+				<form id="add-subscription-form" method="POST" action="{{ url "add-subscription" }}">
+					<fieldset>
+						<label>RSS URL
+							<input type="text" name="url">
+						</label>
+						<button ng-click="addSubscription()" type="submit" class="btn">add</button>
 					</fieldset>
 				</form>
 			</div>

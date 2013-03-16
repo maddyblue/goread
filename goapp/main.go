@@ -17,12 +17,16 @@
 package goapp
 
 import (
+	"appengine/datastore"
+	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"appengine/user"
 	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/iand/feedparser"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -30,6 +34,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -49,9 +54,12 @@ func init() {
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
-	router.Handle("/user/import/xml", mpg.NewHandler(ImportXml)).Name("import-xml")
-	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
 	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
+	router.Handle("/tasks/add-feed", mpg.NewHandler(AddFeed)).Name("add-feed")
+	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
+	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
+	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
+	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = false
@@ -85,17 +93,36 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ImportXml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	type outline struct {
 		Outline []outline `xml:"outline"`
 		Title   string    `xml:"title,attr"`
-		Type    string    `xml:"type,attr"`
 		XmlUrl  string    `xml:"xmlUrl,attr"`
-		HtmlUrl string    `xml:"htmlUrl,attr"`
 	}
 
 	type Body struct {
 		Outline []outline `xml:"outline"`
+	}
+
+	user := user.Current(c)
+
+	var ts []*taskqueue.Task
+	var proc func(label string, outlines []outline)
+	proc = func(label string, outlines []outline) {
+		for _, o := range outlines {
+			if o.XmlUrl != "" {
+				ts = append(ts, taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
+					"user":  {user.ID},
+					"label": {label},
+					"feed":  {o.XmlUrl},
+					"title": {o.Title},
+				}))
+			}
+
+			if o.Title != "" && len(o.Outline) > 0 {
+				proc(o.Title, o.Outline)
+			}
+		}
 	}
 
 	if file, _, err := r.FormFile("file"); err == nil {
@@ -108,7 +135,104 @@ func ImportXml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			if err = xml.Unmarshal([]byte(fs), &feed); err != nil {
 				return
 			}
+			proc("", feed.Outline)
+			taskqueue.AddMulti(c, ts, "")
 		}
+	}
+}
+
+func AddFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	err := addFeed(c, r.FormValue("user"), r.FormValue("feed"), r.FormValue("title"), r.FormValue("label"), r.FormValue("sortid"))
+	if err != nil {
+		fmt.Println("add feed error", err.Error())
+	}
+}
+
+func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
+	fmt.Println("ADDING FEED", url)
+	gn := goon.FromContext(c)
+
+	u := User{}
+	ue, _ := gn.GetById(&u, userid, 0, nil)
+	if ue.NotFound {
+		return nil
+	}
+
+	f := Feed{}
+	fe, _ := gn.GetById(&f, url, 0, nil)
+	if fe.NotFound {
+		cl := urlfetch.Client(c)
+		if r, err := cl.Get(url); err != nil {
+			return err
+		} else if r.StatusCode == http.StatusOK {
+			if feed, err := feedparser.NewFeed(r.Body); err != nil {
+				return err
+			} else {
+				f.Title = feed.Title
+				f.Link = feed.Link
+				gn.Put(fe)
+			}
+		}
+	}
+
+	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
+		ud := UserData{}
+		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
+		var fg Feeds
+
+		if len(ud.Feeds) > 0 {
+			if json.Unmarshal(ud.Feeds, &fg) != nil {
+				return nil
+			}
+		}
+
+		found := false
+		for _, fd := range fg {
+			if fd.Url == url {
+				found = true
+				break
+			}
+		}
+		if !found {
+			fg = append(fg, &UserFeed{
+				Url:    url,
+				Title:  title,
+				Label:  label,
+				Sortid: sortid,
+			})
+			b, _ := json.Marshal(fg)
+			ud.Feeds = b
+			gn.Put(ude)
+		}
+
+		fi := FeedIndex{}
+		fie, _ := gn.GetById(&fi, "index", 0, fe.Key)
+		found = false
+		for _, fu := range fi.Users {
+			if fu == userid {
+				found = true
+				break
+			}
+		}
+		if !found {
+			fi.Users = append(fi.Users, userid)
+			gn.Put(fie)
+		}
+
+		return nil
+	}, &datastore.TransactionOptions{XG: true}); err != nil {
+		fmt.Println("trans error", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	u := user.Current(c)
+	err := addFeed(c, u.ID, r.FormValue("url"), "", "", "")
+	if err != nil {
+		fmt.Println("add sub error:", err.Error())
 	}
 }
 
@@ -117,6 +241,14 @@ func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{}
+	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
+	if ue.NotFound {
+		return
+	}
+
 	t := &oauth.Transport{
 		Config:    oauth_conf,
 		Transport: &urlfetch.Transport{Context: c},
@@ -132,20 +264,41 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	v := struct {
 		Subscriptions []struct {
-			Id string `json:"id"`
-			Title string `json:"title"`
-			HtmlUrl string `json:"htmlUrl"`
-			Sortid string `json:"sortid"`
+			Id         string `json:"id"`
+			Title      string `json:"title"`
+			HtmlUrl    string `json:"htmlUrl"`
+			Sortid     string `json:"sortid"`
 			Categories []struct {
-				Id string `json:"id"`
+				Id    string `json:"id"`
 				Label string `json:"label"`
 			} `json:"categories"`
 		} `json:"subscriptions"`
 	}{}
 	json.Unmarshal(b, &v)
 
+	var ts []*taskqueue.Task
 	for _, sub := range v.Subscriptions {
-		// add feed to user
-		_ = sub
+		var label []string
+		if len(sub.Categories) > 0 {
+			label = append(label, sub.Categories[0].Label)
+		}
+		ts = append(ts, taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
+			"user":   {cu.ID},
+			"label":  label,
+			"feed":   {sub.HtmlUrl},
+			"title":  {sub.Title},
+			"sortid": {sub.Sortid},
+		}))
 	}
+	taskqueue.AddMulti(c, ts, "")
+
+	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+}
+
+func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	ud := UserData{}
+	gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+	w.Write(ud.Feeds)
 }

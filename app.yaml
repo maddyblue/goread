@@ -15,5 +15,9 @@ handlers:
   login: required
   script: _go_app
 
+- url: /task/.*
+  login: admin
+  script: _go_app
+
 - url: /.*
   script: _go_app

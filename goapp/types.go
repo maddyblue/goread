@@ -30,6 +30,20 @@ func (u *User) String() string {
 	return u.Email
 }
 
+// parent: User, key: "data"
+type UserData struct {
+	Feeds []byte `datastore:"f,noindex"`
+}
+
+type UserFeed struct {
+	Url    string
+	Title  string
+	Label  string
+	Sortid string
+}
+
+type Feeds []*UserFeed
+
 // key: URL
 type Feed struct {
 	Title   string    `datastore:"t,noindex"`
@@ -37,8 +51,9 @@ type Feed struct {
 	Link    string    `datastore:"l,noindex"`
 }
 
+// parent: Feed, key: "index"
 type FeedIndex struct {
-	Users []*datastore.Key `datastore:"u"`
+	Users []string `datastore:"u"`
 }
 
 type Story struct {
