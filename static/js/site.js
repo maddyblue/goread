@@ -1,8 +1,6 @@
 $('.dropdown-toggle').dropdown();
 
 function GoreadCtrl($scope, $http) {
-	$scope.shown = 'add-subscription';
-
 	$scope.importOpml = function() {
 		$('#import-opml-form').ajaxForm(function() {
 		});

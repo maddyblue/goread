@@ -3,16 +3,17 @@
 <head>
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
 	<style>
-		[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+		.ng-cloak {
 			display: none;
 		}
 	</style>
 </head>
-<body ng-controller="GoreadCtrl">
+<body ng-controller="GoreadCtrl" class="ng-cloak">
 	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
 			<a class="brand" href="{{ url "main" }}">go read</a>
 			<ul class="nav">
+				<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
 			</ul>
 			<ul class="nav pull-right">
 				<li class="dropdown">
@@ -42,7 +43,7 @@
 			</ul>
 		</div>
 	</div>
-	<div class="container" class="ng-cloak">
+	<div class="container">
 		<div class="row">
 		{{if .User}}
 			<div class="span6">
@@ -51,7 +52,28 @@
 					<li ng-repeat="f in feeds" ng-bind="f.Title || f.Url"></li>
 				</ul>
 			</div>
+		{{else}}
+			<div class="offset1 span10" ng-hide="shown">
+				<div class="hero-unit">
+					<h1>Hi, RSS user</h1>
+					<p>Go Read is a web-based RSS reader.</p>
+					<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
+					<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up with google</a></p>
+				</div>
+			</div>
 		{{end}}
+
+			<div class="span6" ng-show="shown == 'about'">
+				<h1>About</h1>
+				<p>Go Read is a web-based RSS reader.</p>
+				<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
+				<p>
+					Built by <a href="http://mattjibson.com">Matt Jibson</a>.
+					Runs on <a href="https://developers.google.com/appengine/">Google App Engine</a>.
+					Powered by <a href="http://golang.org/">Go</a> and <a href="http://angularjs.org/">AngularJS</a>.
+					Code on <a href="https://github.com/mjibson/goread">GitHub</a>.
+				</p>
+			</div>
 
 			<div class="span6" ng-show="shown == 'import-opml'">
 				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{ url "import-opml" }}">
