@@ -19,7 +19,6 @@ package goapp
 import (
 	"appengine/user"
 	"encoding/xml"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
