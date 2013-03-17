@@ -150,7 +150,7 @@ func AddFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
+func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error {
 	gn := goon.FromContext(c)
 
 	u := User{}
@@ -160,16 +160,18 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 	}
 
 	f := Feed{}
-	fe, _ := gn.GetById(&f, url, 0, nil)
+	updateFeed := false
+	fe, _ := gn.GetById(&f, feedurl, 0, nil)
 	if fe.NotFound {
 		cl := urlfetch.Client(c)
-		if r, err := cl.Get(url); err != nil {
+		if r, err := cl.Get(feedurl); err != nil {
 			return err
 		} else if r.StatusCode == http.StatusOK {
 			b, _ := ioutil.ReadAll(r.Body)
 			if feed, _ := ParseFeed(b); feed != nil {
 				f = *feed
 				gn.Put(fe)
+				updateFeed = true
 			} else {
 				return errors.New("Could not parse feed")
 			}
@@ -193,14 +195,14 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 
 		found := false
 		for _, fd := range fg {
-			if fd.Url == url {
+			if fd.Url == feedurl {
 				found = true
 				break
 			}
 		}
 		if !found {
 			fg = append(fg, &UserFeed{
-				Url:    url,
+				Url:    feedurl,
 				Title:  title,
 				Label:  label,
 				Sortid: sortid,
@@ -227,6 +229,13 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 		return nil
 	}, &datastore.TransactionOptions{XG: true}); err != nil {
 		return err
+	}
+
+	if updateFeed {
+		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+			"feed": {feedurl},
+		})
+		taskqueue.Add(c, t, "")
 	}
 
 	return nil
