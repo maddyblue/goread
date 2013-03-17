@@ -138,6 +138,40 @@ func ParseFeed(b []byte) (*Feed, []*Story) {
 
 	r := rssgo.Rss{}
 	if err := xml.Unmarshal(b, &r); err == nil {
+		f.Title = r.Title
+		f.Link = r.Link
+
+		for _, i := range r.Items {
+			st := Story{}
+			if i.Title != "" {
+				st.Title = i.Title
+				if i.Description != "" {
+					st.Summary = i.Description
+				}
+			} else if i.Description != "" {
+				i.Title = i.Description
+			} else {
+				// either title or description is required
+				return nil, nil
+			}
+			if i.Link != "" {
+				st.Link = i.Link
+			}
+			if i.Author != "" {
+				st.Author = i.Author
+			}
+			if i.Content != "" {
+				st.Content = i.Content
+			}
+			if i.Guid != nil {
+				st.Id = i.Guid.Guid
+			} else {
+				st.Id = i.Title
+			}
+			s = append(s, &st)
+		}
+
+		return &f, s
 	}
 
 	return nil, nil
