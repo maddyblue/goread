@@ -24,9 +24,8 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/iand/feedparser"
+	"github.com/mjibson/feedparser"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -36,6 +35,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 var router = new(mux.Router)
@@ -56,6 +56,8 @@ func init() {
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
 	router.Handle("/tasks/add-feed", mpg.NewHandler(AddFeed)).Name("add-feed")
+	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
+	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
@@ -142,14 +144,12 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func AddFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	err := addFeed(c, r.FormValue("user"), r.FormValue("feed"), r.FormValue("title"), r.FormValue("label"), r.FormValue("sortid"))
-	if err != nil {
-		fmt.Println("add feed error", err.Error())
+	if err := addFeed(c, r.FormValue("user"), r.FormValue("feed"), r.FormValue("title"), r.FormValue("label"), r.FormValue("sortid")); err != nil {
+		serveError(w, err)
 	}
 }
 
 func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
-	fmt.Println("ADDING FEED", url)
 	gn := goon.FromContext(c)
 
 	u := User{}
@@ -225,7 +225,6 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 
 		return nil
 	}, &datastore.TransactionOptions{XG: true}); err != nil {
-		fmt.Println("trans error", err.Error())
 		return err
 	}
 
@@ -234,9 +233,8 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 
 func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := user.Current(c)
-	err := addFeed(c, u.ID, r.FormValue("url"), "", "", "")
-	if err != nil {
-		fmt.Println("add sub error:", err.Error())
+	if err := addFeed(c, u.ID, r.FormValue("url"), "", "", ""); err != nil {
+		serveError(w, err)
 	}
 }
 
@@ -305,4 +303,69 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{}
 	gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
 	w.Write(ud.Feeds)
+}
+
+func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
+	//q = q.Filter("u <=", time.Now().Add(-time.Hour))
+	es, _ := gn.GetAll(q, nil)
+	ts := make([]*taskqueue.Task, len(es))
+	for i, e := range es {
+		ts[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+			"feed": {e.Key.StringID()},
+		})
+	}
+	taskqueue.AddMulti(c, ts[:1], "")
+}
+
+func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	url := r.FormValue("feed")
+	f := Feed{}
+	fe, _ := gn.GetById(&f, url, 0, nil)
+	if fe.NotFound {
+		return
+	}
+	cl := urlfetch.Client(c)
+	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
+		if feed, err := feedparser.NewFeed(resp.Body); err == nil {
+			f.Updated = time.Now()
+			f.Title = feed.Title
+			f.Link = feed.Link
+
+			stories := make([]*goon.Entity, len(feed.Items))
+			sis := make([]StoryIndex, len(feed.Items))
+			sies := make([]*goon.Entity, len(feed.Items))
+			for i, item := range feed.Items {
+				s := Story{
+					Date:    item.When,
+					Title:   item.Title,
+					Content: item.Description,
+					Link:    item.Link,
+				}
+				stories[i], _ = gn.NewEntityById(item.Id, 0, fe.Key, &s)
+				sies[i], _ = gn.NewEntityById("index", 0, stories[i].Key, &sis[i])
+			}
+			gn.Put(fe)
+			gn.PutMulti(stories)
+
+			fi := FeedIndex{}
+
+			gn.RunInTransaction(func(gn *goon.Goon) error {
+				gn.GetById(&fi, "index", 0, fe.Key)
+				gn.GetMulti(sies)
+
+				var puts []*goon.Entity
+				for i, sie := range sies {
+					if sie.NotFound {
+						sis[i].Users = fi.Users
+						puts = append(puts, sie)
+					}
+				}
+				gn.PutMulti(puts)
+				return nil
+			}, nil)
+		}
+	}
 }

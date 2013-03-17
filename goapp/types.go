@@ -17,7 +17,6 @@
 package goapp
 
 import (
-	"appengine/datastore"
 	"time"
 )
 
@@ -56,15 +55,16 @@ type FeedIndex struct {
 	Users []string `datastore:"u"`
 }
 
+// parent: Feed, key: story ID
 type Story struct {
 	Date    time.Time `datastore:"d,noindex"`
-	Text    string    `datastore:"t,noindex"`
+	Title   string    `datastore:"t,noindex"`
 	Author  string    `datastore:"a,noindex"`
 	Content string    `datastore:"i,noindex"`
-	Summary string    `datastore:"s,noindex"`
 	Link    string    `datastore:"l,noindex"`
 }
 
+// parent: Story, key: "index"
 type StoryIndex struct {
-	Users []*datastore.Key `datastore:"u"`
+	Users []string `datastore:"u"`
 }
