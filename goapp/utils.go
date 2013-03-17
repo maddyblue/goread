@@ -99,9 +99,7 @@ func ParseAtomDate(d atom.TimeStr) time.Time {
 }
 
 func ParseFeed(b []byte) (*Feed, []*Story) {
-	f := Feed{
-		Updated: time.Now(),
-	}
+	f := Feed{}
 	var s []*Story
 
 	a := atom.Feed{}

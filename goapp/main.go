@@ -333,6 +333,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		b, _ := ioutil.ReadAll(resp.Body)
 		if feed, stories := ParseFeed(b); feed != nil {
 			f = *feed
+			f.Updated = time.Now()
 			ses := make([]*goon.Entity, len(stories))
 			sis := make([]StoryIndex, len(stories))
 			sies := make([]*goon.Entity, len(stories))
