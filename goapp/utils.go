@@ -166,6 +166,13 @@ func ParseFeed(b []byte) (*Feed, []*Story) {
 			} else {
 				st.Id = i.Title
 			}
+			var t time.Time
+			if t, err = rssgo.ParseRssDate(i.PubDate); err != nil {
+				t = time.Now()
+			}
+			st.Published = t
+			st.Updated = t
+
 			s = append(s, &st)
 		}
 
