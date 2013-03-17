@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
@@ -344,7 +343,6 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 			gn.Put(fe)
 			gn.PutMulti(ses)
-			fmt.Println("PUT stories", len(ses), ses)
 
 			fi := FeedIndex{}
 
