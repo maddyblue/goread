@@ -27,7 +27,7 @@
 						<li><a href="{{url "import-reader"}}">import google reader</a></li>
 						<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
 						<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
-						<li><a id="refresh" href="#" ng-click="refresh()" data-url="{{url "list-feeds"}}">refresh</a></li>
+						<li><a id="refresh" href="#" ng-click="refresh()" data-url-feeds="{{url "list-feeds"}}" data-url-unread="{{url "unread"}}">refresh</a></li>
 						<li class="divider"></li>
 						<li><a href="{{ url "logout" }}">logout</a></li>
 					</ul>
@@ -51,6 +51,14 @@
 				<h3>Feeds:</h3>
 				<ul>
 					<li ng-repeat="f in feeds" ng-bind="f.Title || f.Url"></li>
+				</ul>
+			</div>
+			<div class="span6">
+				<h3>Stories</h3>
+				<ul>
+					<li ng-repeat="s in stories | orderBy:'-Updated'">
+						<a ng-href="{{`{{s.Link}}`}}" ng-bind="s.Title"></a>
+					</li>
 				</ul>
 			</div>
 		{{else}}

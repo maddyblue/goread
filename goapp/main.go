@@ -63,6 +63,7 @@ func init() {
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
+	router.Handle("/user/unread", mpg.NewHandler(Unread)).Name("unread")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = false
@@ -363,4 +364,19 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}, nil)
 		}
 	}
+}
+
+func Unread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	q := datastore.NewQuery(goon.Kind(&StoryIndex{})).KeysOnly()
+	q = q.Filter("u =", cu.ID)
+	es, _ := gn.GetAll(q, nil)
+	stories := make([]Story, len(es))
+	for i, e := range es {
+		es[i] = goon.NewEntity(e.Key.Parent(), &stories[i])
+	}
+	gn.GetMulti(es)
+	b, _ := json.Marshal(stories)
+	w.Write(b)
 }

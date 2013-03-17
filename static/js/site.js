@@ -13,10 +13,13 @@ function GoreadCtrl($scope, $http) {
 	};
 
 	$scope.refresh = function() {
-		var url = $('#refresh').attr('data-url');
-		$http.get(url)
+		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.feeds = data;
+			});
+		$http.get($('#refresh').attr('data-url-unread'))
+			.success(function(data) {
+				$scope.stories = data;
 			});
 	};
 
