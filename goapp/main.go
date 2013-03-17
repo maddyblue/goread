@@ -175,6 +175,10 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 		}
 	}
 
+	if title == "" && f.Title != "" {
+		title = f.Title
+	}
+
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		ud := UserData{}
 		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
