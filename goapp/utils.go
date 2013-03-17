@@ -19,11 +19,15 @@ package goapp
 import (
 	"appengine"
 	"appengine/user"
+	"code.google.com/p/rsc/blog/atom"
+	"encoding/xml"
 	"fmt"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
+	"github.com/mjibson/rssgo"
 	"html/template"
 	"net/http"
+	"time"
 )
 
 func serveError(w http.ResponseWriter, err error) {
@@ -82,4 +86,59 @@ func includes(c mpg.Context) *Includes {
 	}
 
 	return i
+}
+
+const atomDateFormat = "2006-01-02T15:04:05-07:00"
+
+func ParseAtomDate(d atom.TimeStr) time.Time {
+	t, err := time.Parse(atomDateFormat, string(d))
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
+func ParseFeed(b []byte) (*Feed, []*Story) {
+	f := Feed{
+		Updated: time.Now(),
+	}
+	var s []*Story
+
+	a := atom.Feed{}
+	if err := xml.Unmarshal(b, &a); err == nil {
+		f.Title = a.Title
+		if len(a.Link) > 0 {
+			f.Link = a.Link[0].Href
+		}
+
+		for _, i := range a.Entry {
+			st := Story{
+				Id:        i.ID,
+				Title:     i.Title,
+				Published: ParseAtomDate(i.Published),
+				Updated:   ParseAtomDate(i.Updated),
+			}
+			if len(i.Link) > 0 {
+				st.Link = i.Link[0].Href
+			}
+			if i.Author != nil {
+				st.Author = i.Author.Name
+			}
+			if i.Summary != nil {
+				st.Summary = i.Summary.Body
+			}
+			if i.Content != nil {
+				st.Content = i.Content.Body
+			}
+			s = append(s, &st)
+		}
+
+		return &f, s
+	}
+
+	r := rssgo.Rss{}
+	if err := xml.Unmarshal(b, &r); err == nil {
+	}
+
+	return nil, nil
 }

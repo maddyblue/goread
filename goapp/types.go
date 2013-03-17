@@ -57,11 +57,14 @@ type FeedIndex struct {
 
 // parent: Feed, key: story ID
 type Story struct {
-	Date    time.Time `datastore:"d,noindex"`
-	Title   string    `datastore:"t,noindex"`
-	Author  string    `datastore:"a,noindex"`
-	Content string    `datastore:"i,noindex"`
-	Link    string    `datastore:"l,noindex"`
+	Id        string    `datastore:"-"`
+	Title     string    `datastore:"t,noindex"`
+	Link      string    `datastore:"l,noindex"`
+	Published time.Time `datastore:"d,noindex"`
+	Updated   time.Time `datastore:"u,noindex"`
+	Author    string    `datastore:"a,noindex"`
+	Summary   string    `datastore:"i,noindex"`
+	Content   string    `datastore:"c,noindex"`
 }
 
 // parent: Story, key: "index"

@@ -24,10 +24,11 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/feedparser"
 	"github.com/mjibson/goon"
 	"html/template"
 	"io/ioutil"
@@ -165,12 +166,12 @@ func addFeed(c mpg.Context, userid, url, title, label, sortid string) error {
 		if r, err := cl.Get(url); err != nil {
 			return err
 		} else if r.StatusCode == http.StatusOK {
-			if feed, err := feedparser.NewFeed(r.Body); err != nil {
-				return err
-			} else {
-				f.Title = feed.Title
-				f.Link = feed.Link
+			b, _ := ioutil.ReadAll(r.Body)
+			if feed, _ := ParseFeed(b); feed != nil {
+				f = *feed
 				gn.Put(fe)
+			} else {
+				return errors.New("Could not parse feed")
 			}
 		}
 	}
@@ -308,7 +309,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
-	//q = q.Filter("u <=", time.Now().Add(-time.Hour))
+	q = q.Filter("u <=", time.Now().Add(-time.Hour))
 	es, _ := gn.GetAll(q, nil)
 	ts := make([]*taskqueue.Task, len(es))
 	for i, e := range es {
@@ -316,7 +317,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			"feed": {e.Key.StringID()},
 		})
 	}
-	taskqueue.AddMulti(c, ts[:1], "")
+	taskqueue.AddMulti(c, ts, "")
 }
 
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -329,26 +330,19 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	cl := urlfetch.Client(c)
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
-		if feed, err := feedparser.NewFeed(resp.Body); err == nil {
-			f.Updated = time.Now()
-			f.Title = feed.Title
-			f.Link = feed.Link
-
-			stories := make([]*goon.Entity, len(feed.Items))
-			sis := make([]StoryIndex, len(feed.Items))
-			sies := make([]*goon.Entity, len(feed.Items))
-			for i, item := range feed.Items {
-				s := Story{
-					Date:    item.When,
-					Title:   item.Title,
-					Content: item.Description,
-					Link:    item.Link,
-				}
-				stories[i], _ = gn.NewEntityById(item.Id, 0, fe.Key, &s)
-				sies[i], _ = gn.NewEntityById("index", 0, stories[i].Key, &sis[i])
+		b, _ := ioutil.ReadAll(resp.Body)
+		if feed, stories := ParseFeed(b); feed != nil {
+			f = *feed
+			ses := make([]*goon.Entity, len(stories))
+			sis := make([]StoryIndex, len(stories))
+			sies := make([]*goon.Entity, len(stories))
+			for i, s := range stories {
+				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+				sies[i], _ = gn.NewEntityById("index", 0, ses[i].Key, &sis[i])
 			}
 			gn.Put(fe)
-			gn.PutMulti(stories)
+			gn.PutMulti(ses)
+			fmt.Println("PUT stories", len(ses), ses)
 
 			fi := FeedIndex{}
 
