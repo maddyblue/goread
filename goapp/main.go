@@ -204,6 +204,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 			fg = append(fg, &UserFeed{
 				Url:    feedurl,
 				Title:  title,
+				Link:   f.Link,
 				Label:  label,
 				Sortid: sortid,
 			})
