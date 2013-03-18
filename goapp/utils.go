@@ -105,8 +105,11 @@ func ParseFeed(b []byte) (*Feed, []*Story) {
 	a := atom.Feed{}
 	if err := xml.Unmarshal(b, &a); err == nil {
 		f.Title = a.Title
-		if len(a.Link) > 0 {
-			f.Link = a.Link[0].Href
+		for _, l := range a.Link {
+			if l.Rel != "self" {
+				f.Link = l.Href
+				break
+			}
 		}
 
 		for _, i := range a.Entry {
