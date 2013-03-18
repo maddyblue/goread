@@ -7,6 +7,13 @@
 		.ng-cloak {
 			display: none;
 		}
+		.hand {
+			cursor: hand;
+			cursor: pointer;
+		}
+		.story-title {
+			margin: 0;
+		}
 	</style>
 	<link rel="shortcut icon" href="/static/favicon.png">
 </head>
@@ -86,10 +93,20 @@
 		</div>
 		{{if .User}}
 			<div ng-repeat="s in stories | orderBy:'-Updated'" class="row-fluid">
-				<div class="span2" ng-bind="s.feed.Title"></div>
-				<div class="span8" ng-bind="s.Title"></div>
+				<div class="span2 hand" ng-click="setCurrent(s)" ng-bind="s.feed.Title"></div>
+				<div class="span8" ng-click="setCurrent(s)">
+					<span class="hand" ng-bind="s.Title"></span>
+					<div ng-show="s == currentStory">
+						<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+						<p><small>
+							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title"></a>
+							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+						</small></p>
+						<p ng-bind-html-unsafe="s.Content"></p>
+					</div>
+				</div>
 				<div class="span2 text-right">
-					{{`{{s.dispdate}}`}}
+					<span class="hand" ng-click="setCurrent(s)" ng-bind="s.dispdate"></span>
 					<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 				</div>
 			</div>

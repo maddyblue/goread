@@ -32,5 +32,9 @@ function GoreadCtrl($scope, $http) {
 			});
 	};
 
+	$scope.setCurrent = function(s) {
+		$scope.currentStory = s;
+	};
+
 	$scope.refresh();
 }
