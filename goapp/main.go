@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
@@ -62,7 +63,6 @@ func init() {
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
-	router.Handle("/user/unread", mpg.NewHandler(Unread)).Name("unread")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = false
@@ -307,14 +307,6 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
-func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	cu := user.Current(c)
-	gn := goon.FromContext(c)
-	ud := UserData{}
-	gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
-	w.Write(ud.Feeds)
-}
-
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
@@ -347,7 +339,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			sis := make([]StoryIndex, len(stories))
 			sies := make([]*goon.Entity, len(stories))
 			for i, s := range stories {
-				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+				ses[i], _ = gn.NewEntityById(s.id, 0, fe.Key, s)
 				sies[i], _ = gn.NewEntityById("index", 0, ses[i].Key, &sis[i])
 			}
 			gn.Put(fe)
@@ -373,9 +365,12 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Unread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
+	ud := UserData{}
+	gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+
 	q := datastore.NewQuery(goon.Kind(&StoryIndex{})).KeysOnly()
 	q = q.Filter("u =", cu.ID)
 	es, _ := gn.GetAll(q, nil)
@@ -384,6 +379,26 @@ func Unread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		es[i] = goon.NewEntity(e.Key.Parent(), &stories[i])
 	}
 	gn.GetMulti(es)
-	b, _ := json.Marshal(stories)
+
+	fl := make(FeedList)
+
+	var uf Feeds
+	json.Unmarshal(ud.Feeds, &uf)
+	for _, f := range uf {
+		fl[f.Url] = &FeedData{
+			Feed: f,
+		}
+	}
+
+	for i, se := range es {
+		k := se.Key.Parent().StringID()
+		if _, present := fl[k]; !present {
+			fmt.Println("not present", k)
+			continue
+		}
+		fl[k].Stories = append(fl[k].Stories, &stories[i])
+	}
+
+	b, _ := json.Marshal(fl)
 	w.Write(b)
 }

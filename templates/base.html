@@ -13,65 +13,42 @@
 <body ng-controller="GoreadCtrl" class="ng-cloak">
 	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
-			<a class="brand" href="{{ url "main" }}">go read</a>
-			<ul class="nav">
-				<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
-			</ul>
-			<ul class="nav pull-right">
-				<li class="dropdown">
-				{{if .User}}
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-						{{.User}}
-						<b class="caret"></b>
-					</a>
-					<ul class="dropdown-menu">
-						<li><a href="{{url "import-reader"}}">import google reader</a></li>
-						<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
-						<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
-						<li><a id="refresh" href="#" ng-click="refresh()" data-url-feeds="{{url "list-feeds"}}" data-url-unread="{{url "unread"}}">refresh</a></li>
-						<li class="divider"></li>
-						<li><a href="{{ url "logout" }}">logout</a></li>
-					</ul>
-				{{else}}
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-						log in / sign up
-						<b class="caret"></b>
-					</a>
-					<ul class="dropdown-menu">
-						<li><a href="{{ url "login-google" }}">with google</a></li>
-					</ul>
-				{{end}}
-				</li>
-			</ul>
-		</div>
-	</div>
-	<div class="container">
-		<div class="row">
-		{{if .User}}
-			<div class="span6">
-				<h3>Feeds:</h3>
-				<ul>
-					<li ng-repeat="f in feeds" ng-bind="f.Title || f.Url"></li>
+			<div class="container-fluid">
+				<a class="brand" href="{{url "main"}}">go read</a>
+				<ul class="nav">
+					<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
 				</ul>
-			</div>
-			<div class="span6">
-				<h3>Stories</h3>
-				<ul>
-					<li ng-repeat="s in stories | orderBy:'-Updated'">
-						<a ng-href="{{`{{s.Link}}`}}" ng-bind="s.Title"></a>
+				<ul class="nav pull-right">
+					<li class="dropdown">
+					{{if .User}}
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							{{.User}}
+							<b class="caret"></b>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a href="{{url "import-reader"}}">import google reader</a></li>
+							<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
+							<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
+							<li><a id="refresh" href="#" ng-click="refresh()" data-url-feeds="{{url "list-feeds"}}">refresh</a></li>
+							<li class="divider"></li>
+							<li><a href="{{url "logout"}}">logout</a></li>
+						</ul>
+					{{else}}
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							log in / sign up
+							<b class="caret"></b>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a href="{{url "login-google"}}">with google</a></li>
+						</ul>
+					{{end}}
 					</li>
 				</ul>
 			</div>
-		{{else}}
-			<div class="offset1 span10" ng-hide="shown">
-				<div class="hero-unit">
-					<h1>Hi, RSS user</h1>
-					<p>Go Read is a web-based RSS reader.</p>
-					<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
-					<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up with google</a></p>
-				</div>
-			</div>
-		{{end}}
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="row-fluid">
 
 			<div class="span6" ng-show="shown == 'about'">
 				<h1>About</h1>
@@ -86,7 +63,7 @@
 			</div>
 
 			<div class="span6" ng-show="shown == 'import-opml'">
-				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{ url "import-opml" }}">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
 					<fieldset>
 						<label>Reader OPML file:
 							<input type="file" name="file">
@@ -97,7 +74,7 @@
 			</div>
 
 			<div class="span6" ng-show="shown == 'add-subscription'">
-				<form id="add-subscription-form" method="POST" action="{{ url "add-subscription" }}">
+				<form id="add-subscription-form" method="POST" action="{{url "add-subscription"}}">
 					<fieldset>
 						<label>RSS URL
 							<input type="text" name="url">
@@ -106,6 +83,28 @@
 					</fieldset>
 				</form>
 			</div>
+		</div>
+		{{if .User}}
+			<div ng-repeat="s in stories | orderBy:'-Updated'" class="row-fluid">
+				<div class="span2" ng-bind="s.feed.Title"></div>
+				<div class="span8" ng-bind="s.Title"></div>
+				<div class="span2 text-right">
+					{{`{{s.dispdate}}`}}
+					<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
+				</div>
+			</div>
+		{{else}}
+			<div class="row-fluid">
+				<div class="offset1 span10" ng-hide="shown">
+					<div class="hero-unit">
+						<h1>Hi, RSS user</h1>
+						<p>Go Read is a web-based RSS reader.</p>
+						<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
+						<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up with google</a></p>
+					</div>
+				</div>
+			</div>
+		{{end}}
 		</div>
 	</div>
 
