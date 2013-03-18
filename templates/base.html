@@ -11,6 +11,9 @@
 			cursor: hand;
 			cursor: pointer;
 		}
+		.story {
+			border-bottom: 1px solid black;
+		}
 		.story-title {
 			margin: 0;
 		}
@@ -92,7 +95,7 @@
 			</div>
 		</div>
 		{{if .User}}
-			<div ng-repeat="s in stories | orderBy:'-Updated'" class="row-fluid">
+			<div ng-repeat="s in stories | orderBy:'-Updated'" class="row-fluid story">
 				<div class="span2 hand" ng-click="setCurrent(s)" ng-bind="s.feed.Title"></div>
 				<div class="span8" ng-click="setCurrent(s)">
 					<span class="hand" ng-bind="s.Title"></span>
