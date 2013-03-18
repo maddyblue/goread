@@ -20,6 +20,8 @@ function GoreadCtrl($scope, $http) {
 				$scope.storyfeeds = {};
 				for(var p in $scope.feeds) {
 					var f = $scope.feeds[p];
+					if (!f.Stories)
+						continue;
 					for(var i = 0; i < f.Stories.length; i++) {
 						f.Stories[i].feed = f.Feed;
 						var d = new Date(f.Stories[i].Date * 1000);
