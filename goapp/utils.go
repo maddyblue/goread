@@ -19,6 +19,7 @@ package goapp
 import (
 	"appengine"
 	"appengine/user"
+	"bytes"
 	"code.google.com/p/rsc/blog/atom"
 	"encoding/xml"
 	"fmt"
@@ -139,7 +140,9 @@ func ParseFeed(b []byte) (*Feed, []*Story) {
 	}
 
 	r := rssgo.Rss{}
-	if err := xml.Unmarshal(b, &r); err == nil {
+	d := xml.NewDecoder(bytes.NewReader(b))
+	d.CharsetReader = CharsetReader
+	if err := d.Decode(&r); err == nil {
 		f.Title = r.Title
 		f.Link = r.Link
 
