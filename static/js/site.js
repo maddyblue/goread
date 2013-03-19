@@ -17,7 +17,6 @@ function GoreadCtrl($scope, $http) {
 			.success(function(data) {
 				$scope.feeds = data;
 				$scope.stories = [];
-				$scope.storyfeeds = {};
 				for(var p in $scope.feeds) {
 					var f = $scope.feeds[p];
 					if (!f.Stories)
