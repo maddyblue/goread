@@ -308,10 +308,11 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
+const UpdateTime = time.Hour
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
-	q = q.Filter("u <=", time.Now().Add(-time.Hour))
+	q = q.Filter("u <=", time.Now().Add(-UpdateTime))
 	es, _ := gn.GetAll(q, nil)
 	ts := make([]*taskqueue.Task, len(es))
 	for i, e := range es {
@@ -328,6 +329,9 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f := Feed{}
 	fe, _ := gn.GetById(&f, url, 0, nil)
 	if fe.NotFound {
+		return
+	} else if time.Now().Sub(f.Updated) < UpdateTime {
+		c.Infof("already updated %s", url)
 		return
 	}
 	cl := urlfetch.Client(c)
