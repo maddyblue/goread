@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
@@ -152,10 +151,12 @@ func AddFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error {
 	gn := goon.FromContext(c)
+	c.Infof("adding feed %s to user %s", feedurl, userid)
 
 	u := User{}
 	ue, _ := gn.GetById(&u, userid, 0, nil)
 	if ue.NotFound {
+		c.Errorf("user not found %s", userid)
 		return nil
 	}
 
@@ -165,6 +166,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 	if fe.NotFound {
 		cl := urlfetch.Client(c)
 		if r, err := cl.Get(feedurl); err != nil {
+			c.Errorf("fetch error %s: %s", feedurl, err.Error())
 			return err
 		} else if r.StatusCode == http.StatusOK {
 			b, _ := ioutil.ReadAll(r.Body)
@@ -173,6 +175,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 				gn.Put(fe)
 				updateFeed = true
 			} else {
+				c.Errorf("could not parse feed %s", feedurl)
 				return errors.New("Could not parse feed")
 			}
 		}
@@ -189,6 +192,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 
 		if len(ud.Feeds) > 0 {
 			if json.Unmarshal(ud.Feeds, &fg) != nil {
+				c.Errorf("unmarshal error of userdata %s", userid)
 				return nil
 			}
 		}
@@ -229,6 +233,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 
 		return nil
 	}, &datastore.TransactionOptions{XG: true}); err != nil {
+		c.Errorf("transaction error %s", err.Error())
 		return err
 	}
 
@@ -302,9 +307,9 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			"title":  {sub.Title},
 			"sortid": {sub.Sortid},
 		}))
+		c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
 	}
 	taskqueue.AddMulti(c, ts, "")
-
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
@@ -320,12 +325,14 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			"feed": {e.Key.StringID()},
 		})
 	}
+	c.Infof("updating %d feeds", len(es))
 	taskqueue.AddMulti(c, ts, "")
 }
 
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	url := r.FormValue("feed")
+	c.Debugf("update feed %s", url)
 	f := Feed{}
 	fe, _ := gn.GetById(&f, url, 0, nil)
 	if fe.NotFound {
@@ -367,6 +374,10 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				return nil
 			}, nil)
 		}
+	} else if err != nil {
+		c.Errorf("update feed error: %s", err.Error())
+	} else {
+		c.Errorf("update feed error: status code: %s", resp.Status)
 	}
 }
 
@@ -398,7 +409,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	for i, se := range es {
 		k := se.Key.Parent().StringID()
 		if _, present := fl[k]; !present {
-			fmt.Println("not present", k)
+			c.Errorf("Missing parent feed: %s", k)
 			continue
 		}
 		fl[k].Stories = append(fl[k].Stories, &stories[i])
