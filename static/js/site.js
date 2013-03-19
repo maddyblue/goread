@@ -1,18 +1,27 @@
 $('.dropdown-toggle').dropdown();
 
 function GoreadCtrl($scope, $http) {
+	$scope.shown = 'feeds';
+	$scope.loading = 0;
+
 	$scope.importOpml = function() {
 		$('#import-opml-form').ajaxForm(function() {
 		});
 	};
 
+	$scope.loaded = function() {
+		$scope.loading--;
+	};
+
 	$scope.addSubscription = function() {
+		$scope.shown = 'feeds';
+		$scope.loading++;
 		$('#add-subscription-form').ajaxForm(function() {
-			$scope.refresh();
+			$scope.refresh($scope.loaded);
 		});
 	};
 
-	$scope.refresh = function() {
+	$scope.refresh = function(cb) {
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.feeds = data;
@@ -27,6 +36,8 @@ function GoreadCtrl($scope, $http) {
 						f.Stories[i].dispdate = d.toDateString();
 						$scope.stories.push(f.Stories[i]);
 					}
+					$scope.unread = f.Stories.length;
+					if (cb) cb();
 				}
 			});
 	};
