@@ -170,7 +170,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 			return err
 		} else if r.StatusCode == http.StatusOK {
 			b, _ := ioutil.ReadAll(r.Body)
-			if feed, _ := ParseFeed(b); feed != nil {
+			if feed, _ := ParseFeed(c, b); feed != nil {
 				f = *feed
 				gn.Put(fe)
 				updateFeed = true
@@ -344,7 +344,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cl := urlfetch.Client(c)
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
 		b, _ := ioutil.ReadAll(resp.Body)
-		if feed, stories := ParseFeed(b); feed != nil {
+		if feed, stories := ParseFeed(c, b); feed != nil {
 			f = *feed
 			f.Updated = time.Now()
 			ses := make([]*goon.Entity, len(stories))

@@ -99,7 +99,7 @@ func ParseAtomDate(d atom.TimeStr) time.Time {
 	return t
 }
 
-func ParseFeed(b []byte) (*Feed, []*Story) {
+func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	f := Feed{}
 	var s []*Story
 
@@ -185,6 +185,8 @@ func ParseFeed(b []byte) (*Feed, []*Story) {
 		}
 
 		return &f, s
+	} else {
+		c.Errorf("xml parse error", err.Error())
 	}
 
 	return nil, nil
