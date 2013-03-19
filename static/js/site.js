@@ -10,7 +10,6 @@ function countProperties(obj) {
 }
 
 function GoreadCtrl($scope, $http) {
-	$scope.shown = 'feeds';
 	$scope.loading = 0;
 
 	$scope.importOpml = function() {
