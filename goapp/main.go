@@ -358,6 +358,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			gn.PutMulti(ses)
 
 			fi := FeedIndex{}
+			updateTime := time.Now().Add(-time.Hour * 24 * 7)
 
 			gn.RunInTransaction(func(gn *goon.Goon) error {
 				gn.GetById(&fi, "index", 0, fe.Key)
@@ -365,7 +366,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 				var puts []*goon.Entity
 				for i, sie := range sies {
-					if sie.NotFound {
+					if sie.NotFound && stories[i].Updated.Sub(updateTime) > 0  {
 						sis[i].Users = fi.Users
 						puts = append(puts, sie)
 					}
