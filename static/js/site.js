@@ -50,9 +50,13 @@ function GoreadCtrl($scope, $http) {
 						$scope.stories.push(f.Stories[i]);
 						$scope.unreadStories[f.Stories[i].Id] = true;
 					}
-					if (cb) cb();
-					$scope.loaded();
 				}
+				if (cb) cb();
+				$scope.loaded();
+			})
+			.error(function() {
+				if (cb) cb();
+				$scope.loaded();
 			});
 	};
 
