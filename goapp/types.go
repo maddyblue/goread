@@ -58,7 +58,7 @@ type FeedIndex struct {
 
 // parent: Feed, key: story ID
 type Story struct {
-	id        string
+	Id        string    `datastore:"-"`
 	Title     string    `datastore:"t,noindex"`
 	Link      string    `datastore:"l,noindex"`
 	Published time.Time `datastore:"d,noindex"`

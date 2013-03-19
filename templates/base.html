@@ -31,9 +31,10 @@
 					<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'">feeds</a></li>
 					<li>
 						<a>
-							{{`{{unread || 'no'}}`}} unread items</span>
+							{{`{{unread() || 'no'}}`}} unread items</span>
 						</a>
 					</li>
+					<li><a id="mark-all-read" href="#" ng-click="markAllRead()" data-url="{{url "mark-all-read"}}" data-url-read="{{url "mark-read"}}">mark all read</a></li>
 					<li><a ng-show="loading">loading...</a></li>
 				{{end}}
 				</ul>

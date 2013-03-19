@@ -62,6 +62,8 @@ func init() {
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
+	router.Handle("/user/mark-all-read", mpg.NewHandler(MarkAllRead)).Name("mark-all-read")
+	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = false
@@ -314,6 +316,7 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 const UpdateTime = time.Hour
+
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
@@ -351,7 +354,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			sis := make([]StoryIndex, len(stories))
 			sies := make([]*goon.Entity, len(stories))
 			for i, s := range stories {
-				ses[i], _ = gn.NewEntityById(s.id, 0, fe.Key, s)
+				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
 				sies[i], _ = gn.NewEntityById("index", 0, ses[i].Key, &sis[i])
 			}
 			gn.Put(fe)
@@ -366,7 +369,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 				var puts []*goon.Entity
 				for i, sie := range sies {
-					if sie.NotFound && stories[i].Updated.Sub(updateTime) > 0  {
+					if sie.NotFound && stories[i].Updated.Sub(updateTime) > 0 {
 						sis[i].Users = fi.Users
 						puts = append(puts, sie)
 					}
@@ -413,9 +416,74 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("Missing parent feed: %s", k)
 			continue
 		}
+		stories[i].Id = se.Key.StringID()
 		fl[k].Stories = append(fl[k].Stories, &stories[i])
 	}
 
 	b, _ := json.Marshal(fl)
 	w.Write(b)
+}
+
+func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	si := StoryIndex{}
+	fk := datastore.NewKey(c, goon.Kind(&Feed{}), r.FormValue("feed"), 0, nil)
+	sk := datastore.NewKey(c, goon.Kind(&Story{}), r.FormValue("story"), 0, fk)
+	c.Debugf(sk.String())
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		if sie, _ := gn.GetById(&si, "index", 0, sk); !sie.NotFound {
+			c.Debugf("searching")
+			for i, v := range si.Users {
+				if v == cu.ID {
+					c.Debugf("marking %s read for %s", sk.StringID(), cu.ID)
+					si.Users = append(si.Users[:i], si.Users[i+1:]...)
+					gn.Put(sie)
+					break
+				}
+			}
+		}
+		return nil
+	}, nil)
+}
+
+func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	/*
+	cu := user.Current(c)
+	q := datastore.NewQuery(goon.Kind(&StoryIndex{}))
+	q = q.Filter("u =", cu.ID)
+	var sis []*StoryIndex
+	sies, _ := gn.GetAll(q, &sis)
+
+	feeds := make(map[string][]string)
+	for _, e := range sies {
+		fk := e.Parent().Parent().StringID()
+		feeds[fk] = append(feeds[fk], e.Parent().StringID())
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(feeds))
+
+	for i := range sies {
+		go func(i) {
+			gn.RunInTransaction(func(gn *goon.Goon) error {
+				if sie, _ := gn.GetById(&si, "index", 0, sk); !sie.NotFound {
+					c.Debugf("searching")
+					for i, v := range si.Users {
+						if v == cu.ID {
+							c.Debugf("marking %s read for %s", sk.StringID(), cu.ID)
+							si.Users = append(si.Users[:i], si.Users[i+1:]...)
+							gn.Put(sie)
+							break
+						}
+					}
+				}
+				return nil
+			}, nil)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+	*/
 }

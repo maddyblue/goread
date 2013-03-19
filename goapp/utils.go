@@ -115,7 +115,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 		for _, i := range a.Entry {
 			st := Story{
-				id:        i.ID,
+				Id:        i.ID,
 				Title:     i.Title,
 				Published: ParseAtomDate(i.Published),
 				Updated:   ParseAtomDate(i.Updated),
@@ -169,9 +169,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Content = Sanitize(i.Content)
 			}
 			if i.Guid != nil {
-				st.id = i.Guid.Guid
+				st.Id = i.Guid.Guid
 			} else {
-				st.id = i.Title
+				st.Id = i.Title
 			}
 			var t time.Time
 			if t, err = rssgo.ParseRssDate(i.PubDate); err != nil {
