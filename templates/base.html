@@ -102,7 +102,7 @@
 					<div ng-show="s == currentStory">
 						<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
-							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title"></a>
+							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 						</small></p>
 						<p ng-bind-html-unsafe="s.Content"></p>
