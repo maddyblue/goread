@@ -186,7 +186,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 		return &f, s
 	} else {
-		c.Errorf("xml parse error", err.Error())
+		c.Errorf("xml parse error: %s", err.Error())
 	}
 
 	return nil, nil
