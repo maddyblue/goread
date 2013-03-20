@@ -68,9 +68,8 @@
 		</div>
 	</div>
 	<div class="container-fluid">
-		<div class="row-fluid">
-
-			<div class="offset3 span6" ng-show="shown == 'about'">
+		<div class="row-fluid" ng-show="shown == 'about'">
+			<div class="offset3 span6">
 				<h1>About</h1>
 				<p>Go Read is a web-based RSS reader.</p>
 				<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
@@ -81,9 +80,10 @@
 					Code on <a href="https://github.com/mjibson/goread">GitHub</a>.
 				</p>
 			</div>
+		</div>
 
 		{{if .User}}
-
+		<div class="row-fluid">
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" class="span12">
 				<div ng-repeat="s in stories" class="row-fluid story">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
@@ -148,7 +148,6 @@
 				</div>
 			</div>
 		{{end}}
-
 		</div>
 	</div>
 
