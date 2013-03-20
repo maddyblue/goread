@@ -302,22 +302,30 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}{}
 	json.Unmarshal(b, &v)
 
-	var ts []*taskqueue.Task
-	for _, sub := range v.Subscriptions {
-		var label []string
-		if len(sub.Categories) > 0 {
-			label = append(label, sub.Categories[0].Label)
-		}
-		ts = append(ts, taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
-			"user":   {cu.ID},
-			"label":  label,
-			"feed":   {sub.Id[5:]},
-			"title":  {sub.Title},
-			"sortid": {sub.Sortid},
-		}))
-		c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
+	wg := sync.WaitGroup{}
+	wg.Add(len(v.Subscriptions))
+	for i := range v.Subscriptions {
+		go func(i int) {
+			sub := v.Subscriptions[i]
+			var label []string
+			if len(sub.Categories) > 0 {
+				label = append(label, sub.Categories[0].Label)
+			}
+			t := taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
+				"user":   {cu.ID},
+				"label":  label,
+				"feed":   {sub.Id[5:]},
+				"title":  {sub.Title},
+				"sortid": {sub.Sortid},
+			})
+			c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
+			if _, err := taskqueue.Add(c, t, ""); err != nil {
+				c.Errorf("import reader tq add error %s", err.Error())
+			}
+			wg.Done()
+		}(i)
 	}
-	taskqueue.AddMulti(c, ts, "")
+	wg.Wait()
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
