@@ -138,10 +138,24 @@
 		</div>
 	</div>
 
+	<div id="shortcuts" class="modal hide">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4>keyboard shortcuts</h4>
+		</div>
+		<div class="modal-body">
+			<ul class="unstyled">
+				<li><button class="btn">?</button> Show this dialog</li>
+				<li><button class="btn">r</button> refresh</li>
+			</ul>
+		</div>
+	</div>
+
 	<script src="{{.Jquery}}"></script>
 	<script src="{{.BootstrapJs}}"></script>
-	<script src="/static/js/site.js"></script>
 	<script src="/static/js/jquery.form.js"></script>
+	<script src="/static/js/mousetrap.min.js"></script>
+	<script src="/static/js/site.js"></script>
 	<script src="{{.Angular}}"></script>
 
 	{{.MiniProfiler}}

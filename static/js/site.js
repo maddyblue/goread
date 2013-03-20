@@ -88,5 +88,14 @@ function GoreadCtrl($scope, $http) {
 		$http.post($('#mark-all-read').attr('data-url'));
 	};
 
+	var shortcuts = $('#shortcuts');
+	Mousetrap.bind('?', function() {
+		shortcuts.modal('toggle');
+	});
+	Mousetrap.bind('esc', function() {
+		shortcuts.modal('hide');
+	});
+	Mousetrap.bind('r', $scope.refresh());
+
 	$scope.refresh();
 }
