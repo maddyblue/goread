@@ -131,6 +131,9 @@ function GoreadCtrl($scope, $http) {
 			window.open($scope.stories[$scope.currentStory].Link);
 		}
 	});
+	Mousetrap.bind('shift+a', function() {
+		$scope.$apply($scope.markAllRead());
+	});
 
 	$scope.refresh();
 }

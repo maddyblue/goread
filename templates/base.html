@@ -34,7 +34,7 @@
 							{{`{{unread() || 'no'}}`}} unread items</span>
 						</a>
 					</li>
-					<li><a id="mark-all-read" href="#" ng-click="markAllRead()" data-url="{{url "mark-all-read"}}" data-url-read="{{url "mark-read"}}">mark all read</a></li>
+					<li><a id="mark-all-read" href="#" ng-click="markAllRead()" data-url="{{url "mark-all-read"}}" data-url-read="{{url "mark-read"}}">mark all as read</a></li>
 					<li><a ng-show="loading">loading...</a></li>
 				{{end}}
 				</ul>
@@ -161,6 +161,7 @@
 				<li><button class="btn">j/k</button> next/previous item</li>
 				<li><button class="btn">r</button> refresh</li>
 				<li><button class="btn">v</button> view original</li>
+				<li><button class="btn">&lt;Shift&gt; + a</button> mark all as read</li>
 			</ul>
 		</div>
 	</div>

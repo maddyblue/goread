@@ -448,42 +448,45 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	/*
 	cu := user.Current(c)
+	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&StoryIndex{}))
 	q = q.Filter("u =", cu.ID)
 	var sis []*StoryIndex
 	sies, _ := gn.GetAll(q, &sis)
 
-	feeds := make(map[string][]string)
+	feeds := make(map[string][]*goon.Entity)
 	for _, e := range sies {
-		fk := e.Parent().Parent().StringID()
-		feeds[fk] = append(feeds[fk], e.Parent().StringID())
+		fk := e.Key.Parent().Parent().StringID()
+		feeds[fk] = append(feeds[fk], e)
 	}
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(feeds))
 
-	for i := range sies {
-		go func(i) {
+	for k, v := range feeds {
+		go func(fid string, sies []*goon.Entity) {
 			gn.RunInTransaction(func(gn *goon.Goon) error {
-				if sie, _ := gn.GetById(&si, "index", 0, sk); !sie.NotFound {
-					c.Debugf("searching")
-					for i, v := range si.Users {
+				for i := range sies {
+					sies[i].Src = &StoryIndex{}
+				}
+				gn.GetMulti(sies)
+				for _, sie := range sies {
+					s := sie.Src.(*StoryIndex)
+					for i, v := range s.Users {
 						if v == cu.ID {
-							c.Debugf("marking %s read for %s", sk.StringID(), cu.ID)
-							si.Users = append(si.Users[:i], si.Users[i+1:]...)
-							gn.Put(sie)
+							c.Debugf("marking %s read for %s", sie.Key.Parent().StringID(), cu.ID)
+							s.Users = append(s.Users[:i], s.Users[i+1:]...)
 							break
 						}
 					}
 				}
+				gn.PutMulti(sies)
 				return nil
 			}, nil)
 			wg.Done()
-		}(i)
+		}(k, v)
 	}
 
 	wg.Wait()
-	*/
 }
