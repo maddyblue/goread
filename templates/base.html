@@ -70,7 +70,7 @@
 	<div class="container-fluid">
 		<div class="row-fluid">
 
-			<div class="span6" ng-show="shown == 'about'">
+			<div class="offset3 span6" ng-show="shown == 'about'">
 				<h1>About</h1>
 				<p>Go Read is a web-based RSS reader.</p>
 				<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
@@ -82,47 +82,60 @@
 				</p>
 			</div>
 
-			<div class="span6" ng-show="shown == 'import-opml'">
-				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
+		{{if .User}}
+
+			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" class="span12">
+				<div ng-repeat="s in stories" class="row-fluid story">
+					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
+					<div class="span8" ng-click="setCurrent($index)">
+						<span class="hand" ng-bind="s.Title"></span>
+						<div ng-show="$index == currentStory">
+							<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+							<p><small>
+								from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+							</small></p>
+							<p ng-bind-html-unsafe="s.Content"></p>
+						</div>
+					</div>
+					<div class="span2 text-right">
+						<span class="hand" ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
+						<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
+					</div>
+				</div>
+			</div>
+			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && stories.length == 0" class="offset2 span8">
+				<div class="hero-unit">
+					<p class="text-center">You've read all the things.</p>
+				</div>
+			</div>
+
+			<div ng-show="nothing()" class="offset2 span8">
+				<p>You don't have any feeds.</p>
+				<p>You should probably add some.</p>
+				<p><a href="{{url "import-reader"}}">Import from Google Reader.</a></p>
+			</div>
+
+			<div class="offset2 span8" ng-show="shown == 'add-subscription' || nothing()">
+				<form id="add-subscription-form" method="POST" action="{{url "add-subscription"}}">
 					<fieldset>
-						<label>Reader OPML file:
-							<input type="file" name="file">
-						<label>
-						<button ng-click="importOpml()" type="submit" class="btn">import</button>
+						<legend>Feed URL (RSS or Atom)</legend>
+						<input type="text" name="url" class="span12">
+						<p><button ng-click="addSubscription()" type="submit" class="btn">import</button></p>
 					</fieldset>
 				</form>
 			</div>
 
-			<div class="span6" ng-show="shown == 'add-subscription'">
-				<form id="add-subscription-form" method="POST" action="{{url "add-subscription"}}">
+			<div class="offset2 span8" ng-show="shown == 'import-opml' || nothing()">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
 					<fieldset>
-						<label>RSS URL
-							<input type="text" name="url">
-						</label>
-						<button ng-click="addSubscription()" type="submit" class="btn">add</button>
+						<legend>Upload OPML file</legend>
+						<input type="file" name="file">
+						<p><button ng-click="importOpml()" type="submit" class="btn">upload</button></p>
 					</fieldset>
 				</form>
 			</div>
-		</div>
-		{{if .User}}
-			<div ng-show="shown == 'feeds'" ng-repeat="s in stories" class="row-fluid story">
-				<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
-				<div class="span8" ng-click="setCurrent($index)">
-					<span class="hand" ng-bind="s.Title"></span>
-					<div ng-show="$index == currentStory">
-						<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
-						<p><small>
-							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
-							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
-						</small></p>
-						<p ng-bind-html-unsafe="s.Content"></p>
-					</div>
-				</div>
-				<div class="span2 text-right">
-					<span class="hand" ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
-					<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
-				</div>
-			</div>
+
 		{{else}}
 			<div class="row-fluid">
 				<div class="offset1 span10" ng-hide="shown">
@@ -135,6 +148,7 @@
 				</div>
 			</div>
 		{{end}}
+
 		</div>
 	</div>
 

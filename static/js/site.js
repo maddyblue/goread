@@ -38,8 +38,10 @@ function GoreadCtrl($scope, $http) {
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.feeds = data;
+				$scope.numfeeds = 0;
 				$scope.stories = [];
 				for(var p in $scope.feeds) {
+					$scope.numfeeds++;
 					var f = $scope.feeds[p];
 					if (!f.Stories)
 						continue;
@@ -103,9 +105,13 @@ function GoreadCtrl($scope, $http) {
 	};
 
 	$scope.markAllRead = function(s) {
-		$scope.unreadStories = []
+		$scope.unreadStories = {};
 		$scope.stories = [];
 		$http.post($('#mark-all-read').attr('data-url'));
+	};
+
+	$scope.nothing = function() {
+		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds;
 	};
 
 	var shortcuts = $('#shortcuts');
@@ -115,7 +121,9 @@ function GoreadCtrl($scope, $http) {
 	Mousetrap.bind('esc', function() {
 		shortcuts.modal('hide');
 	});
-	Mousetrap.bind('r', $scope.refresh);
+	Mousetrap.bind('r', function() {
+		$scope.$apply($scope.refresh());
+	});
 	Mousetrap.bind('j', $scope.next);
 	Mousetrap.bind('k', $scope.prev);
 
