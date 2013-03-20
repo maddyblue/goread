@@ -136,6 +136,9 @@ function GoreadCtrl($scope, $http) {
 		shortcuts.modal('hide');
 	});
 	Mousetrap.bind('r', function() {
+		if ($scope.nouser) {
+			return;
+		}
 		$scope.$apply($scope.refresh());
 	});
 	Mousetrap.bind('j', $scope.next);
@@ -146,11 +149,20 @@ function GoreadCtrl($scope, $http) {
 		}
 	});
 	Mousetrap.bind('shift+a', function() {
+		if ($scope.nouser) {
+			return;
+		}
 		$scope.$apply($scope.markAllRead());
 	});
 	Mousetrap.bind('a', function() {
+		if ($scope.nouser) {
+			return;
+		}
 		$scope.$apply("shown = 'add-subscription'");
 	Mousetrap.bind('g a', function() {
+		if ($scope.nouser) {
+			return;
+		}
 		$scope.$apply("shown = 'feeds'");
 	});
 
@@ -159,6 +171,4 @@ function GoreadCtrl($scope, $http) {
 			$('#add-subscription-form input').focus();
 		}, 0);
 	});
-
-	$scope.refresh();
 }

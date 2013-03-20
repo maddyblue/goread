@@ -83,7 +83,7 @@
 		</div>
 
 		{{if .User}}
-		<div class="row-fluid">
+		<div class="row-fluid" ng-init="refresh()">
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" class="span12">
 				<div ng-repeat="s in stories" class="row-fluid story">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
@@ -137,7 +137,7 @@
 			</div>
 
 		{{else}}
-			<div class="row-fluid">
+			<div class="row-fluid" ng-init="nouser = true">
 				<div class="offset1 span10" ng-hide="shown">
 					<div class="hero-unit">
 						<h1>Hi, RSS user</h1>
