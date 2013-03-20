@@ -165,7 +165,10 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 
 	f := Feed{}
 	updateFeed := false
-	fe, _ := gn.GetById(&f, feedurl, 0, nil)
+	fe, err := gn.GetById(&f, feedurl, 0, nil)
+	if err != nil {
+		return err
+	}
 	if fe.NotFound {
 		cl := urlfetch.Client(c)
 		if r, err := cl.Get(feedurl); err != nil {
@@ -252,7 +255,9 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 
 func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := user.Current(c)
-	if err := addFeed(c, u.ID, r.FormValue("url"), "", "", ""); err != nil {
+	url := r.FormValue("url")
+	if err := addFeed(c, u.ID, url, "", "", ""); err != nil {
+		c.Debugf("add sub error (%s): %s", url, err.Error())
 		serveError(w, err)
 	}
 }
