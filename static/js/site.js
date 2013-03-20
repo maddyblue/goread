@@ -16,6 +16,7 @@ function GoreadCtrl($scope, $http) {
 		$scope.shown = 'feeds';
 		$scope.loading++;
 		$('#import-opml-form').ajaxForm(function() {
+			$('#import-opml-form')[0].reset();
 			$scope.loaded();
 		});
 	};
@@ -24,16 +25,34 @@ function GoreadCtrl($scope, $http) {
 		$scope.loading--;
 	};
 
+	$scope.http = function(method, url, data) {
+		return $http({
+			method: method,
+			url: url,
+			data: $.param(data),
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+		});
+	};
+
 	$scope.addSubscription = function() {
-		$scope.shown = 'feeds';
+		if (!$scope.addFeedUrl) {
+			return false;
+		}
 		$scope.loading++;
-		$('#add-subscription-form').ajaxForm(function() {
+		var f = $('#add-subscription-form');
+		$scope.http('POST', f.attr('data-url'), {
+			url: $scope.addFeedUrl
+		}).then(function() {
+			$scope.addFeedUrl = '';
 			$scope.refresh($scope.loaded);
+		}, function(data) {
+			$scope.loading--;
 		});
 	};
 
 	$scope.refresh = function(cb) {
 		$scope.loading++;
+		$scope.shown = 'feeds';
 		delete $scope.currentStory;
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
@@ -92,14 +111,9 @@ function GoreadCtrl($scope, $http) {
 		if ($scope.unreadStories[s.Id]) {
 			delete $scope.unreadStories[s.Id];
 			s.read = true;
-			$http({
-				method: 'POST',
-				url: $('#mark-all-read').attr('data-url-read'),
-				data: $.param({
-					feed: s.feed.Url,
-					story: s.Id
-				}),
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
+				feed: s.feed.Url,
+				story: s.Id
 			});
 		}
 	};
@@ -133,6 +147,17 @@ function GoreadCtrl($scope, $http) {
 	});
 	Mousetrap.bind('shift+a', function() {
 		$scope.$apply($scope.markAllRead());
+	});
+	Mousetrap.bind('a', function() {
+		$scope.$apply("shown = 'add-subscription'");
+	Mousetrap.bind('g a', function() {
+		$scope.$apply("shown = 'feeds'");
+	});
+
+		// need to wait for the keypress to finish before focusing
+		setTimeout(function() {
+			$('#add-subscription-form input').focus();
+		}, 0);
 	});
 
 	$scope.refresh();
