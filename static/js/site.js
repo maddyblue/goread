@@ -34,6 +34,7 @@ function GoreadCtrl($scope, $http) {
 
 	$scope.refresh = function(cb) {
 		$scope.loading++;
+		delete $scope.currentStory;
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.feeds = data;
@@ -47,22 +48,38 @@ function GoreadCtrl($scope, $http) {
 						f.Stories[i].feed = f.Feed;
 						var d = new Date(f.Stories[i].Date * 1000);
 						f.Stories[i].dispdate = d.toDateString();
+						f.Stories[i].read = false;
 						$scope.stories.push(f.Stories[i]);
 						$scope.unreadStories[f.Stories[i].Id] = true;
 					}
+					$scope.stories.sort(function(a, b) {
+						return b.Date - a.Date;
+					});
 				}
-				if (cb) cb();
+				if (typeof cb === 'function') cb();
 				$scope.loaded();
 			})
 			.error(function() {
-				if (cb) cb();
+				if (typeof cb === 'function') cb();
 				$scope.loaded();
 			});
 	};
 
-	$scope.setCurrent = function(s) {
-		$scope.currentStory = s;
-		$scope.markRead(s);
+	$scope.setCurrent = function(i) {
+		$scope.currentStory = i;
+		$scope.markRead($scope.stories[i]);
+	};
+	$scope.prev = function() {
+		if ($scope.currentStory > 0) {
+			$scope.$apply('setCurrent(currentStory - 1)');
+		}
+	};
+	$scope.next = function() {
+		if ($scope.stories && typeof $scope.currentStory === 'undefined') {
+			$scope.$apply('setCurrent(0)');
+		} else if ($scope.stories && $scope.currentStory < $scope.stories.length - 2) {
+			$scope.$apply('setCurrent(currentStory + 1)');
+		}
 	};
 
 	$scope.unread = function() {
@@ -70,16 +87,19 @@ function GoreadCtrl($scope, $http) {
 	};
 
 	$scope.markRead = function(s) {
-		delete $scope.unreadStories[s.Id];
-		$http({
-			method: 'POST',
-			url: $('#mark-all-read').attr('data-url-read'),
-			data: $.param({
-				feed: s.feed.Url,
-				story: s.Id
-			}),
-			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		});
+		if ($scope.unreadStories[s.Id]) {
+			delete $scope.unreadStories[s.Id];
+			s.read = true;
+			$http({
+				method: 'POST',
+				url: $('#mark-all-read').attr('data-url-read'),
+				data: $.param({
+					feed: s.feed.Url,
+					story: s.Id
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+			});
+		}
 	};
 
 	$scope.markAllRead = function(s) {
@@ -95,7 +115,9 @@ function GoreadCtrl($scope, $http) {
 	Mousetrap.bind('esc', function() {
 		shortcuts.modal('hide');
 	});
-	Mousetrap.bind('r', $scope.refresh());
+	Mousetrap.bind('r', $scope.refresh);
+	Mousetrap.bind('j', $scope.next);
+	Mousetrap.bind('k', $scope.prev);
 
 	$scope.refresh();
 }

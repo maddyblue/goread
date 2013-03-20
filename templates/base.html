@@ -105,11 +105,11 @@
 			</div>
 		</div>
 		{{if .User}}
-			<div ng-show="shown == 'feeds'" ng-repeat="s in stories | orderBy:'-Updated'" class="row-fluid story">
-				<div class="span2 hand" ng-click="setCurrent(s)" ng-bind="s.feed.Title"></div>
-				<div class="span8" ng-click="setCurrent(s)">
+			<div ng-show="shown == 'feeds'" ng-repeat="s in stories" class="row-fluid story">
+				<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
+				<div class="span8" ng-click="setCurrent($index)">
 					<span class="hand" ng-bind="s.Title"></span>
-					<div ng-show="s == currentStory">
+					<div ng-show="$index == currentStory">
 						<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
@@ -119,7 +119,7 @@
 					</div>
 				</div>
 				<div class="span2 text-right">
-					<span class="hand" ng-click="setCurrent(s)" ng-bind="s.dispdate"></span>
+					<span class="hand" ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
 					<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 				</div>
 			</div>
@@ -146,6 +146,7 @@
 		<div class="modal-body">
 			<ul class="unstyled">
 				<li><button class="btn">?</button> Show this dialog</li>
+				<li><button class="btn">j/k</button> next/previous item</li>
 				<li><button class="btn">r</button> refresh</li>
 			</ul>
 		</div>
