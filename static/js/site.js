@@ -126,6 +126,11 @@ function GoreadCtrl($scope, $http) {
 	});
 	Mousetrap.bind('j', $scope.next);
 	Mousetrap.bind('k', $scope.prev);
+	Mousetrap.bind('v', function() {
+		if ($scope.stories[$scope.currentStory]) {
+			window.open($scope.stories[$scope.currentStory].Link);
+		}
+	});
 
 	$scope.refresh();
 }
