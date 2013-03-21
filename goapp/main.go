@@ -65,6 +65,7 @@ func init() {
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
 	router.Handle("/user/mark-all-read", mpg.NewHandler(MarkAllRead)).Name("mark-all-read")
 	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
+	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = false
@@ -224,7 +225,7 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 		}
 
 		fi := FeedIndex{}
-		fie, _ := gn.GetById(&fi, "index", 0, fe.Key)
+		fie, _ := gn.GetById(&fi, "", 1, fe.Key)
 		found = false
 		for _, fu := range fi.Users {
 			if fu == userid {
@@ -369,18 +370,23 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			ses := make([]*goon.Entity, len(stories))
 			sis := make([]StoryIndex, len(stories))
 			sies := make([]*goon.Entity, len(stories))
+			scs := make([]StoryContent, len(stories))
+			sces := make([]*goon.Entity, len(stories))
 			for i, s := range stories {
 				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
-				sies[i], _ = gn.NewEntityById("index", 0, ses[i].Key, &sis[i])
+				sies[i], _ = gn.NewEntityById("", 1, ses[i].Key, &sis[i])
+				scs[i].Content = s.content
+				sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
 			}
 			gn.Put(fe)
 			gn.PutMulti(ses)
+			gn.PutMulti(sces)
 
 			fi := FeedIndex{}
 			updateTime := time.Now().Add(-time.Hour * 24 * 7)
 
 			gn.RunInTransaction(func(gn *goon.Goon) error {
-				gn.GetById(&fi, "index", 0, fe.Key)
+				gn.GetById(&fi, "", 1, fe.Key)
 				gn.GetMulti(sies)
 
 				var puts []*goon.Entity
@@ -448,7 +454,7 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	sk := datastore.NewKey(c, goon.Kind(&Story{}), r.FormValue("story"), 0, fk)
 	c.Debugf(sk.String())
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		if sie, _ := gn.GetById(&si, "index", 0, sk); !sie.NotFound {
+		if sie, _ := gn.GetById(&si, "", 1, sk); !sie.NotFound {
 			c.Debugf("searching")
 			for i, v := range si.Users {
 				if v == cu.ID {
@@ -505,4 +511,31 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
+}
+
+func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	var reqs []struct{
+		Feed string
+		Story string
+	}
+	b, _ := ioutil.ReadAll(r.Body)
+	if err := json.Unmarshal(b, &reqs); err != nil {
+		serveError(w, err)
+		return
+	}
+	scs := make([]StoryContent, len(reqs))
+	sces := make([]*goon.Entity, len(reqs))
+	gn := goon.FromContext(c)
+	for i, r := range reqs {
+		fk := datastore.NewKey(c, goon.Kind(&Feed{}), r.Feed, 0, nil)
+		sk := datastore.NewKey(c, goon.Kind(&Story{}), r.Story, 0, fk)
+		sces[i], _ = gn.NewEntityById("", 1, sk, &scs[i])
+	}
+	gn.GetMulti(sces)
+	ret := make(map[string]string)
+	for i, sc := range scs {
+		ret[reqs[i].Story] = sc.Content
+	}
+	b, _ = json.Marshal(&ret)
+	w.Write(b)
 }

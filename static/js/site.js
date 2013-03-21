@@ -11,6 +11,7 @@ function countProperties(obj) {
 
 function GoreadCtrl($scope, $http) {
 	$scope.loading = 0;
+	$scope.contents = {};
 
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';
@@ -137,6 +138,49 @@ function GoreadCtrl($scope, $http) {
 	$scope.navmargin = function() {
 		return $scope.nav ? {} : {'margin-left': '0'};
 	};
+
+	$scope.storyClass = function(s) {
+		var o = {};
+		o['nocontent'] = $scope.contents[s.Id] === undefined;
+		return o;
+	};
+
+	$scope.getContents = function() {
+		var docViewTop = $(window).scrollTop();
+		var docViewBottom = docViewTop + $(window).height();
+
+		var stories = $('.nocontent');
+		if (stories.length == 0) return;
+		var onscreen = [];
+		$.each(stories, function(i, v) {
+			v = $(v);
+			var elemTop = v.offset().top;
+			var elemBottom = elemTop + v.height();
+			if ((elemTop <= docViewBottom) && (elemBottom >= docViewTop)) {
+				var s = $scope.stories[v.attr('data-idx')];
+				onscreen.push({
+					Feed: s.feed.Url,
+					Story: s.Id,
+				});
+				// mark this as fetched so a subsequent scroll doesn't re fetch
+				$scope.contents[s.Id] = '';
+			}
+		});
+		if (onscreen.length == 0) return;
+		$http.post($('#mark-all-read').attr('data-url-contents'), onscreen)
+			.success(function(data) {
+				for (var k in data) {
+					$scope.contents[k] = data[k];
+				}
+			});
+	};
+	window.onscroll = function() {
+		$scope.$apply('getContents()');
+	};
+	// todo: switch this cheating to a directive
+	setTimeout(function() {
+		$scope.$apply('getContents()');
+	}, 100);
 
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {

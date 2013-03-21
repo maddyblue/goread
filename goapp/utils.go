@@ -130,7 +130,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Summary = i.Summary.Body
 			}
 			if i.Content != nil {
-				st.Content = Sanitize(i.Content.Body)
+				st.content = Sanitize(i.Content.Body)
 			}
 			st.Date = st.Updated.Unix()
 			s = append(s, &st)
@@ -166,7 +166,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Author = i.Author
 			}
 			if i.Content != "" {
-				st.Content = Sanitize(i.Content)
+				st.content = Sanitize(i.Content)
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
