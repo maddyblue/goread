@@ -141,7 +141,7 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			proc("", feed.Outline)
-			taskqueue.AddMulti(c, ts, "")
+			taskqueue.AddMulti(c, ts, "add-feed")
 		}
 	}
 }
@@ -247,7 +247,9 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {feedurl},
 		})
-		taskqueue.Add(c, t, "")
+		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -319,7 +321,7 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				"sortid": {sub.Sortid},
 			})
 			c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
-			if _, err := taskqueue.Add(c, t, ""); err != nil {
+			if _, err := taskqueue.Add(c, t, "add-feed"); err != nil {
 				c.Errorf("import reader tq add error %s", err.Error())
 			}
 			wg.Done()
@@ -343,7 +345,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	c.Infof("updating %d feeds", len(es))
-	taskqueue.AddMulti(c, ts, "")
+	taskqueue.AddMulti(c, ts, "update-feed")
 }
 
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
