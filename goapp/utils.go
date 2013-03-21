@@ -28,6 +28,7 @@ import (
 	"github.com/mjibson/rssgo"
 	"html/template"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -136,7 +137,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			s = append(s, &st)
 		}
 
-		return &f, s
+		return parseFix(&f, s)
 	}
 
 	r := rssgo.Rss{}
@@ -156,7 +157,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			} else if i.Description != "" {
 				i.Title = i.Description
 			} else {
-				// either title or description is required
+				c.Errorf("rss feed requires title or description")
 				return nil, nil
 			}
 			if i.Link != "" {
@@ -174,7 +175,11 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Id = i.Title
 			}
 			var t time.Time
-			if t, err = rssgo.ParseRssDate(i.PubDate); err != nil {
+			if t, err = rssgo.ParseRssDate(i.PubDate); err == nil {
+			} else if t, err = rssgo.ParseRssDate(i.Date); err == nil {
+			} else if t, err = rssgo.ParseRssDate(i.Published); err == nil {
+			} else {
+				c.Errorf("could not parse date: %v, %v, %v", i.PubDate, i.Date, i.Published)
 				t = time.Now()
 			}
 			st.Published = t
@@ -184,10 +189,22 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			s = append(s, &st)
 		}
 
-		return &f, s
+		return parseFix(&f, s)
 	} else {
 		c.Errorf("xml parse error: %s", err.Error())
 	}
 
 	return nil, nil
+}
+
+func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
+	for _, s := range ss {
+		if s.Link == "" {
+			if u, err := url.Parse(s.Id); err == nil {
+				s.Link = u.String()
+			}
+		}
+	}
+
+	return f, ss
 }
