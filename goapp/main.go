@@ -514,8 +514,8 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	var reqs []struct{
-		Feed string
+	var reqs []struct {
+		Feed  string
 		Story string
 	}
 	b, _ := ioutil.ReadAll(r.Body)
