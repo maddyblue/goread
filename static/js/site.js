@@ -159,16 +159,17 @@ function GoreadCtrl($scope, $http) {
 			return;
 		}
 		$scope.$apply("shown = 'add-subscription'");
+
+		// need to wait for the keypress to finish before focusing
+		setTimeout(function() {
+			$('#add-subscription-form input').focus();
+		}, 0);
+	});
 	Mousetrap.bind('g a', function() {
 		if ($scope.nouser) {
 			return;
 		}
 		$scope.$apply("shown = 'feeds'");
 	});
-
-		// need to wait for the keypress to finish before focusing
-		setTimeout(function() {
-			$('#add-subscription-form input').focus();
-		}, 0);
 	});
 }
