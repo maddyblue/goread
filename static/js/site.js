@@ -128,6 +128,16 @@ function GoreadCtrl($scope, $http) {
 		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds;
 	};
 
+	$scope.toggleNav = function() {
+		$scope.nav = !$scope.nav;
+	}
+	$scope.navspan = function() {
+		return 'span' + ($scope.nav ? '10' : '12');
+	};
+	$scope.navmargin = function() {
+		return $scope.nav ? {} : {'margin-left': '0'};
+	};
+
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		shortcuts.modal('toggle');
@@ -171,5 +181,7 @@ function GoreadCtrl($scope, $http) {
 		}
 		$scope.$apply("shown = 'feeds'");
 	});
+	Mousetrap.bind('u', function() {
+		$scope.$apply("toggleNav()");
 	});
 }

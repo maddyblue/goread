@@ -82,7 +82,15 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" class="span12">
+			<div ng-show="nav" class="span2">
+				<ul class="unstyled">
+					<li ng-repeat="(k, f) in feeds" >
+						{{`{{f.Feed.Title}}`}}
+					</li>
+				</ul>
+			</div>
+
+			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
 				<div ng-repeat="s in stories" class="row-fluid story">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 					<div class="span8" ng-click="setCurrent($index)">
@@ -101,19 +109,23 @@
 						<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 					</div>
 				</div>
-			</div>
-			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && stories.length == 0" class="offset2 span8">
-				<div class="hero-unit">
-					<p class="text-center">You've read all the things.</p>
+				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && stories.length == 0" class="offset2 span8">
+					<div class="hero-unit">
+						<p class="text-center">You've read all the things.</p>
+					</div>
 				</div>
 			</div>
+		</div>
 
+		<div class="row-fluid">
 			<div ng-show="nothing()" class="offset2 span8">
 				<p>You don't have any feeds.</p>
 				<p>You should probably add some.</p>
 				<p><a href="{{url "import-reader"}}">Import from Google Reader.</a></p>
 			</div>
+		</div>
 
+		<div class="row-fluid">
 			<div class="offset2 span8" ng-show="shown == 'add-subscription' || nothing()">
 				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
 					<fieldset>
@@ -123,7 +135,9 @@
 					</fieldset>
 				</form>
 			</div>
+		</div>
 
+		<div class="row-fluid">
 			<div class="offset2 span8" ng-show="shown == 'import-opml' || nothing()">
 				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
 					<fieldset>
@@ -133,7 +147,6 @@
 					</fieldset>
 				</form>
 			</div>
-
 		</div>
 		{{else}}
 			<div class="row-fluid" ng-init="nouser = true">
@@ -162,6 +175,7 @@
 				<li><button class="btn">&lt;Shift&gt; + a</button> mark all as read</li>
 				<li><button class="btn">a</button> add subscription</li>
 				<li><button class="btn">g</button> then <button class="btn">a</button> go to all items</li>
+				<li><button class="btn">u</button> hides/unhides the left hand side module</li>
 			</ul>
 		</div>
 	</div>
