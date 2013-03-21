@@ -47,6 +47,7 @@ function GoreadCtrl($scope, $http) {
 			$scope.addFeedUrl = '';
 			$scope.refresh($scope.loaded);
 		}, function(data) {
+			alert(data.data);
 			$scope.loading--;
 		});
 	};
