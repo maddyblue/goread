@@ -339,7 +339,7 @@ const UpdateTime = time.Hour
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
-	q = q.Filter("u <=", time.Now().Add(-UpdateTime))
+	q = q.Filter("n <=", time.Now())
 	es, _ := gn.GetAll(q, nil)
 	ts := make([]*taskqueue.Task, len(es))
 	for i, e := range es {
@@ -390,6 +390,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 			f = *feed
 			f.Checked = time.Now()
+			f.NextUpdate = f.Checked.Add(UpdateTime)
 
 			if hasUpdated && isFeedUpdated {
 				c.Infof("feed %s already updated to %v", url, feed.Updated)

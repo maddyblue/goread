@@ -49,11 +49,12 @@ type Feeds []*UserFeed
 
 // key: URL
 type Feed struct {
-	_goon   interface{} `kind:"F"`
-	Title   string      `datastore:"t,noindex"`
-	Updated time.Time   `datastore:"u,noindex"`
-	Checked time.Time   `datastore:"c"`
-	Link    string      `datastore:"l,noindex"`
+	_goon      interface{} `kind:"F"`
+	Title      string      `datastore:"t,noindex"`
+	Updated    time.Time   `datastore:"u,noindex"`
+	Checked    time.Time   `datastore:"c,noindex"`
+	NextUpdate time.Time   `datastore:"n"`
+	Link       string      `datastore:"l,noindex"`
 }
 
 // parent: Feed, key: 1
