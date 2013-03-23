@@ -179,10 +179,6 @@ function GoreadCtrl($scope, $http) {
 	window.onscroll = function() {
 		$scope.$apply('getContents()');
 	};
-	// todo: switch this cheating to a directive
-	setTimeout(function() {
-		$scope.$apply('getContents()');
-	}, 100);
 
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
