@@ -161,7 +161,10 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		}
 
 		for _, i := range r.Items {
-			st := Story{}
+			st := Story{
+				Link:   i.Link,
+				Author: i.Author,
+			}
 			if i.Title != "" {
 				st.Title = i.Title
 				if i.Description != "" {
@@ -172,12 +175,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			} else {
 				c.Errorf("rss feed requires title or description")
 				return nil, nil
-			}
-			if i.Link != "" {
-				st.Link = i.Link
-			}
-			if i.Author != "" {
-				st.Author = i.Author
 			}
 			if i.Content != "" {
 				st.content = Sanitize(i.Content)
