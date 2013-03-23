@@ -73,7 +73,7 @@ type Story struct {
 	Updated   time.Time   `datastore:"u"`
 	Date      int64       `datastore:"e,noindex"`
 	Author    string      `datastore:"a,noindex"`
-	Summary   string      `datastore:"i,noindex"`
+	Summary   string      `datastore:"s,noindex"`
 
 	content string
 }

@@ -22,12 +22,15 @@ import (
 	"code.google.com/p/go.net/html/atom"
 	"fmt"
 	"io"
+	"regexp"
+	"strings"
 )
 
-func Sanitize(s string) string {
+func Sanitize(s string) (string, string) {
 	r := bytes.NewReader([]byte(s))
 	z := html.NewTokenizer(r)
 	buf := &bytes.Buffer{}
+	snip := &bytes.Buffer{}
 	scripts := 0
 	for {
 		if z.Next() == html.ErrorToken {
@@ -35,7 +38,7 @@ func Sanitize(s string) string {
 				break
 			} else {
 				fmt.Println("SANITIZE ERROR", err.Error())
-				return s
+				return s, snipper(s)
 			}
 		}
 		t := z.Token()
@@ -48,8 +51,27 @@ func Sanitize(s string) string {
 			}
 		} else if scripts == 0 {
 			buf.WriteString(t.String())
+			if t.Type == html.TextToken {
+				snip.WriteString(t.String())
+			}
 		}
 	}
 
-	return buf.String()
+	return buf.String(), snipper(snip.String())
+}
+
+const snipLen = 100
+
+var snipRe = regexp.MustCompile("[\\s]+")
+
+func snipper(s string) string {
+	s = snipRe.ReplaceAllString(strings.TrimSpace(s), " ")
+	if len(s) > snipLen {
+		s = s[:snipLen]
+	}
+	i := strings.LastIndexAny(s, " .-!?")
+	if i != -1 {
+		return s[:i]
+	}
+	return s
 }

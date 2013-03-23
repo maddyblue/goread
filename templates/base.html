@@ -113,7 +113,8 @@
 				<div ng-repeat="s in stories" class="row-fluid story" ng-mouseover="getContents(s)">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 					<div class="span8" ng-click="setCurrent($index)">
-						<span class="hand" ng-bind="s.Title"></span>
+						<strong class="hand" ng-bind="s.Title"></strong>
+						<span class="hand" ng-bind="s.Summary"></span>
 						<div ng-show="$index == currentStory">
 							<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 							<p><small>

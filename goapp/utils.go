@@ -134,11 +134,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			if i.Author != nil {
 				st.Author = i.Author.Name
 			}
-			if i.Summary != nil {
-				st.Summary = i.Summary.Body
-			}
 			if i.Content != nil {
-				st.content = Sanitize(i.Content.Body)
+				st.content, st.Summary = Sanitize(i.Content.Body)
 			}
 			st.Date = st.Updated.Unix()
 			s = append(s, &st)
@@ -168,9 +165,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			}
 			if i.Title != "" {
 				st.Title = i.Title
-				if i.Description != "" {
-					st.Summary = i.Description
-				}
 			} else if i.Description != "" {
 				i.Title = i.Description
 			} else {
@@ -178,9 +172,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				return nil, nil
 			}
 			if i.Content != "" {
-				st.content = Sanitize(i.Content)
+				st.content, st.Summary = Sanitize(i.Content)
 			} else if i.Title != "" && i.Description != "" {
-				st.content = Sanitize(i.Description)
+				st.content, st.Summary = Sanitize(i.Description)
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
@@ -222,12 +216,12 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 		for _, i := range rdf.Item {
 			st := Story{
-				Id:      i.About,
-				Title:   i.Title,
-				Link:    i.Link,
-				Author:  i.Creator,
-				content: Sanitize(html.UnescapeString(i.Description)),
+				Id:     i.About,
+				Title:  i.Title,
+				Link:   i.Link,
+				Author: i.Creator,
 			}
+			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description))
 			if i.About == "" && i.Link != "" {
 				st.Id = i.Link
 			} else if i.About == "" && i.Link == "" {
