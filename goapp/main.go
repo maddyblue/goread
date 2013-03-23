@@ -500,10 +500,8 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	si := StoryIndex{}
 	fk := datastore.NewKey(c, goon.Kind(&Feed{}), r.FormValue("feed"), 0, nil)
 	sk := datastore.NewKey(c, goon.Kind(&Story{}), r.FormValue("story"), 0, fk)
-	c.Debugf(sk.String())
 	gn.RunInTransaction(func(gn *goon.Goon) error {
 		if sie, _ := gn.GetById(&si, "", 1, sk); !sie.NotFound {
-			c.Debugf("searching")
 			for i, v := range si.Users {
 				if v == cu.ID {
 					c.Debugf("marking %s read for %s", sk.StringID(), cu.ID)
