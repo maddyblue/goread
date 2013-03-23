@@ -179,6 +179,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			}
 			if i.Content != "" {
 				st.content = Sanitize(i.Content)
+			} else if i.Title != "" && i.Description != "" {
+				st.content = Sanitize(i.Description)
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
