@@ -105,7 +105,10 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	var s []*Story
 
 	a := atom.Feed{}
-	if err := xml.Unmarshal(b, &a); err == nil {
+	var atomerr, err error
+	d := xml.NewDecoder(bytes.NewReader(b))
+	d.CharsetReader = CharsetReader
+	if atomerr = d.Decode(&a); atomerr == nil {
 		f.Title = a.Title
 		if a.Updated != "" {
 			f.Updated = ParseAtomDate(a.Updated)
@@ -144,9 +147,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	}
 
 	r := rssgo.Rss{}
-	d := xml.NewDecoder(bytes.NewReader(b))
+	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = CharsetReader
-	if err := d.Decode(&r); err == nil {
+	if err = d.Decode(&r); err == nil {
 		f.Title = r.Title
 		f.Link = r.Link
 		if t, err := rssgo.ParseRssDate(r.LastBuildDate); err == nil {
@@ -200,10 +203,10 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		}
 
 		return parseFix(&f, s)
-	} else {
-		c.Errorf("xml parse error: %s", err.Error())
 	}
 
+	c.Errorf("atom parse error: %s", atomerr.Error())
+	c.Errorf("xml parse error: %s", err.Error())
 	return nil, nil
 }
 
