@@ -68,7 +68,7 @@ func init() {
 	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	http.Handle("/", router)
 
-	miniprofiler.ShowControls = false
+	miniprofiler.ShowControls = true
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
