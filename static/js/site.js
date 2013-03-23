@@ -120,7 +120,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 	$scope.next = function() {
 		if ($scope.stories && typeof $scope.currentStory === 'undefined') {
 			$scope.$apply('setCurrent(0)');
-		} else if ($scope.stories && $scope.currentStory < $scope.stories.length - 2) {
+		} else if ($scope.stories && $scope.currentStory < $scope.stories.length - 1) {
 			$scope.$apply('setCurrent(currentStory + 1)');
 		}
 	};
