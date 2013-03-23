@@ -98,6 +98,12 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		var story = $scope.stories[i];
 		$scope.getContents(story);
+		if (i > 0) {
+			$scope.getContents($scope.stories[i - 1]);
+		}
+		if (i < $scope.stories.length - 2) {
+			$scope.getContents($scope.stories[i + 1]);
+		}
 		$('#story' + $scope.currentStory).empty();
 		$scope.currentStory = i;
 		$scope.markRead(story);
