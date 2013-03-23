@@ -26,6 +26,7 @@ import (
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 	"github.com/mjibson/rssgo"
+	"html"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -105,7 +106,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	var s []*Story
 
 	a := atom.Feed{}
-	var atomerr, err error
+	var atomerr, rsserr, rdferr error
 	d := xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = CharsetReader
 	if atomerr = d.Decode(&a); atomerr == nil {
@@ -149,7 +150,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	r := rssgo.Rss{}
 	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = CharsetReader
-	if err = d.Decode(&r); err == nil {
+	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
 		f.Link = r.Link
 		if t, err := rssgo.ParseRssDate(r.LastBuildDate); err == nil {
@@ -185,6 +186,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Id = i.Title
 			}
 			var t time.Time
+			var err error
 			if t, err = rssgo.ParseRssDate(i.PubDate); err == nil {
 			} else if t, err = rssgo.ParseRssDate(i.Date); err == nil {
 			} else if t, err = rssgo.ParseRssDate(i.Published); err == nil {
@@ -202,8 +204,50 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		return parseFix(&f, s)
 	}
 
+	rdf := RDF{}
+	d = xml.NewDecoder(bytes.NewReader(b))
+	d.CharsetReader = CharsetReader
+	if rdferr = d.Decode(&rdf); rdferr == nil {
+		if rdf.Channel != nil {
+			f.Title = rdf.Channel.Title
+			f.Link = rdf.Channel.Link
+			if t, err := rssgo.ParseRssDate(rdf.Channel.Date); err == nil {
+				f.Updated = t
+			} else {
+				c.Errorf("could not parse date: %v", rdf.Channel.Date)
+			}
+		}
+
+		for _, i := range rdf.Item {
+			st := Story{
+				Id:      i.About,
+				Title:   i.Title,
+				Link:    i.Link,
+				Author:  i.Creator,
+				content: Sanitize(html.UnescapeString(i.Description)),
+			}
+			if i.About == "" && i.Link != "" {
+				st.Id = i.Link
+			} else if i.About == "" && i.Link == "" {
+				c.Errorf("rdf error, no story id: %v", i)
+				return nil, nil
+			}
+			if t, err := rssgo.ParseRssDate(i.Date); err == nil {
+				st.Published = t
+				st.Updated = t
+				st.Date = t.Unix()
+			} else {
+				c.Errorf("could not parse date: %v", i.Date)
+			}
+			s = append(s, &st)
+		}
+
+		return parseFix(&f, s)
+	}
+
 	c.Errorf("atom parse error: %s", atomerr.Error())
-	c.Errorf("xml parse error: %s", err.Error())
+	c.Errorf("xml parse error: %s", rsserr.Error())
+	c.Errorf("rdf parse error: %s", rdferr.Error())
 	return nil, nil
 }
 
