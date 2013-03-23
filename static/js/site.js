@@ -81,6 +81,7 @@ function GoreadCtrl($scope, $http) {
 				}
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
+				$scope.getContents();
 			})
 			.error(function() {
 				if (typeof cb === 'function') cb();
