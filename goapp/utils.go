@@ -107,6 +107,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	a := atom.Feed{}
 	if err := xml.Unmarshal(b, &a); err == nil {
 		f.Title = a.Title
+		if a.Updated != "" {
+			f.Updated = ParseAtomDate(a.Updated)
+		}
 		for _, l := range a.Link {
 			if l.Rel != "self" {
 				f.Link = l.Href
@@ -146,6 +149,13 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	if err := d.Decode(&r); err == nil {
 		f.Title = r.Title
 		f.Link = r.Link
+		if t, err := rssgo.ParseRssDate(r.LastBuildDate); err == nil {
+			f.Updated = t
+		} else {
+			if t, err = rssgo.ParseRssDate(r.PubDate); err == nil {
+				f.Updated = t
+			}
+		}
 
 		for _, i := range r.Items {
 			st := Story{}

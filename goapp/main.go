@@ -179,6 +179,8 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 			b, _ := ioutil.ReadAll(r.Body)
 			if feed, _ := ParseFeed(c, b); feed != nil {
 				f = *feed
+				// force this to be updated
+				f.Updated = time.Time{}
 				gn.Put(fe)
 				updateFeed = true
 			} else {
@@ -365,22 +367,68 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
 		b, _ := ioutil.ReadAll(resp.Body)
 		if feed, stories := ParseFeed(c, b); feed != nil {
+			hasUpdated := !feed.Updated.IsZero()
+			isFeedUpdated := feed.Updated == f.Updated
+
+			var storyDate time.Time
+			if hasUpdated {
+				storyDate = f.Updated
+			} else {
+				storyDate = f.Checked
+			}
+			c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
+
+			var datedStories, undatedStories []*Story
+			for _, s := range stories {
+				if s.Updated.IsZero() {
+					undatedStories = append(undatedStories, s)
+				} else if storyDate.Before(s.Updated) {
+					datedStories = append(datedStories, s)
+				}
+			}
+			c.Debugf("%v undated stories, %v dated stories to update", len(undatedStories), len(datedStories))
+
 			f = *feed
-			f.Updated = time.Now()
-			ses := make([]*goon.Entity, len(stories))
-			sis := make([]StoryIndex, len(stories))
-			sies := make([]*goon.Entity, len(stories))
-			scs := make([]StoryContent, len(stories))
-			sces := make([]*goon.Entity, len(stories))
-			for i, s := range stories {
+			f.Checked = time.Now()
+
+			if hasUpdated && isFeedUpdated {
+				c.Infof("feed %s already updated to %v", url, feed.Updated)
+				gn.Put(fe)
+				return
+			}
+
+			puts := []*goon.Entity { fe }
+			var updateStories []*Story
+
+			// find non existant undated stories
+			ses := make([]*goon.Entity, len(undatedStories))
+			for i, s := range undatedStories {
+				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+			}
+			gn.GetMulti(ses)
+			for i, e := range ses {
+				if e.NotFound {
+					updateStories = append(updateStories, undatedStories[i])
+				}
+			}
+			c.Debugf("%v new undated stories", len(updateStories))
+
+			updateStories = append(updateStories, datedStories...)
+			ses = make([]*goon.Entity, len(updateStories))
+			sis := make([]StoryIndex, len(updateStories))
+			sies := make([]*goon.Entity, len(updateStories))
+			scs := make([]StoryContent, len(updateStories))
+			sces := make([]*goon.Entity, len(updateStories))
+			for i, s := range updateStories {
 				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
 				sies[i], _ = gn.NewEntityById("", 1, ses[i].Key, &sis[i])
 				scs[i].Content = s.content
 				sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
 			}
-			gn.Put(fe)
-			gn.PutMulti(ses)
-			gn.PutMulti(sces)
+			puts = append(puts, ses...)
+			puts = append(puts, sces...)
+			c.Debugf("putting %v entities", len(puts))
+			gn.PutMulti(puts)
 
 			fi := FeedIndex{}
 			updateTime := time.Now().Add(-time.Hour * 24 * 7)
@@ -391,7 +439,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 				var puts []*goon.Entity
 				for i, sie := range sies {
-					if sie.NotFound && stories[i].Updated.Sub(updateTime) > 0 {
+					if sie.NotFound && updateStories[i].Updated.Sub(updateTime) > 0 {
 						sis[i].Users = fi.Users
 						puts = append(puts, sie)
 					}

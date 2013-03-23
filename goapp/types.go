@@ -51,7 +51,8 @@ type Feeds []*UserFeed
 type Feed struct {
 	_goon   interface{} `kind:"F"`
 	Title   string      `datastore:"t,noindex"`
-	Updated time.Time   `datastore:"u"`
+	Updated time.Time   `datastore:"u,noindex"`
+	Checked time.Time   `datastore:"c"`
 	Link    string      `datastore:"l,noindex"`
 }
 
