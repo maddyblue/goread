@@ -110,7 +110,7 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div ng-repeat="s in stories" class="row-fluid story" ng-mouseover="getContents(s)">
+				<div ng-repeat="s in stories" class="row-fluid story" ng-mouseover="getContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 					<div class="span8" ng-click="setCurrent($index)">
 						<strong class="hand" ng-bind="s.Title"></strong>
@@ -204,8 +204,8 @@
 	<script src="{{.BootstrapJs}}"></script>
 	<script src="/static/js/jquery.form.js"></script>
 	<script src="/static/js/mousetrap.min.js"></script>
-	<script src="/static/js/site.js"></script>
 	<script src="{{.Angular}}"></script>
+	<script src="/static/js/site.js"></script>
 
 	{{.MiniProfiler}}
 </body>
