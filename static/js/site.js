@@ -90,8 +90,10 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.setCurrent = function(i) {
-		if (i == $scope.currentStory)
+		if (i == $scope.currentStory) {
+			delete $scope.currentStory;
 			return;
+		}
 		var story = $scope.stories[i];
 		$scope.getContents(story);
 		$('#story' + $scope.currentStory).empty();
