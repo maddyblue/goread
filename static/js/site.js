@@ -90,8 +90,14 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.setCurrent = function(i) {
+		if (i == $scope.currentStory)
+			return;
+		var story = $scope.stories[i];
+		$scope.getContents(story);
+		$('#story' + $scope.currentStory).empty();
 		$scope.currentStory = i;
-		$scope.markRead($scope.stories[i]);
+		$scope.markRead(story);
+		$('#story' + i).html($scope.contents[story.guid] || '');
 	};
 	$scope.prev = function() {
 		if ($scope.currentStory > 0) {
@@ -172,8 +178,15 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		$http.post($('#mark-all-read').attr('data-url-contents'), data)
 			.success(function(data) {
+				var current = '';
+				if ($scope.stories[$scope.currentStory]) {
+					current = $scope.stories[$scope.currentStory].guid;
+				}
 				for (var i = 0; i < data.length; i++) {
 					$scope.contents[tofetch[i].guid] = data[i];
+					if (current == tofetch[i].guid) {
+						$('#story' + $scope.currentStory).html(data[i]);
+					}
 				}
 			});
 	};

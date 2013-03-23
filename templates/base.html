@@ -108,7 +108,7 @@
 								from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 							</small></p>
-							<p ng-bind-html-unsafe="contents[s.guid]"></p>
+							<p id="story{{`{{$index}}`}}"></p>
 						</div>
 					</div>
 					<div class="span2 text-right">
