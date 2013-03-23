@@ -397,7 +397,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			puts := []*goon.Entity { fe }
+			puts := []*goon.Entity{fe}
 			var updateStories []*Story
 
 			// find non existant undated stories
