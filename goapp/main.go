@@ -578,9 +578,9 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		sces[i], _ = gn.NewEntityById("", 1, sk, &scs[i])
 	}
 	gn.GetMulti(sces)
-	ret := make(map[string]string)
+	ret := make([]string, len(reqs))
 	for i, sc := range scs {
-		ret[reqs[i].Story] = sc.Content
+		ret[i] = sc.Content
 	}
 	b, _ = json.Marshal(&ret)
 	w.Write(b)

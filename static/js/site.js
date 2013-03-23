@@ -9,7 +9,7 @@ function countProperties(obj) {
 	return count;
 }
 
-function GoreadCtrl($scope, $http) {
+function GoreadCtrl($scope, $http, $timeout) {
 	$scope.loading = 0;
 	$scope.contents = {};
 
@@ -72,6 +72,7 @@ function GoreadCtrl($scope, $http) {
 						var d = new Date(f.Stories[i].Date * 1000);
 						f.Stories[i].dispdate = d.toDateString();
 						f.Stories[i].read = false;
+						f.Stories[i].guid = f.Feed.Url + '|' + f.Stories[i].Id;
 						$scope.stories.push(f.Stories[i]);
 						$scope.unreadStories[f.Stories[i].Id] = true;
 					}
@@ -81,7 +82,6 @@ function GoreadCtrl($scope, $http) {
 				}
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
-				$scope.getContents();
 			})
 			.error(function() {
 				if (typeof cb === 'function') cb();
@@ -141,43 +141,41 @@ function GoreadCtrl($scope, $http) {
 		return $scope.nav ? {} : {'margin-left': '0'};
 	};
 
-	$scope.storyClass = function(s) {
-		var o = {};
-		o['nocontent'] = $scope.contents[s.Id] === undefined;
-		return o;
+	$scope.toFetch = [];
+	$scope.getContents = function(s) {
+		if (typeof $scope.contents[s.guid] !== 'undefined') {
+			return;
+		}
+		$scope.toFetch.push(s);
+		if (!$scope.fetchPromise) {
+			// fetch this story immediately
+			$scope.fetchContents();
+			// and any others in a bit
+			$scope.fetchPromise = $timeout($scope.fetchContents, 500);
+		}
 	};
 
-	$scope.getContents = function() {
-		var docViewTop = $(window).scrollTop();
-		var docViewBottom = docViewTop + $(window).height();
-
-		var stories = $('.nocontent');
-		if (stories.length == 0) return;
-		var onscreen = [];
-		$.each(stories, function(i, v) {
-			v = $(v);
-			var elemTop = v.offset().top;
-			var elemBottom = elemTop + v.height();
-			if ((elemTop <= docViewBottom) && (elemBottom >= docViewTop)) {
-				var s = $scope.stories[v.attr('data-idx')];
-				onscreen.push({
-					Feed: s.feed.Url,
-					Story: s.Id,
-				});
-				// mark this as fetched so a subsequent scroll doesn't re fetch
-				$scope.contents[s.Id] = '';
-			}
-		});
-		if (onscreen.length == 0) return;
-		$http.post($('#mark-all-read').attr('data-url-contents'), onscreen)
+	$scope.fetchContents = function() {
+		delete $scope.fetchPromise;
+		if ($scope.toFetch.length == 0) {
+			return;
+		}
+		var tofetch = $scope.toFetch;
+		$scope.toFetch = [];
+		var data = [];
+		for (var i = 0; i < tofetch.length; i++) {
+			$scope.contents[tofetch[i].guid] = '';
+			data.push({
+				Feed: tofetch[i].feed.Url,
+				Story: tofetch[i].Id
+			});
+		}
+		$http.post($('#mark-all-read').attr('data-url-contents'), data)
 			.success(function(data) {
-				for (var k in data) {
-					$scope.contents[k] = data[k];
+				for (var i = 0; i < data.length; i++) {
+					$scope.contents[tofetch[i].guid] = data[i];
 				}
 			});
-	};
-	window.onscroll = function() {
-		$scope.$apply('getContents()');
 	};
 
 	var shortcuts = $('#shortcuts');

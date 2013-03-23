@@ -98,7 +98,7 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div ng-repeat="s in stories" class="row-fluid story" ng-class="storyClass(s)" data-idx="{{`{{$index}}`}}">
+				<div ng-repeat="s in stories" class="row-fluid story" ng-mouseover="getContents(s)">
 					<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 					<div class="span8" ng-click="setCurrent($index)">
 						<span class="hand" ng-bind="s.Title"></span>
@@ -108,7 +108,7 @@
 								from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 							</small></p>
-							<p ng-bind-html-unsafe="contents[s.Id]"></p>
+							<p ng-bind-html-unsafe="contents[s.guid]"></p>
 						</div>
 					</div>
 					<div class="span2 text-right">
