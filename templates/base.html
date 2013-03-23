@@ -7,6 +7,9 @@
 		.ng-cloak {
 			display: none;
 		}
+		body {
+			padding-top: 40px;
+		}
 		.hand {
 			cursor: hand;
 			cursor: pointer;
@@ -21,7 +24,7 @@
 	<link rel="shortcut icon" href="/static/favicon.png">
 </head>
 <body ng-controller="GoreadCtrl" class="ng-cloak">
-	<div class="navbar navbar-inverse">
+	<div class="navbar navbar-inverse navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container-fluid">
 				<a class="brand" href="{{url "main"}}">go read</a>
