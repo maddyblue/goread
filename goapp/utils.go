@@ -209,6 +209,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
 	for _, s := range ss {
+		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
 			if u, err := url.Parse(s.Id); err == nil {
 				s.Link = u.String()
