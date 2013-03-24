@@ -120,14 +120,14 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 	$scope.prev = function() {
 		if ($scope.currentStory > 0) {
-			$scope.$apply('setCurrent(currentStory - 1)');
+			$scope.setCurrent($scope.currentStory - 1);
 		}
 	};
 	$scope.next = function() {
 		if ($scope.stories && typeof $scope.currentStory === 'undefined') {
-			$scope.$apply('setCurrent(0)');
+			$scope.setCurrent(0);
 		} else if ($scope.stories && $scope.currentStory < $scope.stories.length - 1) {
-			$scope.$apply('setCurrent(currentStory + 1)');
+			$scope.setCurrent($scope.currentStory + 1);
 		}
 	};
 
@@ -136,6 +136,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.markRead = function(s) {
+		return;
 		if ($scope.unreadStories[s.Id]) {
 			delete $scope.unreadStories[s.Id];
 			s.read = true;
@@ -223,8 +224,12 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		$scope.$apply($scope.refresh());
 	});
-	Mousetrap.bind('j', $scope.next);
-	Mousetrap.bind('k', $scope.prev);
+	Mousetrap.bind('j', function() {
+		$scope.$apply('next()');
+	});
+	Mousetrap.bind('k', function() {
+		$scope.$apply('prev()');
+	});
 	Mousetrap.bind('v', function() {
 		if ($scope.stories[$scope.currentStory]) {
 			window.open($scope.stories[$scope.currentStory].Link);
