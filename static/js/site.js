@@ -75,6 +75,9 @@ function GoreadCtrl($scope, $http, $timeout) {
 						f.Stories[i].dispdate = d.toDateString();
 						f.Stories[i].read = false;
 						f.Stories[i].guid = f.Feed.Url + '|' + f.Stories[i].Id;
+						if (!f.Stories[i].Title) {
+							f.Stories[i].Title = '(title unknown)';
+						}
 						$scope.stories.push(f.Stories[i]);
 						$scope.unreadStories[f.Stories[i].Id] = true;
 					}

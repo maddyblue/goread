@@ -167,9 +167,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Title = i.Title
 			} else if i.Description != "" {
 				i.Title = i.Description
-			} else {
-				c.Errorf("rss feed requires title or description")
-				return nil, nil
 			}
 			if i.Content != "" {
 				st.content, st.Summary = Sanitize(i.Content)
