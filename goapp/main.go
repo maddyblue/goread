@@ -491,6 +491,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fl[k].Stories = append(fl[k].Stories, &stories[i])
 	}
 
+	c.Infof("%v feeds for %v", len(fl), cu.ID)
 	b, _ := json.Marshal(fl)
 	w.Write(b)
 }
