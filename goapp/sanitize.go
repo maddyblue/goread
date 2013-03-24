@@ -21,6 +21,7 @@ import (
 	"code.google.com/p/go.net/html"
 	"code.google.com/p/go.net/html/atom"
 	"fmt"
+	_html "html"
 	"io"
 	"regexp"
 	"strings"
@@ -66,6 +67,7 @@ var snipRe = regexp.MustCompile("[\\s]+")
 
 func snipper(s string) string {
 	s = snipRe.ReplaceAllString(strings.TrimSpace(s), " ")
+	s = _html.UnescapeString(s)
 	if len(s) <= snipLen {
 		return s
 	}
