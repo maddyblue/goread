@@ -117,7 +117,7 @@
 						<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="span8" ng-click="setCurrent($index)">
 							<strong class="hand" ng-bind="s.Title"></strong>
-							<span class="hand" ng-bind="s.Summary"></span>
+							<span class="hand" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="span2 text-right">
 							<span class="hand" ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
