@@ -136,7 +136,6 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.markRead = function(s) {
-		return;
 		if ($scope.unreadStories[s.Id]) {
 			delete $scope.unreadStories[s.Id];
 			s.read = true;
