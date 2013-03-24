@@ -66,9 +66,10 @@ var snipRe = regexp.MustCompile("[\\s]+")
 
 func snipper(s string) string {
 	s = snipRe.ReplaceAllString(strings.TrimSpace(s), " ")
-	if len(s) > snipLen {
-		s = s[:snipLen]
+	if len(s) <= snipLen {
+		return s
 	}
+	s = s[:snipLen]
 	i := strings.LastIndexAny(s, " .-!?")
 	if i != -1 {
 		return s[:i]
