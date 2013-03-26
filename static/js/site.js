@@ -1,5 +1,8 @@
 $('.dropdown-toggle').dropdown();
-$('#messages').modal();
+
+if ($('#messages').attr('data-show')) {
+	$('#messages').modal();
+}
 
 function countProperties(obj) {
 	var count = 0;
@@ -20,6 +23,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$('#import-opml-form').ajaxForm(function() {
 			$('#import-opml-form')[0].reset();
 			$scope.loaded();
+			$scope.showMessage('OPML is importing. May take a bit. Refresh at will.');
 		});
 	};
 
@@ -268,4 +272,9 @@ function GoreadCtrl($scope, $http, $timeout) {
 	Mousetrap.bind('u', function() {
 		$scope.$apply("toggleNav()");
 	});
+
+	$scope.showMessage = function(m) {
+		$('#message-list').text(m);
+		$('#messages').modal('show');
+	};
 }

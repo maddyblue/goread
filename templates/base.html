@@ -71,7 +71,7 @@
 						<ul class="dropdown-menu">
 							<li><a href="{{url "import-reader"}}">import google reader</a></li>
 							<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
-							<!--li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li-->
+							<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
 							<li class="divider"></li>
 							<li><a href="{{url "logout"}}">logout</a></li>
 						</ul>
@@ -168,7 +168,7 @@
 			</div>
 		</div>
 
-		<!--div class="row-fluid top-margin" ng-show="shown == 'import-opml' || nothing()">
+		<div class="row-fluid top-margin" ng-show="shown == 'import-opml' || nothing()">
 			<div class="offset2 span8">
 				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
 					<fieldset>
@@ -178,7 +178,7 @@
 					</fieldset>
 				</form>
 			</div>
-		</div-->
+		</div>
 		{{else}}
 			<div class="row-fluid top-margin" ng-init="nouser = true">
 				<div class="offset1 span10" ng-hide="shown">
@@ -211,16 +211,16 @@
 		</div>
 	</div>
 
-	{{if .Messages}}
-	<div id="messages" class="modal hide">
+	<div id="messages" class="modal hide" data-show="{{if .Messages}}true{{end}}">
 		<div class="modal-body">
 			<button type="button" class="close" data-dismiss="modal">&times;</button>
-			{{range .Messages}}
-			<p>{{.}}</p>
-			{{end}}
+				<div id="message-list">
+				{{range .Messages}}
+					<p>{{.}}</p>
+				{{end}}
+				</div>
 		</div>
 	</div>
-	{{end}}
 
 	<script src="{{.Jquery}}"></script>
 	<script src="{{.BootstrapJs}}"></script>

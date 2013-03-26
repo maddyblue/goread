@@ -35,6 +35,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -58,6 +59,7 @@ func init() {
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
 	router.Handle("/tasks/import-reader", mpg.NewHandler(ImportReaderTask)).Name("import-reader-task")
+	router.Handle("/tasks/import-opml", mpg.NewHandler(ImportOpmlTask)).Name("import-opml-task")
 	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
 	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
@@ -100,6 +102,26 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{}
+	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
+	if ue.NotFound {
+		return
+	}
+
+	if file, _, err := r.FormFile("file"); err == nil {
+		if fdata, err := ioutil.ReadAll(file); err == nil {
+			task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
+				"data": {string(fdata)},
+				"user": {cu.ID},
+			})
+			taskqueue.Add(c, task, "import-reader")
+		}
+	}
+}
+
+func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	type outline struct {
 		Outline []outline `xml:"outline"`
 		Title   string    `xml:"title,attr"`
@@ -110,19 +132,24 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		Outline []outline `xml:"outline"`
 	}
 
-	user := user.Current(c)
+	gn := goon.FromContext(c)
+	userid := r.FormValue("user")
+	data := r.FormValue("data")
 
-	var ts []*taskqueue.Task
+	var ufs []*UserFeed
+	sortid := 1
+
 	var proc func(label string, outlines []outline)
 	proc = func(label string, outlines []outline) {
 		for _, o := range outlines {
 			if o.XmlUrl != "" {
-				ts = append(ts, taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
-					"user":  {user.ID},
-					"label": {label},
-					"feed":  {o.XmlUrl},
-					"title": {o.Title},
-				}))
+				ufs = append(ufs, &UserFeed{
+					Label:  label,
+					Url:    o.XmlUrl,
+					Title:  o.Title,
+					Sortid: strconv.Itoa(sortid * 1000),
+				})
+				sortid++
 			}
 
 			if o.Title != "" && len(o.Outline) > 0 {
@@ -131,20 +158,39 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if file, _, err := r.FormFile("file"); err == nil {
-		if fdata, err := ioutil.ReadAll(file); err == nil {
-			fs := string(fdata)
-			idx0 := strings.Index(fs, "<body>")
-			idx1 := strings.LastIndex(fs, "</body>")
-			fs = fs[idx0 : idx1+7]
-			feed := Body{}
-			if err = xml.Unmarshal([]byte(fs), &feed); err != nil {
-				return
-			}
-			proc("", feed.Outline)
-			taskqueue.AddMulti(c, ts, "add-feed")
-		}
+	idx0 := strings.Index(data, "<body>")
+	idx1 := strings.LastIndex(data, "</body>")
+	data = data[idx0 : idx1+7]
+	feed := Body{}
+	if err := xml.Unmarshal([]byte(data), &feed); err != nil {
+		return
 	}
+	proc("", feed.Outline)
+
+	// todo: refactor below with similar from ImportReaderTask
+	wg := sync.WaitGroup{}
+	wg.Add(len(ufs))
+	for i := range ufs {
+		go func(i int) {
+			if err := addFeed(c, userid, ufs[i]); err != nil {
+				c.Errorf("opml import error: %v", err.Error())
+				// todo: do something here?
+			}
+			c.Debugf("opml import: %s, %s", ufs[i].Title, ufs[i].Url)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	ud := UserData{}
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
+		for _, uf := range ufs {
+			addUserFeed(&ud, uf)
+		}
+		gn.Put(ude)
+		return nil
+	}, nil)
 }
 
 const RECENT = -time.Hour * 24 * 7 * 30
