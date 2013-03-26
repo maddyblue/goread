@@ -185,6 +185,10 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 			}
 		}
 	} else {
+		uf.Link = f.Link
+		if uf.Title == "" {
+			uf.Title = f.Title
+		}
 		q := datastore.NewQuery(goon.Kind(&Story{})).Ancestor(fe.Key).KeysOnly()
 		q = q.Filter("u >=", recentDate)
 		es, _ := gn.GetAll(q, nil)
