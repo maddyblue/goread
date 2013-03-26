@@ -37,7 +37,6 @@ type UserData struct {
 }
 
 type UserFeed struct {
-	_goon  interface{} `kind:"UF"`
 	Url    string
 	Title  string
 	Link   string
