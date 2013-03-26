@@ -183,14 +183,15 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 
 	ud := UserData{}
-	gn.RunInTransaction(func(gn *goon.Goon) error {
+	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
 		for _, uf := range ufs {
 			addUserFeed(&ud, uf)
 		}
-		gn.Put(ude)
-		return nil
-	}, nil)
+		return gn.Put(ude)
+	}, nil); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 const RECENT = -time.Hour * 24 * 7 * 30
@@ -404,14 +405,15 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 
 	ud := UserData{}
-	gn.RunInTransaction(func(gn *goon.Goon) error {
+	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
 		for _, uf := range ufs {
 			addUserFeed(&ud, uf)
 		}
-		gn.Put(ude)
-		return nil
-	}, nil)
+		return gn.Put(ude)
+	}, nil); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
