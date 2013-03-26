@@ -22,8 +22,9 @@ import (
 
 // key: ID
 type User struct {
-	_goon interface{} `kind:"U"`
-	Email string      `datastore:"e,noindex"`
+	_goon    interface{} `kind:"U"`
+	Email    string      `datastore:"e,noindex"`
+	Messages []string    `datastore:"m,noindex"`
 }
 
 func (u *User) String() string {

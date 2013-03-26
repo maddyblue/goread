@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/MiniProfiler/go/miniprofiler"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
@@ -56,16 +57,16 @@ func init() {
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/oauth2callback", mpg.NewHandler(Oauth2Callback)).Name("oauth2callback")
-	router.Handle("/tasks/add-feed", mpg.NewHandler(AddFeed)).Name("add-feed")
-	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
+	router.Handle("/tasks/import-reader", mpg.NewHandler(ImportReaderTask)).Name("import-reader-task")
 	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
+	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
+	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
 	router.Handle("/user/mark-all-read", mpg.NewHandler(MarkAllRead)).Name("mark-all-read")
 	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
-	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = true
@@ -146,88 +147,62 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if err := addFeed(c, r.FormValue("user"), r.FormValue("feed"), r.FormValue("title"), r.FormValue("label"), r.FormValue("sortid")); err != nil {
-		serveError(w, err)
-	}
-}
+const RECENT = -time.Hour * 24 * 7 * 30
 
-func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error {
+func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	gn := goon.FromContext(c)
-	c.Infof("adding feed %s to user %s", feedurl, userid)
-
-	u := User{}
-	ue, _ := gn.GetById(&u, userid, 0, nil)
-	if ue.NotFound {
-		c.Errorf("user not found %s", userid)
-		return nil
-	}
+	c.Infof("adding feed %s to user %s", uf.Url, userid)
 
 	f := Feed{}
-	updateFeed := false
-	fe, err := gn.GetById(&f, feedurl, 0, nil)
+	fe, err := gn.GetById(&f, uf.Url, 0, nil)
 	if err != nil {
 		return err
 	}
+	recentDate := time.Now().Add(RECENT)
+	var recent []*datastore.Key
 	if fe.NotFound {
-		cl := urlfetch.Client(c)
-		if r, err := cl.Get(feedurl); err != nil {
-			c.Errorf("fetch error %s: %s", feedurl, err.Error())
-			return err
-		} else if r.StatusCode == http.StatusOK {
-			b, _ := ioutil.ReadAll(r.Body)
-			if feed, _ := ParseFeed(c, b); feed != nil {
-				f = *feed
-				// force this to be updated
-				f.Updated = time.Time{}
-				gn.Put(fe)
-				updateFeed = true
-			} else {
-				c.Errorf("could not parse feed %s", feedurl)
-				return errors.New("Could not parse feed")
+		if feed, stories := fetchFeed(c, uf.Url); feed == nil {
+			return errors.New(fmt.Sprintf("could not add feed %s", uf.Url))
+		} else {
+			f = *feed
+			f.Updated = time.Time{}
+			f.Checked = f.Updated
+			f.NextUpdate = f.Updated
+			gn.Put(fe)
+			if err := updateFeed(c, uf.Url, feed, stories); err != nil {
+				return err
 			}
+
+			uf.Link = feed.Link
+			if uf.Title == "" {
+				uf.Title = feed.Title
+			}
+
+			for _, s := range stories {
+				if recentDate.Before(s.Updated) {
+					recent = append(recent, datastore.NewKey(c, goon.Kind(&Story{}), s.Id, 0, fe.Key))
+				}
+			}
+		}
+	} else {
+		q := datastore.NewQuery(goon.Kind(&Story{})).Ancestor(fe.Key).KeysOnly()
+		q = q.Filter("u >=", recentDate)
+		es, _ := gn.GetAll(q, nil)
+		for _, e := range es {
+			recent = append(recent, e.Key)
 		}
 	}
 
-	if title == "" && f.Title != "" {
-		title = f.Title
+	sis := make([]StoryIndex, len(recent))
+	es := make([]*goon.Entity, len(recent))
+	for i, k := range recent {
+		es[i], _ = gn.NewEntityById("", 1, k, &sis[i])
 	}
 
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		ud := UserData{}
-		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
-		var fg Feeds
-
-		if len(ud.Feeds) > 0 {
-			if json.Unmarshal(ud.Feeds, &fg) != nil {
-				c.Errorf("unmarshal error of userdata %s", userid)
-				return nil
-			}
-		}
-
-		found := false
-		for _, fd := range fg {
-			if fd.Url == feedurl {
-				found = true
-				break
-			}
-		}
-		if !found {
-			fg = append(fg, &UserFeed{
-				Url:    feedurl,
-				Title:  title,
-				Link:   f.Link,
-				Label:  label,
-				Sortid: sortid,
-			})
-			b, _ := json.Marshal(fg)
-			ud.Feeds = b
-			gn.Put(ude)
-		}
-
 		fi := FeedIndex{}
 		fie, _ := gn.GetById(&fi, "", 1, fe.Key)
-		found = false
+		found := false
 		for _, fu := range fi.Users {
 			if fu == userid {
 				found = true
@@ -239,31 +214,58 @@ func addFeed(c mpg.Context, userid, feedurl, title, label, sortid string) error 
 			gn.Put(fie)
 		}
 
-		return nil
-	}, &datastore.TransactionOptions{XG: true}); err != nil {
-		c.Errorf("transaction error %s", err.Error())
-		return err
-	}
-
-	if updateFeed {
-		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
-			"feed": {feedurl},
-		})
-		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
-			return err
+		var puts []*goon.Entity
+		gn.GetMulti(es)
+		for i, e := range es {
+			found := false
+			for _, u := range sis[i].Users {
+				if u == userid {
+					found = true
+					break
+				}
+			}
+			if !found {
+				sis[i].Users = append(sis[i].Users, userid)
+				puts = append(puts, e)
+			}
 		}
+		gn.PutMulti(puts)
+
+		return nil
+	}, nil); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	u := user.Current(c)
-	url := r.FormValue("url")
-	if err := addFeed(c, u.ID, url, "", "", ""); err != nil {
-		c.Debugf("add sub error (%s): %s", url, err.Error())
-		serveError(w, err)
+func addUserFeed(ud *UserData, uf *UserFeed) {
+	var fs Feeds
+	json.Unmarshal(ud.Feeds, &fs)
+	for _, f := range fs {
+		if f.Url == uf.Url {
+			return
+		}
 	}
+	fs = append(fs, uf)
+	ud.Feeds, _ = json.Marshal(&fs)
+}
+
+func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	url := r.FormValue("url")
+	uf := &UserFeed{Url: url}
+	if err := addFeed(c, cu.ID, uf); err != nil {
+		c.Errorf("add sub error (%s): %s", url, err.Error())
+		serveError(w, err)
+		return
+	}
+
+	gn := goon.FromContext(c)
+	ud := UserData{}
+	ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+	addUserFeed(&ud, uf)
+	gn.Put(ude)
 }
 
 func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -278,6 +280,11 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if ue.NotFound {
 		return
 	}
+	u.Messages = append(u.Messages,
+		"Reader import is happening. It can take a minute.",
+		"Refresh at will - you'll continue to see this page until it's done.",
+	)
+	gn.Put(ue)
 
 	t := &oauth.Transport{
 		Config:    oauth_conf,
@@ -291,7 +298,18 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	b, _ := ioutil.ReadAll(resp.Body)
+	task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
+		"data": {string(b)},
+		"user": {cu.ID},
+	})
+	taskqueue.Add(c, task, "import-reader")
+	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+}
 
+func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	userid := r.FormValue("user")
+	data := r.FormValue("data")
 	v := struct {
 		Subscriptions []struct {
 			Id         string `json:"id"`
@@ -304,36 +322,47 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			} `json:"categories"`
 		} `json:"subscriptions"`
 	}{}
-	json.Unmarshal(b, &v)
+	json.Unmarshal([]byte(data), &v)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(v.Subscriptions))
+
+	ufs := make([]*UserFeed, len(v.Subscriptions))
+
 	for i := range v.Subscriptions {
 		go func(i int) {
 			sub := v.Subscriptions[i]
-			var label []string
+			var label string
 			if len(sub.Categories) > 0 {
-				label = append(label, sub.Categories[0].Label)
+				label = sub.Categories[0].Label
 			}
-			t := taskqueue.NewPOSTTask(routeUrl("add-feed"), url.Values{
-				"user":   {cu.ID},
-				"label":  label,
-				"feed":   {sub.Id[5:]},
-				"title":  {sub.Title},
-				"sortid": {sub.Sortid},
-			})
+			uf := &UserFeed{
+				Label:  label,
+				Url:    sub.Id[5:],
+				Title:  sub.Title,
+				Sortid: sub.Sortid,
+			}
+			ufs[i] = uf
+			if err := addFeed(c, userid, uf); err != nil {
+				c.Errorf("reader import error: %v", err.Error())
+				// todo: do something here?
+			}
 			c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
-			if _, err := taskqueue.Add(c, t, "add-feed"); err != nil {
-				c.Errorf("import reader tq add error %s", err.Error())
-			}
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
-}
 
-const UpdateTime = time.Hour
+	ud := UserData{}
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
+		for _, uf := range ufs {
+			addUserFeed(&ud, uf)
+		}
+		gn.Put(ude)
+		return nil
+	}, nil)
+}
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
@@ -350,6 +379,113 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	taskqueue.AddMulti(c, ts, "update-feed")
 }
 
+func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
+	cl := urlfetch.Client(c)
+	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
+		b, _ := ioutil.ReadAll(resp.Body)
+		return ParseFeed(c, b)
+	} else if err != nil {
+		c.Errorf("fetch feed error: %s", err.Error())
+	} else {
+		c.Errorf("fetch feed error: status code: %s", resp.Status)
+	}
+	return nil, nil
+}
+
+func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
+	gn := goon.FromContext(c)
+	f := Feed{}
+	fe, _ := gn.GetById(&f, url, 0, nil)
+	if fe.NotFound {
+		return errors.New(fmt.Sprintf("feed not found: %s", url))
+	}
+
+	hasUpdated := !f.Updated.IsZero()
+	isFeedUpdated := f.Updated == feed.Updated
+
+	var storyDate time.Time
+	if hasUpdated {
+		storyDate = f.Updated
+	} else {
+		storyDate = f.Checked
+	}
+	c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
+
+	var datedStories, undatedStories []*Story
+	for _, s := range stories {
+		if s.Updated.IsZero() {
+			undatedStories = append(undatedStories, s)
+		} else if storyDate.Before(s.Updated) {
+			datedStories = append(datedStories, s)
+		}
+	}
+	c.Debugf("%v undated stories, %v dated stories to update", len(undatedStories), len(datedStories))
+
+	f = *feed
+
+	if hasUpdated && isFeedUpdated {
+		c.Infof("feed %s already updated to %v", url, feed.Updated)
+		gn.Put(fe)
+		return nil
+	}
+
+	puts := []*goon.Entity{fe}
+	var updateStories []*Story
+
+	// find non existant undated stories
+	ses := make([]*goon.Entity, len(undatedStories))
+	for i, s := range undatedStories {
+		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+	}
+	gn.GetMulti(ses)
+	for i, e := range ses {
+		if e.NotFound {
+			updateStories = append(updateStories, undatedStories[i])
+		}
+	}
+	c.Debugf("%v new undated stories", len(updateStories))
+
+	updateStories = append(updateStories, datedStories...)
+	ses = make([]*goon.Entity, len(updateStories))
+	sis := make([]StoryIndex, len(updateStories))
+	sies := make([]*goon.Entity, len(updateStories))
+	scs := make([]StoryContent, len(updateStories))
+	sces := make([]*goon.Entity, len(updateStories))
+	for i, s := range updateStories {
+		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+		sies[i], _ = gn.NewEntityById("", 1, ses[i].Key, &sis[i])
+		scs[i].Content = s.content
+		sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
+	}
+	puts = append(puts, ses...)
+	puts = append(puts, sces...)
+	c.Debugf("putting %v entities", len(puts))
+	gn.PutMulti(puts)
+
+	fi := FeedIndex{}
+	updateTime := time.Now().Add(RECENT)
+
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		gn.GetById(&fi, "", 1, fe.Key)
+		if len(fi.Users) == 0 {
+			return nil
+		}
+		gn.GetMulti(sies)
+
+		var puts []*goon.Entity
+		for i, sie := range sies {
+			if sie.NotFound && updateStories[i].Updated.Sub(updateTime) > 0 {
+				sis[i].Users = fi.Users
+				puts = append(puts, sie)
+			}
+		}
+		gn.PutMulti(puts)
+		return nil
+	}, nil)
+
+	return nil
+}
+
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	url := r.FormValue("feed")
@@ -362,96 +498,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("already updated %s", url)
 		return
 	}
-	cl := urlfetch.Client(c)
-	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
-		b, _ := ioutil.ReadAll(resp.Body)
-		if feed, stories := ParseFeed(c, b); feed != nil {
-			hasUpdated := !feed.Updated.IsZero()
-			isFeedUpdated := feed.Updated == f.Updated
-
-			var storyDate time.Time
-			if hasUpdated {
-				storyDate = f.Updated
-			} else {
-				storyDate = f.Checked
-			}
-			c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
-
-			var datedStories, undatedStories []*Story
-			for _, s := range stories {
-				if s.Updated.IsZero() {
-					undatedStories = append(undatedStories, s)
-				} else if storyDate.Before(s.Updated) {
-					datedStories = append(datedStories, s)
-				}
-			}
-			c.Debugf("%v undated stories, %v dated stories to update", len(undatedStories), len(datedStories))
-
-			f = *feed
-			f.Checked = time.Now()
-			f.NextUpdate = f.Checked.Add(UpdateTime)
-
-			if hasUpdated && isFeedUpdated {
-				c.Infof("feed %s already updated to %v", url, feed.Updated)
-				gn.Put(fe)
-				return
-			}
-
-			puts := []*goon.Entity{fe}
-			var updateStories []*Story
-
-			// find non existant undated stories
-			ses := make([]*goon.Entity, len(undatedStories))
-			for i, s := range undatedStories {
-				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
-			}
-			gn.GetMulti(ses)
-			for i, e := range ses {
-				if e.NotFound {
-					updateStories = append(updateStories, undatedStories[i])
-				}
-			}
-			c.Debugf("%v new undated stories", len(updateStories))
-
-			updateStories = append(updateStories, datedStories...)
-			ses = make([]*goon.Entity, len(updateStories))
-			sis := make([]StoryIndex, len(updateStories))
-			sies := make([]*goon.Entity, len(updateStories))
-			scs := make([]StoryContent, len(updateStories))
-			sces := make([]*goon.Entity, len(updateStories))
-			for i, s := range updateStories {
-				ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
-				sies[i], _ = gn.NewEntityById("", 1, ses[i].Key, &sis[i])
-				scs[i].Content = s.content
-				sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
-			}
-			puts = append(puts, ses...)
-			puts = append(puts, sces...)
-			c.Debugf("putting %v entities", len(puts))
-			gn.PutMulti(puts)
-
-			fi := FeedIndex{}
-			updateTime := time.Now().Add(-time.Hour * 24 * 7)
-
-			gn.RunInTransaction(func(gn *goon.Goon) error {
-				gn.GetById(&fi, "", 1, fe.Key)
-				gn.GetMulti(sies)
-
-				var puts []*goon.Entity
-				for i, sie := range sies {
-					if sie.NotFound && updateStories[i].Updated.Sub(updateTime) > 0 {
-						sis[i].Users = fi.Users
-						puts = append(puts, sie)
-					}
-				}
-				gn.PutMulti(puts)
-				return nil
-			}, nil)
-		}
-	} else if err != nil {
-		c.Errorf("update feed error: %s", err.Error())
-	} else {
-		c.Errorf("update feed error: status code: %s", resp.Status)
+	if feed, stories := fetchFeed(c, url); feed != nil {
+		updateFeed(c, url, feed, stories)
 	}
 }
 
@@ -490,7 +538,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fl[k].Stories = append(fl[k].Stories, &stories[i])
 	}
 
-	c.Infof("%v feeds for %v", len(fl), cu.ID)
+	c.Infof("%v feeds, %v stories for %v", len(fl), len(es), cu.ID)
 	b, _ := json.Marshal(fl)
 	w.Write(b)
 }

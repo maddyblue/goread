@@ -1,4 +1,5 @@
 $('.dropdown-toggle').dropdown();
+$('#messages').modal();
 
 function countProperties(obj) {
 	var count = 0;
@@ -45,7 +46,11 @@ function GoreadCtrl($scope, $http, $timeout) {
 			url: $scope.addFeedUrl
 		}).then(function() {
 			$scope.addFeedUrl = '';
-			$scope.refresh($scope.loaded);
+			// I think this is needed due to the datastore's eventual consistency.
+			// Without the delay we only get the feed data with no story data.
+			$timeout(function() {
+				$scope.refresh($scope.loaded);
+			}, 250);
 		}, function(data) {
 			if (data.data) {
 				alert(data.data);

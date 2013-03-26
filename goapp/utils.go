@@ -44,6 +44,7 @@ type Includes struct {
 	Jquery       string
 	MiniProfiler template.HTML
 	User         *User
+	Messages     []string
 }
 
 var (
@@ -83,8 +84,14 @@ func includes(c mpg.Context) *Includes {
 	if u := user.Current(c); u != nil {
 		gn := goon.FromContext(c)
 		user := new(User)
-		if e, err := gn.GetById(user, u.ID, 0, nil); err == nil && !e.NotFound {
+		if ue, err := gn.GetById(user, u.ID, 0, nil); err == nil && !ue.NotFound {
 			i.User = user
+
+			if len(user.Messages) > 0 {
+				i.Messages = user.Messages
+				user.Messages = nil
+				gn.Put(ue)
+			}
 		}
 	}
 
@@ -244,7 +251,12 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	return nil, nil
 }
 
+const UpdateTime = time.Hour
+
 func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
+	f.Checked = time.Now()
+	f.NextUpdate = f.Checked.Add(UpdateTime)
+
 	for _, s := range ss {
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
