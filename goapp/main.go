@@ -72,7 +72,6 @@ func init() {
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	_ = goon.FromContext(c)
 	if err := templates.ExecuteTemplate(w, "base.html", includes(c)); err != nil {
 		serveError(w, err)
 	}
