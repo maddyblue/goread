@@ -136,20 +136,31 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	userid := r.FormValue("user")
 	data := r.FormValue("data")
 
+	var skip int
+	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
+		skip = s
+	}
+	c.Debugf("reader import for %v, skip %v", userid, skip)
+
 	var ufs []*UserFeed
-	sortid := 1
+	sortid := 1 + skip
+	remaining := skip
 
 	var proc func(label string, outlines []outline)
 	proc = func(label string, outlines []outline) {
 		for _, o := range outlines {
 			if o.XmlUrl != "" {
-				ufs = append(ufs, &UserFeed{
-					Label:  label,
-					Url:    o.XmlUrl,
-					Title:  o.Title,
-					Sortid: strconv.Itoa(sortid * 1000),
-				})
-				sortid++
+				if remaining > 0 {
+					remaining--
+				} else if len(ufs) < IMPORT_LIMIT {
+					ufs = append(ufs, &UserFeed{
+						Label:  label,
+						Url:    o.XmlUrl,
+						Title:  o.Title,
+						Sortid: strconv.Itoa(sortid * 1000),
+					})
+					sortid++
+				}
 			}
 
 			if o.Title != "" && len(o.Outline) > 0 {
@@ -185,12 +196,21 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
-		for _, uf := range ufs {
-			addUserFeed(&ud, uf)
-		}
+		addUserFeed(&ud, ufs...)
 		return gn.Put(ude)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		c.Errorf("ude update error: %v", err.Error())
+		return
+	}
+
+	if len(ufs) == IMPORT_LIMIT {
+		task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
+			"data": {data},
+			"user": {userid},
+			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
+		})
+		taskqueue.Add(c, task, "import-reader")
 	}
 }
 
@@ -290,15 +310,21 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	return nil
 }
 
-func addUserFeed(ud *UserData, uf *UserFeed) {
+func addUserFeed(ud *UserData, ufs ...*UserFeed) {
 	var fs Feeds
 	json.Unmarshal(ud.Feeds, &fs)
-	for _, f := range fs {
-		if f.Url == uf.Url {
-			return
+	for _, uf := range ufs {
+		found := false
+		for _, f := range fs {
+			if f.Url == uf.Url {
+				found = true
+				break
+			}
+		}
+		if !found {
+			fs = append(fs, uf)
 		}
 	}
-	fs = append(fs, uf)
 	ud.Feeds, _ = json.Marshal(&fs)
 }
 
@@ -357,10 +383,18 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
+const IMPORT_LIMIT = 20
+
 func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
 	data := r.FormValue("data")
+
+	var skip int
+	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
+		skip = s
+	}
+
 	v := struct {
 		Subscriptions []struct {
 			Id         string `json:"id"`
@@ -374,15 +408,20 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		} `json:"subscriptions"`
 	}{}
 	json.Unmarshal([]byte(data), &v)
+	c.Debugf("reader import for %v, skip %v, len %v", userid, skip, len(v.Subscriptions))
+
+	end := skip + IMPORT_LIMIT
+	if end > len(v.Subscriptions) {
+		end = len(v.Subscriptions)
+	}
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(v.Subscriptions))
+	wg.Add(end - skip)
+	ufs := make([]*UserFeed, end-skip)
 
-	ufs := make([]*UserFeed, len(v.Subscriptions))
-
-	for i := range v.Subscriptions {
+	for i := range v.Subscriptions[skip:end] {
 		go func(i int) {
-			sub := v.Subscriptions[i]
+			sub := v.Subscriptions[skip+i]
 			var label string
 			if len(sub.Categories) > 0 {
 				label = sub.Categories[0].Label
@@ -407,12 +446,21 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
-		for _, uf := range ufs {
-			addUserFeed(&ud, uf)
-		}
+		addUserFeed(&ud, ufs...)
 		return gn.Put(ude)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		c.Errorf("ude update error: %v", err.Error())
+		return
+	}
+
+	if end < len(v.Subscriptions) {
+		task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
+			"data": {data},
+			"user": {userid},
+			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
+		})
+		taskqueue.Add(c, task, "import-reader")
 	}
 }
 
