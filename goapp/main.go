@@ -214,7 +214,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const RECENT = -time.Hour * 24 * 7 * 30
+const RECENT = -time.Hour * 24 * 3
 
 func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	gn := goon.FromContext(c)
