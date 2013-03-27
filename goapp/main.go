@@ -639,8 +639,10 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.Infof("%v feeds, %v stories for %v", len(fl), len(es), cu.ID)
-	b, _ := json.Marshal(fl)
-	w.Write(b)
+	c.P.Step("marshal json", func() {
+		b, _ := json.Marshal(fl)
+		w.Write(b)
+	})
 }
 
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
