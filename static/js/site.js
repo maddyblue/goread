@@ -235,10 +235,10 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		$scope.$apply($scope.refresh());
 	});
-	Mousetrap.bind('j', function() {
+	Mousetrap.bind(['j', 'n'], function() {
 		$scope.$apply('next()');
 	});
-	Mousetrap.bind('k', function() {
+	Mousetrap.bind(['k', 'p'], function() {
 		$scope.$apply('prev()');
 	});
 	Mousetrap.bind('v', function() {
