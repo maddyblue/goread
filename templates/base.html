@@ -115,7 +115,7 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div ng-repeat="s in stories" class="story" ng-mouseover="getContents(s)" id="storydiv{{`{{$index}}`}}">
+				<div ng-repeat="s in stories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="row-fluid">
 						<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="span8" ng-click="setCurrent($index)">

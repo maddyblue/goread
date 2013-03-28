@@ -178,6 +178,20 @@ function GoreadCtrl($scope, $http, $timeout) {
 		return $scope.nav ? {} : {'margin-left': '0'};
 	};
 
+	$scope.overContents = function(s) {
+		if (typeof $scope.contents[s.guid] !== 'undefined') {
+			return;
+		}
+		s.getTimeout = $timeout(function() {
+			$scope.getContents(s);
+		}, 250);
+	};
+	$scope.leaveContents = function(s) {
+		if (s.getTimeout) {
+			$timeout.cancel(s.getTimeout);
+		}
+	};
+
 	$scope.toFetch = [];
 	$scope.getContents = function(s) {
 		if (typeof $scope.contents[s.guid] !== 'undefined') {
@@ -185,10 +199,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		$scope.toFetch.push(s);
 		if (!$scope.fetchPromise) {
-			// fetch this story immediately
-			$scope.fetchContents();
-			// and any others in a bit
-			$scope.fetchPromise = $timeout($scope.fetchContents, 500);
+			$scope.fetchPromise = $timeout($scope.fetchContents);
 		}
 	};
 
@@ -201,6 +212,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.toFetch = [];
 		var data = [];
 		for (var i = 0; i < tofetch.length; i++) {
+			console.log("fetch " + tofetch[i].Title);
 			$scope.contents[tofetch[i].guid] = '';
 			data.push({
 				Feed: tofetch[i].feed.Url,
