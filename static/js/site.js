@@ -217,7 +217,6 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.toFetch = [];
 		var data = [];
 		for (var i = 0; i < tofetch.length; i++) {
-			console.log("fetch " + tofetch[i].Title);
 			$scope.contents[tofetch[i].guid] = '';
 			data.push({
 				Feed: tofetch[i].feed.Url,
