@@ -73,6 +73,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.numfeeds = 0;
 				$scope.stories = [];
 				$scope.unreadStories = {};
+				var today = new Date().toDateString();
 				for(var p in $scope.feeds) {
 					$scope.numfeeds++;
 					var f = $scope.feeds[p];
@@ -81,7 +82,11 @@ function GoreadCtrl($scope, $http, $timeout) {
 					for(var i = 0; i < f.Stories.length; i++) {
 						f.Stories[i].feed = f.Feed;
 						var d = new Date(f.Stories[i].Date * 1000);
-						f.Stories[i].dispdate = d.toDateString();
+						if (d.toDateString() == today) {
+							f.Stories[i].dispdate = d.format("shortTime");
+						} else {
+							f.Stories[i].dispdate = d.format("mediumDate");
+						}
 						f.Stories[i].read = false;
 						f.Stories[i].guid = f.Feed.Url + '|' + f.Stories[i].Id;
 						if (!f.Stories[i].Title) {
