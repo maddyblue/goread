@@ -25,6 +25,7 @@ type User struct {
 	_goon    interface{} `kind:"U"`
 	Email    string      `datastore:"e,noindex"`
 	Messages []string    `datastore:"m,noindex"`
+	Read     time.Time   `datastore:"r,noindex"`
 }
 
 func (u *User) String() string {
@@ -35,6 +36,7 @@ func (u *User) String() string {
 type UserData struct {
 	_goon interface{} `kind:"UD"`
 	Feeds []byte      `datastore:"f,noindex"`
+	Read  []byte      `datastore:"r,noindex"`
 }
 
 type UserFeed struct {
@@ -46,6 +48,7 @@ type UserFeed struct {
 }
 
 type Feeds []*UserFeed
+type Read map[string][]string
 
 // key: URL
 type Feed struct {
@@ -57,31 +60,18 @@ type Feed struct {
 	Link       string      `datastore:"l,noindex"`
 }
 
-// parent: Feed, key: 1
-type FeedIndex struct {
-	_goon interface{} `kind:"FI"`
-	Users []string    `datastore:"u"`
-}
-
 // parent: Feed, key: story ID
 type Story struct {
-	_goon     interface{} `kind:"S"`
-	Id        string      `datastore:"-"`
-	Title     string      `datastore:"t,noindex"`
-	Link      string      `datastore:"l,noindex"`
-	Published time.Time   `datastore:"p,noindex"`
-	Updated   time.Time   `datastore:"u"`
-	Date      int64       `datastore:"e,noindex"`
-	Author    string      `datastore:"a,noindex"`
-	Summary   string      `datastore:"s,noindex"`
+	_goon   interface{} `kind:"S"`
+	Id      string      `datastore:"-"`
+	Title   string      `datastore:"t,noindex"`
+	Link    string      `datastore:"l,noindex"`
+	Updated time.Time   `datastore:"u"`
+	Date    int64       `datastore:"e,noindex"`
+	Author  string      `datastore:"a,noindex"`
+	Summary string      `datastore:"s,noindex"`
 
 	content string
-}
-
-// parent: Story, key: 1
-type StoryIndex struct {
-	_goon interface{} `kind:"SI"`
-	Users []string    `datastore:"u"`
 }
 
 // parent: Story, key: 1

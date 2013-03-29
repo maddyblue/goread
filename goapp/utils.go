@@ -130,10 +130,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 		for _, i := range a.Entry {
 			st := Story{
-				Id:        i.ID,
-				Title:     i.Title,
-				Published: ParseAtomDate(i.Published),
-				Updated:   ParseAtomDate(i.Updated),
+				Id:      i.ID,
+				Title:   i.Title,
+				Updated: ParseAtomDate(i.Updated),
 			}
 			if len(i.Link) > 0 {
 				st.Link = i.Link[0].Href
@@ -194,7 +193,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				c.Errorf("could not parse date: %v, %v, %v", i.PubDate, i.Date, i.Published)
 				t = time.Now()
 			}
-			st.Published = t
 			st.Updated = t
 			st.Date = t.Unix()
 
@@ -233,7 +231,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				return nil, nil
 			}
 			if t, err := rssgo.ParseRssDate(i.Date); err == nil {
-				st.Published = t
 				st.Updated = t
 				st.Date = t.Unix()
 			} else {

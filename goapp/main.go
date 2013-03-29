@@ -264,49 +264,6 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 		}
 	}
 
-	sis := make([]StoryIndex, len(recent))
-	es := make([]*goon.Entity, len(recent))
-	for i, k := range recent {
-		es[i], _ = gn.NewEntityById("", 1, k, &sis[i])
-	}
-
-	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		fi := FeedIndex{}
-		fie, _ := gn.GetById(&fi, "", 1, fe.Key)
-		found := false
-		for _, fu := range fi.Users {
-			if fu == userid {
-				found = true
-				break
-			}
-		}
-		if !found {
-			fi.Users = append(fi.Users, userid)
-			gn.Put(fie)
-		}
-
-		var puts []*goon.Entity
-		gn.GetMulti(es)
-		for i, e := range es {
-			found := false
-			for _, u := range sis[i].Users {
-				if u == userid {
-					found = true
-					break
-				}
-			}
-			if !found {
-				sis[i].Users = append(sis[i].Users, userid)
-				puts = append(puts, e)
-			}
-		}
-		gn.PutMulti(puts)
-
-		return nil
-	}, nil); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -550,13 +507,10 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	updateStories = append(updateStories, datedStories...)
 	ses = make([]*goon.Entity, len(updateStories))
-	sis := make([]StoryIndex, len(updateStories))
-	sies := make([]*goon.Entity, len(updateStories))
 	scs := make([]StoryContent, len(updateStories))
 	sces := make([]*goon.Entity, len(updateStories))
 	for i, s := range updateStories {
 		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
-		sies[i], _ = gn.NewEntityById("", 1, ses[i].Key, &sis[i])
 		scs[i].Content = s.content
 		sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
 	}
@@ -564,27 +518,6 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	puts = append(puts, sces...)
 	c.Debugf("putting %v entities", len(puts))
 	gn.PutMulti(puts)
-
-	fi := FeedIndex{}
-	updateTime := time.Now().Add(RECENT)
-
-	gn.RunInTransaction(func(gn *goon.Goon) error {
-		gn.GetById(&fi, "", 1, fe.Key)
-		if len(fi.Users) == 0 {
-			return nil
-		}
-		gn.GetMulti(sies)
-
-		var puts []*goon.Entity
-		for i, sie := range sies {
-			if sie.NotFound && updateStories[i].Updated.Sub(updateTime) > 0 {
-				sis[i].Users = fi.Users
-				puts = append(puts, sie)
-			}
-		}
-		gn.PutMulti(puts)
-		return nil
-	}, nil)
 
 	return nil
 }
@@ -609,108 +542,86 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
+	u := User{}
 	ud := UserData{}
-	gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
+	gn.GetById(&ud, "data", 0, ue.Key)
 
-	q := datastore.NewQuery(goon.Kind(&StoryIndex{})).KeysOnly()
-	q = q.Filter("u =", cu.ID)
-	es, _ := gn.GetAll(q, nil)
-	stories := make([]Story, len(es))
-	for i, e := range es {
-		es[i] = goon.NewEntity(e.Key.Parent(), &stories[i])
-	}
-	gn.GetMulti(es)
-
-	fl := make(FeedList)
-
+	read := make(Read)
+	json.Unmarshal(ud.Read, &read)
 	var uf Feeds
 	json.Unmarshal(ud.Feeds, &uf)
+	fdc := make(chan *FeedData)
+	q := datastore.NewQuery(goon.Kind(&Story{}))
 	for _, f := range uf {
-		fl[f.Url] = &FeedData{
-			Feed: f,
-		}
+		go func(f *UserFeed) {
+			fd := FeedData{
+				Feed: f,
+			}
+
+			feed := Feed{}
+			feede, _ := gn.GetById(&feed, f.Url, 0, nil)
+			if u.Read.Before(feed.Updated) {
+				sq := q.Ancestor(feede.Key).Filter("u >=", u.Read)
+				var stories []*Story
+				ses, _ := gn.GetAll(sq, &stories)
+				for i, se := range ses {
+					stories[i].Id = se.Key.StringID()
+					found := false
+					for _, s := range read[f.Url] {
+						if s == stories[i].Id {
+							found = true
+							break
+						}
+					}
+					if !found {
+						fd.Stories = append(fd.Stories, stories[i])
+					}
+				}
+			}
+			fdc <- &fd
+		}(f)
 	}
 
-	for i, se := range es {
-		k := se.Key.Parent().StringID()
-		if _, present := fl[k]; !present {
-			c.Errorf("Missing parent feed: %s", k)
-			continue
-		}
-		stories[i].Id = se.Key.StringID()
-		fl[k].Stories = append(fl[k].Stories, &stories[i])
+	fl := make(FeedList)
+	for i := 0; i < len(uf); i++ {
+		fd := <-fdc
+		fl[fd.Feed.Url] = fd
 	}
 
-	c.Infof("%v feeds, %v stories for %v", len(fl), len(es), cu.ID)
-	c.P.Step("marshal json", func() {
-		b, _ := json.Marshal(fl)
-		w.Write(b)
-	})
+	b, _ := json.Marshal(&fl)
+	w.Write(b)
 }
 
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	si := StoryIndex{}
-	fk := datastore.NewKey(c, goon.Kind(&Feed{}), r.FormValue("feed"), 0, nil)
-	sk := datastore.NewKey(c, goon.Kind(&Story{}), r.FormValue("story"), 0, fk)
+	ud := UserData{}
+	read := make(Read)
+	feed := r.FormValue("feed")
+	story := r.FormValue("story")
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		if sie, _ := gn.GetById(&si, "", 1, sk); !sie.NotFound {
-			for i, v := range si.Users {
-				if v == cu.ID {
-					c.Debugf("marking %s read for %s", sk.StringID(), cu.ID)
-					si.Users = append(si.Users[:i], si.Users[i+1:]...)
-					gn.Put(sie)
-					break
-				}
-			}
-		}
-		return nil
+		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+		json.Unmarshal(ud.Read, &read)
+		read[feed] = append(read[feed], story)
+		b, _ := json.Marshal(&read)
+		ud.Read = b
+		return gn.Put(ude)
 	}, nil)
 }
 
 func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(goon.Kind(&StoryIndex{}))
-	q = q.Filter("u =", cu.ID)
-	var sis []*StoryIndex
-	sies, _ := gn.GetAll(q, &sis)
-
-	feeds := make(map[string][]*goon.Entity)
-	for _, e := range sies {
-		fk := e.Key.Parent().Parent().StringID()
-		feeds[fk] = append(feeds[fk], e)
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(feeds))
-
-	for k, v := range feeds {
-		go func(fid string, sies []*goon.Entity) {
-			gn.RunInTransaction(func(gn *goon.Goon) error {
-				for i := range sies {
-					sies[i].Src = &StoryIndex{}
-				}
-				gn.GetMulti(sies)
-				for _, sie := range sies {
-					s := sie.Src.(*StoryIndex)
-					for i, v := range s.Users {
-						if v == cu.ID {
-							c.Debugf("marking %s read for %s", sie.Key.Parent().StringID(), cu.ID)
-							s.Users = append(s.Users[:i], s.Users[i+1:]...)
-							break
-						}
-					}
-				}
-				gn.PutMulti(sies)
-				return nil
-			}, nil)
-			wg.Done()
-		}(k, v)
-	}
-
-	wg.Wait()
+	u := User{}
+	ud := UserData{}
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		ue, _ := gn.GetById(&u, cu.ID, 0, nil)
+		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
+		u.Read = time.Now()
+		ud.Read = nil
+		return gn.PutMany(ue, ude)
+	}, nil)
 }
 
 func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
