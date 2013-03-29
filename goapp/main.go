@@ -86,6 +86,7 @@ func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		user := User{}
 		if ue, err := gn.GetById(&user, u.ID, 0, nil); err == nil && ue.NotFound {
 			user.Email = u.Email
+			user.Read = time.Now()
 			gn.Put(ue)
 		}
 	}
