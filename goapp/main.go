@@ -556,44 +556,50 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(ud.Read, &read)
 	var uf Feeds
 	json.Unmarshal(ud.Feeds, &uf)
-	fdc := make(chan *FeedData)
+	feeds := make([]Feed, len(uf))
+	feedes := make([]*goon.Entity, len(uf))
+	for i, f := range uf {
+		feedes[i], _ = gn.NewEntityById(f.Url, 0, nil, &feeds[i])
+	}
+	gn.GetMulti(feedes)
+	lock := sync.Mutex{}
+	fl := make(FeedList)
 	q := datastore.NewQuery(goon.Kind(&Story{}))
-	for _, f := range uf {
-		go func(f *UserFeed) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(feeds))
+	for i, f := range feeds {
+		go func(f *Feed, i int) {
+			defer wg.Done()
+			ufeed := uf[i]
 			fd := FeedData{
-				Feed: f,
+				Feed: ufeed,
 			}
 
-			feed := Feed{}
-			feede, _ := gn.GetById(&feed, f.Url, 0, nil)
-			if u.Read.Before(feed.Updated) {
-				sq := q.Ancestor(feede.Key).Filter("u >=", u.Read)
+			if u.Read.Before(f.Updated) {
+				sq := q.Ancestor(feedes[i].Key).Filter("u >=", u.Read)
 				var stories []*Story
 				ses, _ := gn.GetAll(sq, &stories)
-				for i, se := range ses {
-					stories[i].Id = se.Key.StringID()
+				for j, se := range ses {
+					stories[j].Id = se.Key.StringID()
 					found := false
-					for _, s := range read[f.Url] {
-						if s == stories[i].Id {
+					for _, s := range read[ufeed.Url] {
+						if s == stories[j].Id {
 							found = true
 							break
 						}
 					}
 					if !found {
-						fd.Stories = append(fd.Stories, stories[i])
+						fd.Stories = append(fd.Stories, stories[j])
 					}
 				}
 			}
-			fdc <- &fd
-		}(f)
+			lock.Lock()
+			fl[ufeed.Url] = &fd
+			lock.Unlock()
+		}(&f, i)
 	}
 
-	fl := make(FeedList)
-	for i := 0; i < len(uf); i++ {
-		fd := <-fdc
-		fl[fd.Feed.Url] = fd
-	}
-
+	wg.Wait()
 	b, _ := json.Marshal(&fl)
 	w.Write(b)
 }
