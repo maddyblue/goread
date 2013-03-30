@@ -485,7 +485,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	f = *feed
 
 	if hasUpdated && isFeedUpdated {
-		c.Infof("feed %s already updated to %v", url, feed.Updated)
+		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		gn.Put(fe)
 		return nil
 	}
