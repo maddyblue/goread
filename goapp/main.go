@@ -461,7 +461,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		return errors.New(fmt.Sprintf("feed not found: %s", url))
 	}
 
-	hasUpdated := !f.Updated.IsZero()
+	hasUpdated := !feed.Updated.IsZero()
 	isFeedUpdated := f.Updated == feed.Updated
 
 	var storyDate time.Time
@@ -518,6 +518,10 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	puts = append(puts, ses...)
 	puts = append(puts, sces...)
 	c.Debugf("putting %v entities", len(puts))
+
+	if !hasUpdated && len(puts) > 1 {
+		f.Updated = time.Now()
+	}
 	gn.PutMulti(puts)
 
 	return nil
