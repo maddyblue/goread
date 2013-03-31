@@ -215,8 +215,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const RECENT = -time.Hour * 24 * 3
-
 func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	gn := goon.FromContext(c)
 	c.Infof("adding feed %s to user %s", uf.Url, userid)
@@ -226,8 +224,6 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	if err != nil {
 		return err
 	}
-	recentDate := time.Now().Add(RECENT)
-	var recent []*datastore.Key
 	if fe.NotFound {
 		if feed, stories := fetchFeed(c, uf.Url); feed == nil {
 			return errors.New(fmt.Sprintf("could not add feed %s", uf.Url))
@@ -245,23 +241,11 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 			if uf.Title == "" {
 				uf.Title = feed.Title
 			}
-
-			for _, s := range stories {
-				if recentDate.Before(s.Updated) {
-					recent = append(recent, datastore.NewKey(c, goon.Kind(&Story{}), s.Id, 0, fe.Key))
-				}
-			}
 		}
 	} else {
 		uf.Link = f.Link
 		if uf.Title == "" {
 			uf.Title = f.Title
-		}
-		q := datastore.NewQuery(goon.Kind(&Story{})).Ancestor(fe.Key).KeysOnly()
-		q = q.Filter("u >=", recentDate)
-		es, _ := gn.GetAll(q, nil)
-		for _, e := range es {
-			recent = append(recent, e.Key)
 		}
 	}
 
