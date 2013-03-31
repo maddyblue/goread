@@ -15,10 +15,37 @@
 			cursor: pointer;
 		}
 		.story {
-			border-bottom: 1px solid black;
+			border-bottom: 1px solid #999;
+		}
+		.story-header {
+			position: relative;
+			padding-left: 155px;
+			padding-right: 120px;
+			width: 100%;
+			box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			height: 30px;
+			line-height: 26px;
 		}
 		.story-title {
-			margin: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.story-summary {
+		}
+		.story-feed {
+			width: 150px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			position: absolute;
+			white-space: nowrap;
+			left: 0;
+		}
+		.story-date {
+			position: absolute;
+			right: 0;
+			top: 0;
 		}
 		.top-margin {
 			margin-top: 20px;
@@ -115,26 +142,26 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div ng-repeat="s in stories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
-					<div class="row-fluid">
-						<div class="span2 hand" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
-						<div class="span8" ng-click="setCurrent($index)">
-							<strong class="hand" ng-bind="s.Title"></strong>
-							<span class="hand" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
+				<div ng-repeat="s in stories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
+					<div class="story-header hand" ng-click="setCurrent($index)">
+						<div class="story-feed muted" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
+						<div class="story-title">
+							<strong ng-bind="s.Title"></strong>
+							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
-						<div class="span2 text-right">
-							<span class="hand" ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
+						<div class="story-date muted">
+							<span ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
-						<div class="row-fluid" ng-show="$index == currentStory">
-							<div class="span12">
-								<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
-								<p><small>
-									from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
-									<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
-								</small></p>
-								<p id="story{{`{{$index}}`}}"></p>
-							</div>
+					</div>
+					<div class="story-content" ng-show="$index == currentStory">
+						<div class="span12">
+							<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+							<p><small>
+								from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+							</small></p>
+							<p id="story{{`{{$index}}`}}"></p>
 						</div>
 					</div>
 				</div>
