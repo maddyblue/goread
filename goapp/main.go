@@ -447,6 +447,17 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	hasUpdated := !feed.Updated.IsZero()
 	isFeedUpdated := f.Updated == feed.Updated
+	if !hasUpdated {
+		feed.Updated = f.Updated
+	}
+	f = *feed
+
+	if hasUpdated && isFeedUpdated {
+		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
+		f.Updated = time.Now()
+		gn.Put(fe)
+		return nil
+	}
 
 	var storyDate time.Time
 	if hasUpdated {
@@ -456,41 +467,35 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	}
 	c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
 
-	var datedStories, undatedStories []*Story
+	var newStories []*Story
 	for _, s := range stories {
-		if s.Updated.IsZero() {
-			undatedStories = append(undatedStories, s)
-		} else if storyDate.Before(s.Updated) {
-			datedStories = append(datedStories, s)
+		if s.Updated.IsZero() || storyDate.Before(s.Updated) {
+			newStories = append(newStories, s)
 		}
 	}
-	c.Debugf("%v undated stories, %v dated stories to update", len(undatedStories), len(datedStories))
-
-	f = *feed
-
-	if hasUpdated && isFeedUpdated {
-		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
-		gn.Put(fe)
-		return nil
-	}
+	c.Debugf("%v possible stories to update", len(newStories))
 
 	puts := []*goon.Entity{fe}
-	var updateStories []*Story
 
-	// find non existant undated stories
-	ses := make([]*goon.Entity, len(undatedStories))
-	for i, s := range undatedStories {
-		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
+	// find non existant stories
+	getStories := make([]Story, len(newStories))
+	ses := make([]*goon.Entity, len(newStories))
+	for i, s := range newStories {
+		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, &getStories[i])
 	}
 	gn.GetMulti(ses)
+	var updateStories []*Story
 	for i, e := range ses {
 		if e.NotFound {
-			updateStories = append(updateStories, undatedStories[i])
+			newStories[i].Created = time.Now()
+			updateStories = append(updateStories, newStories[i])
+		} else if !newStories[i].Updated.IsZero() {
+			getStories[i].Created = newStories[i].Created
+			updateStories = append(updateStories, &getStories[i])
 		}
 	}
-	c.Debugf("%v new undated stories", len(updateStories))
+	c.Debugf("%v update stories", len(updateStories))
 
-	updateStories = append(updateStories, datedStories...)
 	ses = make([]*goon.Entity, len(updateStories))
 	scs := make([]StoryContent, len(updateStories))
 	sces := make([]*goon.Entity, len(updateStories))
@@ -518,9 +523,6 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f := Feed{}
 	fe, _ := gn.GetById(&f, url, 0, nil)
 	if fe.NotFound {
-		return
-	} else if time.Now().Sub(f.Updated) < UpdateTime {
-		c.Infof("already updated %s", url)
 		return
 	}
 	if feed, stories := fetchFeed(c, url); feed != nil {
@@ -560,7 +562,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			if u.Read.Before(f.Updated) {
-				sq := q.Ancestor(feedes[i].Key).Filter("u >=", u.Read)
+				sq := q.Ancestor(feedes[i].Key).Filter("c >=", u.Read)
 				var stories []*Story
 				ses, _ := gn.GetAll(sq, &stories)
 				for j, se := range ses {

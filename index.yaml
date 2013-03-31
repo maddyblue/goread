@@ -13,4 +13,4 @@ indexes:
 - kind: S
   ancestor: yes
   properties:
-  - name: u
+  - name: c

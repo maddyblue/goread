@@ -66,7 +66,8 @@ type Story struct {
 	Id      string      `datastore:"-"`
 	Title   string      `datastore:"t,noindex"`
 	Link    string      `datastore:"l,noindex"`
-	Updated time.Time   `datastore:"u"`
+	Created time.Time   `datastore:"c"`
+	Updated time.Time   `datastore:"u,noindex"`
 	Date    int64       `datastore:"e,noindex"`
 	Author  string      `datastore:"a,noindex"`
 	Summary string      `datastore:"s,noindex"`
