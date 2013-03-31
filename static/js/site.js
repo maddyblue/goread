@@ -102,12 +102,16 @@ function GoreadCtrl($scope, $http, $timeout) {
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				var ur = $scope.unread();
-				document.title = 'Go Read' + (ur != 0 ? ' (' + ur + ')' : '');
+				$scope.updateTitle();
 			})
 			.error(function() {
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 			});
+	};
+
+	$scope.updateTitle = function() {
+		document.title = 'Go Read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
 	$scope.setCurrent = function(i) {
@@ -162,6 +166,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				feed: s.feed.Url,
 				story: s.Id
 			});
+			$scope.updateTitle();
 		}
 	};
 
@@ -169,6 +174,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.unreadStories = {};
 		$scope.stories = [];
 		$http.post($('#mark-all-read').attr('data-url'));
+		$scope.updateTitle();
 	};
 
 	$scope.nothing = function() {
