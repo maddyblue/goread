@@ -101,6 +101,8 @@ function GoreadCtrl($scope, $http, $timeout) {
 				}
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
+				var ur = $scope.unread();
+				document.title = 'Go Read' + (ur != 0 ? ' (' + ur + ')' : '');
 			})
 			.error(function() {
 				if (typeof cb === 'function') cb();
