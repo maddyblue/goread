@@ -143,7 +143,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			if i.Content != nil {
 				st.content, st.Summary = Sanitize(i.Content.Body)
 			}
-			st.Date = st.Updated.Unix()
 			s = append(s, &st)
 		}
 
@@ -191,10 +190,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			} else if t, err = rssgo.ParseRssDate(i.Published); err == nil {
 			} else {
 				c.Errorf("could not parse date: %v, %v, %v", i.PubDate, i.Date, i.Published)
-				t = time.Now()
 			}
 			st.Updated = t
-			st.Date = t.Unix()
 
 			s = append(s, &st)
 		}
@@ -232,7 +229,6 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			}
 			if t, err := rssgo.ParseRssDate(i.Date); err == nil {
 				st.Updated = t
-				st.Date = t.Unix()
 			} else {
 				c.Errorf("could not parse date: %v", i.Date)
 			}
@@ -255,6 +251,7 @@ func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
 	f.NextUpdate = f.Checked.Add(UpdateTime)
 
 	for _, s := range ss {
+		s.Date = s.Updated.Unix()
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
 			if u, err := url.Parse(s.Id); err == nil {
