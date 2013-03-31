@@ -170,7 +170,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.nothing = function() {
-		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds;
+		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about';
 	};
 
 	$scope.toggleNav = function() {
