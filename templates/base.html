@@ -89,8 +89,8 @@
 				{{end}}
 				</ul>
 				<ul class="nav pull-right">
+				{{if .User}}
 					<li class="dropdown">
-					{{if .User}}
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 							{{.User}}
 							<b class="caret"></b>
@@ -102,16 +102,10 @@
 							<li class="divider"></li>
 							<li><a href="{{url "logout"}}">logout</a></li>
 						</ul>
-					{{else}}
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							log in / sign up
-							<b class="caret"></b>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a href="{{url "login-google"}}">with google</a></li>
-						</ul>
-					{{end}}
 					</li>
+				{{else}}
+					<li><a href="{{url "login-google"}}">sign up / log in</a></li>
+				{{end}}
 				</ul>
 			</div>
 		</div>
@@ -121,7 +115,7 @@
 			<div class="offset3 span6">
 				<h1>About</h1>
 				<p>Go Read is a web-based RSS reader.</p>
-				<p>It is designed to be exactly as useful as Google Reader and no more.</p>
+				<p>It is designed to be as useful as Google Reader.</p>
 				<p>
 					Built by <a href="http://mattjibson.com">Matt Jibson</a>.
 					Runs on <a href="https://developers.google.com/appengine/">Google App Engine</a>.
@@ -212,8 +206,8 @@
 					<div class="hero-unit">
 						<h1>Hi, RSS user</h1>
 						<p>Go Read is a web-based RSS reader.</p>
-						<p>It is designed to be exactly as useful as the old Google Reader and no more.</p>
-						<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up with google</a></p>
+						<p>It is designed to be as useful as Google Reader.</p>
+						<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up / log in with google</a></p>
 					</div>
 				</div>
 			</div>
