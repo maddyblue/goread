@@ -72,6 +72,7 @@ func init() {
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = true
+	//miniprofiler.StartHidden = true
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -583,9 +584,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}(&f, i)
 	}
 
-	wg.Wait()
-	b, _ := json.Marshal(&fl)
-	w.Write(b)
+	c.P.Step("feed fetch + wait", func() {
+		wg.Wait()
+	})
+	c.P.Step("json marshal", func() {
+		b, _ := json.Marshal(&fl)
+		w.Write(b)
+	})
 }
 
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
