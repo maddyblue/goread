@@ -111,6 +111,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.updateTitle = function() {
+		var ur = $scope.unread();
 		document.title = 'Go Read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
