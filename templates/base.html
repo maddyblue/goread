@@ -47,6 +47,10 @@
 			right: 0;
 			top: 0;
 		}
+		.story-content h3 {
+			margin: 0;
+			line-height: 24px;
+		}
 		.top-margin {
 			margin-top: 20px;
 		}
@@ -149,14 +153,12 @@
 						</div>
 					</div>
 					<div class="story-content" ng-show="$index == currentStory">
-						<div class="span12">
-							<h3 class="story-title"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
-							<p><small>
-								from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
-								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
-							</small></p>
-							<p id="story{{`{{$index}}`}}"></p>
-						</div>
+						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+						<p><small>
+							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+						</small></p>
+						<div id="story{{`{{$index}}`}}"></div>
 					</div>
 				</div>
 				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && stories.length == 0" class="row-fluid top-margin">
