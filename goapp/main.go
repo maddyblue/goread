@@ -487,9 +487,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	for i, e := range ses {
 		if e.NotFound {
 			newStories[i].Created = time.Now()
+			newStories[i].Date = newStories[i].Created.Unix()
 			updateStories = append(updateStories, newStories[i])
 		} else if !newStories[i].Updated.IsZero() {
 			getStories[i].Created = newStories[i].Created
+			getStories[i].Date = getStories[i].Created.Unix()
 			updateStories = append(updateStories, &getStories[i])
 		}
 	}
