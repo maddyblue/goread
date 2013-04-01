@@ -554,8 +554,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery(goon.Kind(&Story{}))
 	wg := sync.WaitGroup{}
 	wg.Add(len(feeds))
-	for i, f := range feeds {
-		go func(f *Feed, i int) {
+	for _i := range feeds {
+		go func(i int) {
+			f := feeds[i]
 			defer wg.Done()
 			ufeed := uf[i]
 			fd := FeedData{
@@ -583,7 +584,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			lock.Lock()
 			fl[ufeed.Url] = &fd
 			lock.Unlock()
-		}(&f, i)
+		}(_i)
 	}
 
 	c.P.Step("feed fetch + wait", func() {
