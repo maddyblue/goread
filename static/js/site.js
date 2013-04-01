@@ -132,8 +132,10 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.currentStory = i;
 		$scope.markRead(story);
 		$('#story' + i).html($scope.contents[story.guid] || '');
+		$('.story-header.selected').removeClass('selected');
 		setTimeout(function() {
 			se = $('#storydiv' + i);
+			$('.story-header', se).addClass('selected');
 			var docTop = $(window).scrollTop() + 40;
 			var docBottom = docTop + $(window).height() + 40;
 			var eTop = se.offset().top;
