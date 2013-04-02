@@ -171,6 +171,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			}
 			if i.Content != nil {
 				st.content, st.Summary = Sanitize(i.Content.Body)
+			} else if i.Summary != nil {
+				st.content, st.Summary = Sanitize(i.Summary.Body)
 			}
 			s = append(s, &st)
 		}
