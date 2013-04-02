@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"code.google.com/p/rsc/blog/atom"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -30,6 +31,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -98,14 +100,39 @@ func includes(c mpg.Context) *Includes {
 	return i
 }
 
-const atomDateFormat = "2006-01-02T15:04:05-07:00"
+var dateFormats = []string{
+	"2006-01-02",
+	"2006-01-02T15:04:05-07:00",
+	"Mon, 2 Jan 2006, 15:04 -0700",
+	"Mon, 2 January 2006, 15:04 -0700",
+	time.ANSIC,
+	time.RubyDate,
+	time.UnixDate,
+	time.RFC822,
+	time.RFC822Z,
+	time.RFC850,
+	time.RFC1123,
+	time.RFC1123Z,
+	time.RFC3339,
+}
 
-func ParseAtomDate(d atom.TimeStr) time.Time {
-	t, err := time.Parse(atomDateFormat, string(d))
-	if err != nil {
-		return time.Time{}
+func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
+	for _, d := range ds {
+		if d == "" {
+			continue
+		}
+		if t, err = rssgo.ParseRssDate(d); err == nil {
+			return
+		}
+		for _, f := range dateFormats {
+			if t, err = time.Parse(f, d); err == nil {
+				return
+			}
+		}
+		c.Errorf("could not parse date: %v", d)
 	}
-	return t
+	err = errors.New(fmt.Sprintf("could not parse date: %v", strings.Join(ds, ", ")))
+	return
 }
 
 func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
@@ -118,8 +145,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	d.CharsetReader = CharsetReader
 	if atomerr = d.Decode(&a); atomerr == nil {
 		f.Title = a.Title
-		if a.Updated != "" {
-			f.Updated = ParseAtomDate(a.Updated)
+		if t, err := parseDate(c, string(a.Updated)); err == nil {
+			f.Updated = t
 		}
 		for _, l := range a.Link {
 			if l.Rel != "self" {
@@ -130,9 +157,11 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 		for _, i := range a.Entry {
 			st := Story{
-				Id:      i.ID,
-				Title:   i.Title,
-				Updated: ParseAtomDate(i.Updated),
+				Id:    i.ID,
+				Title: i.Title,
+			}
+			if t, err := parseDate(c, string(i.Updated)); err == nil {
+				st.Updated = t
 			}
 			if len(i.Link) > 0 {
 				st.Link = i.Link[0].Href
@@ -155,12 +184,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
 		f.Link = r.Link
-		if t, err := rssgo.ParseRssDate(r.LastBuildDate); err == nil {
+		if t, err := parseDate(c, r.LastBuildDate, r.PubDate); err == nil {
 			f.Updated = t
-		} else {
-			if t, err = rssgo.ParseRssDate(r.PubDate); err == nil {
-				f.Updated = t
-			}
 		}
 
 		for _, i := range r.Items {
@@ -183,15 +208,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			} else {
 				st.Id = i.Title
 			}
-			var t time.Time
-			var err error
-			if t, err = rssgo.ParseRssDate(i.PubDate); err == nil {
-			} else if t, err = rssgo.ParseRssDate(i.Date); err == nil {
-			} else if t, err = rssgo.ParseRssDate(i.Published); err == nil {
-			} else {
-				c.Errorf("could not parse date: %v, %v, %v", i.PubDate, i.Date, i.Published)
+			if t, err := parseDate(c, i.PubDate, i.Date, i.Published); err == nil {
+				st.Updated = t
 			}
-			st.Updated = t
 
 			s = append(s, &st)
 		}
@@ -206,10 +225,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		if rdf.Channel != nil {
 			f.Title = rdf.Channel.Title
 			f.Link = rdf.Channel.Link
-			if t, err := rssgo.ParseRssDate(rdf.Channel.Date); err == nil {
+			if t, err := parseDate(c, rdf.Channel.Date); err == nil {
 				f.Updated = t
-			} else {
-				c.Errorf("could not parse date: %v", rdf.Channel.Date)
 			}
 		}
 
@@ -227,10 +244,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				c.Errorf("rdf error, no story id: %v", i)
 				return nil, nil
 			}
-			if t, err := rssgo.ParseRssDate(i.Date); err == nil {
+			if t, err := parseDate(c, i.Date); err == nil {
 				st.Updated = t
-			} else {
-				c.Errorf("could not parse date: %v", i.Date)
 			}
 			s = append(s, &st)
 		}
