@@ -93,7 +93,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 							f.Stories[i].Title = '(title unknown)';
 						}
 						$scope.stories.push(f.Stories[i]);
-						$scope.unreadStories[f.Stories[i].Id] = true;
+						$scope.unreadStories[f.Stories[i].guid] = true;
 					}
 					$scope.stories.sort(function(a, b) {
 						return b.Date - a.Date;
@@ -132,11 +132,10 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.currentStory = i;
 		$scope.markRead(story);
 		$('#story' + i).html($scope.contents[story.guid] || '');
-		$('.story-header.selected').removeClass('selected');
 		setTimeout(function() {
 			se = $('#storydiv' + i);
-			$('.story-header', se).addClass('selected');
 			var docTop = $(window).scrollTop() + 40;
+			$('.story-header', se).addClass('read');
 			var docBottom = docTop + $(window).height() + 40;
 			var eTop = se.offset().top;
 			if (docTop > eTop || docBottom < eTop) {
@@ -162,8 +161,8 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.markRead = function(s) {
-		if ($scope.unreadStories[s.Id]) {
-			delete $scope.unreadStories[s.Id];
+		if ($scope.unreadStories[s.guid]) {
+			delete $scope.unreadStories[s.guid];
 			s.read = true;
 			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
 				feed: s.feed.Url,

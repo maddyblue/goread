@@ -32,7 +32,7 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
-		.story-header.selected {
+		.story-header.read {
 			background-color: #f5f5f5;
 		}
 		.story-summary {
@@ -145,7 +145,7 @@
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
 				<div ng-repeat="s in stories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
-					<div class="story-header hand" ng-click="setCurrent($index)">
+					<div class="story-header hand unread" ng-click="setCurrent($index)">
 						<div class="story-feed muted" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title">
 							<strong ng-bind="s.Title"></strong>
