@@ -468,7 +468,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	var newStories []*Story
 	for _, s := range stories {
-		if s.Updated.IsZero() || storyDate.Before(s.Updated) {
+		if s.Updated.IsZero() || !s.Updated.Before(storyDate) {
 			newStories = append(newStories, s)
 		}
 	}
