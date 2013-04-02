@@ -268,6 +268,7 @@ func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
 	f.NextUpdate = f.Checked.Add(UpdateTime)
 
 	for _, s := range ss {
+		s.Created = f.Checked
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
 			if u, err := url.Parse(s.Id); err == nil {
