@@ -87,6 +87,7 @@
 								id="mark-all-read"
 								class="btn"
 								ng-click="markAllRead()"
+								ng-disabled="stories.length == 0"
 								data-url="{{url "mark-all-read"}}"
 								data-url-read="{{url "mark-read"}}"
 								data-url-contents="{{url "get-contents"}}"
@@ -97,8 +98,8 @@
 								ng-click="refresh()"
 								data-url-feeds="{{url "list-feeds"}}"
 								><i class="icon-refresh"></i></button>
-							<button class="btn" ng-click="next()"><i class="icon-chevron-down"></i></button>
-							<button class="btn" ng-click="prev()"><i class="icon-chevron-up"></i></button>
+							<button class="btn" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
+							<button class="btn" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
 						</form>
 					</li>
 					<li><a ng-show="loading">loading...</a></li>
