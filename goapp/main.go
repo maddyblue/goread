@@ -629,10 +629,15 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	u := User{}
 	ud := UserData{}
+	last := r.FormValue("last")
 	gn.RunInTransaction(func(gn *goon.Goon) error {
 		ue, _ := gn.GetById(&u, cu.ID, 0, nil)
 		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
-		u.Read = time.Now()
+		if ilast, err := strconv.ParseInt(last, 10, 64); err == nil && ilast > 0 {
+			u.Read = time.Unix(ilast, 0)
+		} else {
+			u.Read = time.Now()
+		}
 		ud.Read = nil
 		return gn.PutMany(ue, ude)
 	}, nil)
