@@ -444,6 +444,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		return errors.New(fmt.Sprintf("feed not found: %s", url))
 	}
 
+	storyDate := f.Checked
 	hasUpdated := !feed.Updated.IsZero()
 	isFeedUpdated := f.Updated == feed.Updated
 	if !hasUpdated {
@@ -458,12 +459,6 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		return nil
 	}
 
-	var storyDate time.Time
-	if hasUpdated {
-		storyDate = f.Updated
-	} else {
-		storyDate = f.Checked
-	}
 	c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
 
 	var newStories []*Story
@@ -485,17 +480,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	gn.GetMulti(ses)
 	var updateStories []*Story
 	for i, e := range ses {
-		isz := newStories[i].Updated.IsZero()
 		if e.NotFound {
-			if isz {
-				newStories[i].Date = newStories[i].Created.Unix()
-			} else {
-				newStories[i].Date = newStories[i].Updated.Unix()
-			}
 			updateStories = append(updateStories, newStories[i])
-		} else if !isz {
-			getStories[i].Date = getStories[i].Updated.Unix()
-			updateStories = append(updateStories, &getStories[i])
+		} else if !newStories[i].Updated.IsZero() {
+			newStories[i].Created = getStories[i].Created
+			updateStories = append(updateStories, newStories[i])
 		}
 	}
 	c.Debugf("%v update stories", len(updateStories))
@@ -567,7 +556,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			if u.Read.Before(f.Updated) {
-				sq := q.Ancestor(feedes[i].Key).Filter("c >=", u.Read)
+				sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read)
 				var stories []*Story
 				ses, _ := gn.GetAll(sq, &stories)
 				for j, se := range ses {

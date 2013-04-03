@@ -163,6 +163,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			if t, err := parseDate(c, string(i.Updated)); err == nil {
 				st.Updated = t
 			}
+			if t, err := parseDate(c, string(i.Published)); err == nil {
+				st.Published = t
+			}
 			if len(i.Link) > 0 {
 				st.Link = i.Link[0].Href
 			}
@@ -188,6 +191,8 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		f.Link = r.Link
 		if t, err := parseDate(c, r.LastBuildDate, r.PubDate); err == nil {
 			f.Updated = t
+		} else {
+			c.Warningf("no rss feed date: %v", f.Link)
 		}
 
 		for _, i := range r.Items {
@@ -211,6 +216,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				st.Id = i.Title
 			}
 			if t, err := parseDate(c, i.PubDate, i.Date, i.Published); err == nil {
+				st.Published = t
 				st.Updated = t
 			}
 
@@ -247,6 +253,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 				return nil, nil
 			}
 			if t, err := parseDate(c, i.Date); err == nil {
+				st.Published = t
 				st.Updated = t
 			}
 			s = append(s, &st)
@@ -269,6 +276,17 @@ func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
 
 	for _, s := range ss {
 		s.Created = f.Checked
+		if !s.Updated.IsZero() && s.Published.IsZero() {
+			s.Published = s.Updated
+		}
+		if s.Published.IsZero() || f.Checked.Before(s.Published) {
+			s.Published = f.Checked
+		}
+		if !s.Updated.IsZero() {
+			s.Date = s.Updated.Unix()
+		} else {
+			s.Date = s.Published.Unix()
+		}
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
 			if u, err := url.Parse(s.Id); err == nil {
