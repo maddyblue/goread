@@ -529,7 +529,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := User{}
 	ud := UserData{}
 	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
-	gn.GetById(&ud, "data", 0, ue.Key)
+	ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
 
 	read := make(Read)
 	json.Unmarshal(ud.Read, &read)
@@ -544,44 +544,63 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	lock := sync.Mutex{}
 	fl := make(FeedList)
 	q := datastore.NewQuery(goon.Kind(&Story{}))
-	wg := sync.WaitGroup{}
-	wg.Add(len(feeds))
-	for _i := range feeds {
-		go func(i int) {
-			f := feeds[i]
-			defer wg.Done()
-			ufeed := uf[i]
-			fd := FeedData{
-				Feed: ufeed,
-			}
+	hasStories := false
+	c.P.Step("feed fetch + wait", func() {
+		wg := sync.WaitGroup{}
+		wg.Add(len(feeds))
+		for _i := range feeds {
+			go func(i int) {
+				f := feeds[i]
+				defer wg.Done()
+				ufeed := uf[i]
+				fd := FeedData{
+					Feed: ufeed,
+				}
 
-			if u.Read.Before(f.Updated) {
-				sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read)
-				var stories []*Story
-				ses, _ := gn.GetAll(sq, &stories)
-				for j, se := range ses {
-					stories[j].Id = se.Key.StringID()
-					found := false
-					for _, s := range read[ufeed.Url] {
-						if s == stories[j].Id {
-							found = true
-							break
+				if u.Read.Before(f.Updated) {
+					c.Debugf("query for %v", feedes[i].Key)
+					sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read)
+					var stories []*Story
+					ses, _ := gn.GetAll(sq, &stories)
+					for j, se := range ses {
+						stories[j].Id = se.Key.StringID()
+						found := false
+						for _, s := range read[ufeed.Url] {
+							if s == stories[j].Id {
+								found = true
+								break
+							}
+						}
+						if !found {
+							fd.Stories = append(fd.Stories, stories[j])
 						}
 					}
-					if !found {
-						fd.Stories = append(fd.Stories, stories[j])
-					}
 				}
-			}
-			lock.Lock()
-			fl[ufeed.Url] = &fd
-			lock.Unlock()
-		}(_i)
-	}
+				lock.Lock()
+				fl[ufeed.Url] = &fd
+				if len(fd.Stories) > 0 {
+					hasStories = true
+				}
+				lock.Unlock()
+			}(_i)
+		}
 
-	c.P.Step("feed fetch + wait", func() {
 		wg.Wait()
 	})
+	if !hasStories {
+		var last time.Time
+		for _, f := range feeds {
+			if last.Before(f.Updated) {
+				last = f.Updated
+			}
+		}
+		if u.Read.Before(last) {
+			c.Debugf("setting %v read to %v", cu.ID, last)
+			u.Read = last
+			ud.Read = nil
+			gn.PutMany(ue, ude)
+		}
+	}
 	c.P.Step("json marshal", func() {
 		b, _ := json.Marshal(&fl)
 		w.Write(b)
