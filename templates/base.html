@@ -15,7 +15,7 @@
 			cursor: pointer;
 		}
 		.story {
-			border-bottom: 1px solid #999;
+			border-bottom: 1px solid #ccc;
 		}
 		.story-header {
 			position: relative;
@@ -24,8 +24,9 @@
 			width: 100%;
 			box-sizing: border-box;
 			-moz-box-sizing: border-box;
-			height: 30px;
-			line-height: 26px;
+			height: 33px;
+			line-height: 33px;
+			font-size: 13px;
 		}
 		.story-title {
 			overflow: hidden;
@@ -62,7 +63,7 @@
 	<link rel="shortcut icon" href="/static/favicon.png">
 </head>
 <body ng-controller="GoreadCtrl" class="ng-cloak">
-	<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container-fluid">
 				<a class="brand" href="{{url "main"}}">go read</a>
@@ -77,7 +78,7 @@
 						<form class="navbar-form">
 							<button
 								id="mark-all-read"
-								class="btn btn-inverse"
+								class="btn"
 								ng-click="markAllRead()"
 								data-url="{{url "mark-all-read"}}"
 								data-url-read="{{url "mark-read"}}"
@@ -85,12 +86,12 @@
 								>mark all as read</button>
 							<button
 								id="refresh"
-								class="btn btn-inverse"
+								class="btn"
 								ng-click="refresh()"
 								data-url-feeds="{{url "list-feeds"}}"
-								><i class="icon-refresh icon-white"></i></button>
-							<button class="btn btn-inverse" ng-click="next()"><i class="icon-chevron-down icon-white"></i></button>
-							<button class="btn btn-inverse" ng-click="prev()"><i class="icon-chevron-up icon-white"></i></button>
+								><i class="icon-refresh"></i></button>
+							<button class="btn" ng-click="next()"><i class="icon-chevron-down"></i></button>
+							<button class="btn" ng-click="prev()"><i class="icon-chevron-up"></i></button>
 						</form>
 					</li>
 					<li><a ng-show="loading">loading...</a></li>
