@@ -63,7 +63,7 @@ func init() {
 
 	if appengine.IsDevAppServer() {
 		Angular = fmt.Sprintf("/static/js/angular-%v.js", angular_ver)
-		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-%v.css", bootstrap_ver)
+		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-%v.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap-%v.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
 	} else {

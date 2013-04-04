@@ -2,6 +2,7 @@
 <html lang="en" ng-app>
 <head>
 	<title>go read</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
 	<style>
 		.ng-cloak {
@@ -36,8 +37,6 @@
 		.story-header.read {
 			background-color: #f5f5f5;
 		}
-		.story-summary {
-		}
 		.story-feed {
 			width: 150px;
 			overflow: hidden;
@@ -66,64 +65,87 @@
 			background-size: 24px;
 			padding-left: 54px !important;
 		}
+		@media (max-width: 979px) {
+			body {
+				padding-top: 0;
+			}
+			body, .story-header, .story-content, .btn {
+				font-size: 20px;
+			}
+			.navbar-fixed-top {
+				margin-bottom: 0;
+			}
+			.story-header {
+				padding: 0;
+				height: 43px;
+				line-height: 43px;
+			}
+		}
 	</style>
 	<link rel="shortcut icon" href="/static/favicon.png">
 </head>
 <body ng-controller="GoreadCtrl" class="ng-cloak">
 	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
 			<div class="container-fluid">
 				<a class="brand" href="{{url "main"}}">go read</a>
-				<ul class="nav">
-					<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
-				{{if .User}}
-					<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'">feeds</a></li>
-					<li>
-						<a href="#" ng-click="shown = 'feeds'">{{`{{unread() || 'no'}}`}} unread items</a>
-					</li>
-					<li>
-						<form class="navbar-form">
-							<button
-								id="mark-all-read"
-								class="btn"
-								ng-click="markAllRead()"
-								ng-disabled="stories.length == 0"
-								data-url="{{url "mark-all-read"}}"
-								data-url-read="{{url "mark-read"}}"
-								data-url-contents="{{url "get-contents"}}"
-								>mark all as read</button>
-							<button
-								id="refresh"
-								class="btn"
-								ng-click="refresh()"
-								data-url-feeds="{{url "list-feeds"}}"
-								><i class="icon-refresh"></i></button>
-							<button class="btn" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
-							<button class="btn" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
-						</form>
-					</li>
-					<li><a ng-show="loading">loading...</a></li>
-				{{end}}
-				</ul>
-				<ul class="nav pull-right">
-				{{if .User}}
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							{{.User}}
-							<b class="caret"></b>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a href="{{url "import-reader"}}">import google reader</a></li>
-							<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
-							<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
-							<li class="divider"></li>
-							<li><a href="{{url "logout"}}">logout</a></li>
-						</ul>
-					</li>
-				{{else}}
-					<li><a href="{{url "login-google"}}">sign up / log in</a></li>
-				{{end}}
-				</ul>
+				<div class="nav-collapse collapse">
+					<ul class="nav">
+						<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
+					{{if .User}}
+						<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'">feeds</a></li>
+						<li>
+							<a href="#" ng-click="shown = 'feeds'">{{`{{unread() || 'no'}}`}} unread items</a>
+						</li>
+						<li>
+							<form class="navbar-form">
+								<button
+									id="mark-all-read"
+									class="btn"
+									ng-click="markAllRead()"
+									ng-disabled="stories.length == 0"
+									data-url="{{url "mark-all-read"}}"
+									data-url-read="{{url "mark-read"}}"
+									data-url-contents="{{url "get-contents"}}"
+									>mark all as read</button>
+								<button
+									id="refresh"
+									class="btn"
+									ng-click="refresh()"
+									data-url-feeds="{{url "list-feeds"}}"
+									><i class="icon-refresh"></i></button>
+								<button class="btn" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
+								<button class="btn" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
+							</form>
+						</li>
+						<li><a ng-show="loading">loading...</a></li>
+					{{end}}
+					</ul>
+					<ul class="nav pull-right">
+					{{if .User}}
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+								{{.User}}
+								<b class="caret"></b>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="{{url "import-reader"}}">import google reader</a></li>
+								<li><a href="#" ng-click="shown = 'add-subscription'">add subscription</a></li>
+								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
+								<li class="divider"></li>
+								<li><a href="{{url "logout"}}">logout</a></li>
+							</ul>
+						</li>
+					{{else}}
+						<li><a href="{{url "login-google"}}">sign up / log in</a></li>
+					{{end}}
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -155,12 +177,12 @@
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
 				<div ng-repeat="s in stories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="story-header hand unread" ng-click="setCurrent($index)">
-						<div class="story-feed muted" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
+						<div class="story-feed muted hidden-phone" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title">
 							<strong ng-bind="s.Title"></strong>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
-						<div class="story-date muted">
+						<div class="story-date muted hidden-phone">
 							<span ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
