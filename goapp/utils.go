@@ -80,7 +80,7 @@ func includes(c mpg.Context) *Includes {
 		BootstrapCss: BootstrapCss,
 		BootstrapJs:  BootstrapJs,
 		Jquery:       Jquery,
-		MiniProfiler: c.P.Includes(),
+		MiniProfiler: c.Includes(),
 	}
 
 	if u := user.Current(c); u != nil {

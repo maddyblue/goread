@@ -546,7 +546,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fl := make(FeedList)
 	q := datastore.NewQuery(goon.Kind(&Story{}))
 	hasStories := false
-	c.P.Step("feed fetch + wait", func() {
+	c.Step("feed fetch + wait", func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(feeds))
 		for _i := range feeds {
@@ -602,7 +602,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			gn.PutMany(ue, ude)
 		}
 	}
-	c.P.Step("json marshal", func() {
+	c.Step("json marshal", func() {
 		b, _ := json.Marshal(&fl)
 		w.Write(b)
 	})
