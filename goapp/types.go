@@ -44,7 +44,6 @@ type UserFeed struct {
 	Title  string
 	Link   string
 	Label  string
-	Sortid string
 }
 
 type Feeds []*UserFeed

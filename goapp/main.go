@@ -146,7 +146,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
 	var ufs []*UserFeed
-	sortid := 1 + skip
 	remaining := skip
 
 	var proc func(label string, outlines []outline)
@@ -160,9 +159,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						Label:  label,
 						Url:    o.XmlUrl,
 						Title:  o.Title,
-						Sortid: strconv.Itoa(sortid * 1000),
 					})
-					sortid++
 				}
 			}
 
@@ -344,7 +341,6 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Id         string `json:"id"`
 			Title      string `json:"title"`
 			HtmlUrl    string `json:"htmlUrl"`
-			Sortid     string `json:"sortid"`
 			Categories []struct {
 				Id    string `json:"id"`
 				Label string `json:"label"`
@@ -374,7 +370,6 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				Label:  label,
 				Url:    sub.Id[5:],
 				Title:  sub.Title,
-				Sortid: sub.Sortid,
 			}
 			ufs[i] = uf
 			if err := addFeed(c, userid, uf); err != nil {
