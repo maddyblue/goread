@@ -55,6 +55,7 @@ type Feed struct {
 	_goon      interface{} `kind:"F"`
 	Title      string      `datastore:"t,noindex"`
 	Updated    time.Time   `datastore:"u,noindex"`
+	Date       time.Time   `datastore:"d,noindex"`
 	Checked    time.Time   `datastore:"c,noindex"`
 	NextUpdate time.Time   `datastore:"n"`
 	Link       string      `datastore:"l,noindex"`

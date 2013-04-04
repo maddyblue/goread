@@ -445,7 +445,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		return errors.New(fmt.Sprintf("feed not found: %s", url))
 	}
 
-	storyDate := f.Checked
+	// Compare the feed's listed update to the story's update.
+	// Note: these may not be accurate, hence, only compare them to each other,
+	// since they should have the same relative error.
+	storyDate := f.Updated
+
 	hasUpdated := !feed.Updated.IsZero()
 	isFeedUpdated := f.Updated == feed.Updated
 	if !hasUpdated {
@@ -505,6 +509,9 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	if !hasUpdated && len(puts) > 1 {
 		f.Updated = time.Now()
 	}
+	if len(puts) > 1 {
+		f.Date = time.Now()
+	}
 	gn.PutMulti(puts)
 
 	return nil
@@ -558,7 +565,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					Feed: ufeed,
 				}
 
-				if u.Read.Before(f.Updated) {
+				if u.Read.Before(f.Date) {
 					c.Debugf("query for %v", feedes[i].Key)
 					sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read)
 					var stories []*Story
@@ -591,8 +598,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if !hasStories {
 		var last time.Time
 		for _, f := range feeds {
-			if last.Before(f.Updated) {
-				last = f.Updated
+			if last.Before(f.Date) {
+				last = f.Date
 			}
 		}
 		if u.Read.Before(last) {
