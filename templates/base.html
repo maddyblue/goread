@@ -177,12 +177,12 @@
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
 				<div ng-repeat="s in stories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="story-header hand unread" ng-click="setCurrent($index)">
-						<div class="story-feed muted hidden-phone" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
+						<div class="story-feed muted hidden-tablet" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title">
 							<strong ng-bind="s.Title"></strong>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
-						<div class="story-date muted hidden-phone">
+						<div class="story-date muted hidden-tablet">
 							<span ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
