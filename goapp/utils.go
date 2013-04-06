@@ -31,6 +31,7 @@ import (
 	"github.com/mjibson/rssgo"
 	"html"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -274,7 +275,7 @@ const UpdateTime = time.Hour
 
 func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
 	f.Checked = time.Now()
-	f.NextUpdate = f.Checked.Add(UpdateTime)
+	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(300)))
 
 	for _, s := range ss {
 		s.Created = f.Checked
