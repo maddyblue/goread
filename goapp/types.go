@@ -40,10 +40,10 @@ type UserData struct {
 }
 
 type UserFeed struct {
-	Url    string
-	Title  string
-	Link   string
-	Label  string
+	Url   string
+	Title string
+	Link  string
+	Label string
 }
 
 type Feeds []*UserFeed

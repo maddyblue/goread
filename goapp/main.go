@@ -156,9 +156,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					remaining--
 				} else if len(ufs) < IMPORT_LIMIT {
 					ufs = append(ufs, &UserFeed{
-						Label:  label,
-						Url:    o.XmlUrl,
-						Title:  o.Title,
+						Label: label,
+						Url:   o.XmlUrl,
+						Title: o.Title,
 					})
 				}
 			}
@@ -367,9 +367,9 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				label = sub.Categories[0].Label
 			}
 			uf := &UserFeed{
-				Label:  label,
-				Url:    sub.Id[5:],
-				Title:  sub.Title,
+				Label: label,
+				Url:   sub.Id[5:],
+				Title: sub.Title,
 			}
 			ufs[i] = uf
 			if err := addFeed(c, userid, uf); err != nil {
