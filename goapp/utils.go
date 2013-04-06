@@ -20,6 +20,8 @@ import (
 	"appengine"
 	"appengine/user"
 	"bytes"
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
 	"code.google.com/p/rsc/blog/atom"
 	"encoding/xml"
 	"errors"
@@ -142,7 +144,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 	a := atom.Feed{}
 	var atomerr, rsserr, rdferr error
 	d := xml.NewDecoder(bytes.NewReader(b))
-	d.CharsetReader = CharsetReader
+	d.CharsetReader = charset.NewReader
 	if atomerr = d.Decode(&a); atomerr == nil {
 		f.Title = a.Title
 		if t, err := parseDate(c, string(a.Updated)); err == nil {
@@ -185,7 +187,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 	r := rssgo.Rss{}
 	d = xml.NewDecoder(bytes.NewReader(b))
-	d.CharsetReader = CharsetReader
+	d.CharsetReader = charset.NewReader
 	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
 		f.Link = r.Link
@@ -228,7 +230,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 	rdf := RDF{}
 	d = xml.NewDecoder(bytes.NewReader(b))
-	d.CharsetReader = CharsetReader
+	d.CharsetReader = charset.NewReader
 	if rdferr = d.Decode(&rdf); rdferr == nil {
 		if rdf.Channel != nil {
 			f.Title = rdf.Channel.Title
