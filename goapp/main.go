@@ -535,15 +535,19 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
 
 	read := make(Read)
-	json.Unmarshal(ud.Read, &read)
 	var uf Feeds
-	json.Unmarshal(ud.Feeds, &uf)
+	c.Step("unmarshal user data", func() {
+		json.Unmarshal(ud.Read, &read)
+		json.Unmarshal(ud.Feeds, &uf)
+	})
 	feeds := make([]Feed, len(uf))
 	feedes := make([]*goon.Entity, len(uf))
-	for i, f := range uf {
-		feedes[i], _ = gn.NewEntityById(f.Url, 0, nil, &feeds[i])
-	}
-	gn.GetMulti(feedes)
+	c.Step("fetch feeds", func() {
+		for i, f := range uf {
+			feedes[i], _ = gn.NewEntityById(f.Url, 0, nil, &feeds[i])
+		}
+		gn.GetMulti(feedes)
+	})
 	lock := sync.Mutex{}
 	fl := make(FeedList)
 	q := datastore.NewQuery(goon.Kind(&Story{}))
