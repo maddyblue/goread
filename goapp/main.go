@@ -523,6 +523,10 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if feed, stories := fetchFeed(c, url); feed != nil {
 		updateFeed(c, url, feed, stories)
+	} else {
+		f.NextUpdate = time.Now().Add(time.Hour * 2)
+		gn.Put(fe)
+		c.Infof("error with %v, bump next update to %v", url, f.NextUpdate)
 	}
 }
 
