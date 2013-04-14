@@ -570,9 +570,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 				if u.Read.Before(f.Date) {
 					c.Debugf("query for %v", feedes[i].Key)
-					sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read)
-					var stories []*Story
-					ses, _ := gn.GetAll(sq, &stories)
+					sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read).KeysOnly()
+					ses, _ := gn.GetAll(sq, nil)
+					stories := make([]Story, len(ses))
+					for j := range ses {
+						ses[j].Src = &stories[j]
+					}
+					gn.GetMulti(ses)
 					for j, se := range ses {
 						stories[j].Id = se.Key.StringID()
 						found := false
@@ -583,7 +587,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 							}
 						}
 						if !found {
-							fd.Stories = append(fd.Stories, stories[j])
+							fd.Stories = append(fd.Stories, &stories[j])
 						}
 					}
 				}
