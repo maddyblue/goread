@@ -105,9 +105,12 @@ func includes(c mpg.Context) *Includes {
 
 var dateFormats = []string{
 	"2006-01-02",
+	"2006-01-02T15:04:05",
 	"2006-01-02T15:04:05-07:00",
+	"Mon, 02 Jan 2006 15:04:05",
 	"Mon, 2 Jan 2006, 15:04 -0700",
 	"Mon, 2 January 2006, 15:04 -0700",
+	"Monday, 02 January 2006 15:04:05 -0700",
 	time.ANSIC,
 	time.RubyDate,
 	time.UnixDate,
