@@ -269,9 +269,9 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 		return parseFix(&f, s)
 	}
 
-	c.Errorf("atom parse error: %s", atomerr.Error())
-	c.Errorf("xml parse error: %s", rsserr.Error())
-	c.Errorf("rdf parse error: %s", rdferr.Error())
+	c.Warningf("atom parse error: %s", atomerr.Error())
+	c.Warningf("xml parse error: %s", rsserr.Error())
+	c.Warningf("rdf parse error: %s", rdferr.Error())
 	return nil, nil
 }
 
