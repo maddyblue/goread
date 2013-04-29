@@ -89,7 +89,6 @@ func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if err := gn.Get(u); err == datastore.ErrNoSuchEntity {
 			u.Email = cu.Email
 			u.Read = time.Now().Add(-time.Hour * 24)
-			c.Errorf("u: %v", *u)
 			gn.Put(u)
 		}
 	}
