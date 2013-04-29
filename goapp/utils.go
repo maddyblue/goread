@@ -86,16 +86,16 @@ func includes(c mpg.Context) *Includes {
 		MiniProfiler: c.Includes(),
 	}
 
-	if u := user.Current(c); u != nil {
+	if cu := user.Current(c); cu != nil {
 		gn := goon.FromContext(c)
-		user := new(User)
-		if ue, err := gn.GetById(user, u.ID, 0, nil); err == nil && !ue.NotFound {
+		user := &User{Id: cu.ID}
+		if err := gn.Get(user); err == nil {
 			i.User = user
 
 			if len(user.Messages) > 0 {
 				i.Messages = user.Messages
 				user.Messages = nil
-				gn.Put(ue)
+				gn.Put(user)
 			}
 		}
 	}
@@ -142,8 +142,8 @@ func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
 	return
 }
 
-func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
-	f := Feed{}
+func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
+	f := Feed{Url: u}
 	var s []*Story
 
 	a := atom.Feed{}
@@ -187,7 +187,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			s = append(s, &st)
 		}
 
-		return parseFix(&f, s)
+		return parseFix(c, &f, s)
 	}
 
 	r := rssgo.Rss{}
@@ -230,7 +230,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			s = append(s, &st)
 		}
 
-		return parseFix(&f, s)
+		return parseFix(c, &f, s)
 	}
 
 	rdf := RDF{}
@@ -266,7 +266,7 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 			s = append(s, &st)
 		}
 
-		return parseFix(&f, s)
+		return parseFix(c, &f, s)
 	}
 
 	c.Warningf("atom parse error: %s", atomerr.Error())
@@ -277,11 +277,14 @@ func ParseFeed(c appengine.Context, b []byte) (*Feed, []*Story) {
 
 const UpdateTime = time.Hour
 
-func parseFix(f *Feed, ss []*Story) (*Feed, []*Story) {
+func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
+	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(300)))
+	fk := g.Key(f)
 
 	for _, s := range ss {
+		s.Parent = fk
 		s.Created = f.Checked
 		if !s.Updated.IsZero() && s.Published.IsZero() {
 			s.Published = s.Updated

@@ -17,15 +17,16 @@
 package goapp
 
 import (
+	"appengine/datastore"
 	"time"
 )
 
-// key: ID
 type User struct {
-	_goon    interface{} `kind:"U"`
-	Email    string      `datastore:"e,noindex"`
-	Messages []string    `datastore:"m,noindex"`
-	Read     time.Time   `datastore:"r,noindex"`
+	Id       string    `datastore:"-" goon:"id"`
+	Kind     string    `datastore:"-" goon:"kind,U"`
+	Email    string    `datastore:"e,noindex"`
+	Messages []string  `datastore:"m,noindex"`
+	Read     time.Time `datastore:"r,noindex"`
 }
 
 func (u *User) String() string {
@@ -34,9 +35,11 @@ func (u *User) String() string {
 
 // parent: User, key: "data"
 type UserData struct {
-	_goon interface{} `kind:"UD"`
-	Feeds []byte      `datastore:"f,noindex"`
-	Read  []byte      `datastore:"r,noindex"`
+	Id     string         `datastore:"-" goon:"id"`
+	Kind   string         `datastore:"-" goon:"kind,UD"`
+	Parent *datastore.Key `datastore:"-" goon:"parent"`
+	Feeds  []byte         `datastore:"f,noindex"`
+	Read   []byte         `datastore:"r,noindex"`
 }
 
 type UserFeed struct {
@@ -49,37 +52,40 @@ type UserFeed struct {
 type Feeds []*UserFeed
 type Read map[string][]string
 
-// key: URL
 type Feed struct {
-	_goon      interface{} `kind:"F"`
-	Title      string      `datastore:"t,noindex"`
-	Updated    time.Time   `datastore:"u,noindex"`
-	Date       time.Time   `datastore:"d,noindex"`
-	Checked    time.Time   `datastore:"c,noindex"`
-	NextUpdate time.Time   `datastore:"n"`
-	Link       string      `datastore:"l,noindex"`
+	Url        string    `datastore:"-" goon:"id"`
+	Kind       string    `datastore:"-" goon:"kind,F"`
+	Title      string    `datastore:"t,noindex"`
+	Updated    time.Time `datastore:"u,noindex"`
+	Date       time.Time `datastore:"d,noindex"`
+	Checked    time.Time `datastore:"c,noindex"`
+	NextUpdate time.Time `datastore:"n"`
+	Link       string    `datastore:"l,noindex"`
 }
 
 // parent: Feed, key: story ID
 type Story struct {
-	_goon     interface{} `kind:"S"`
-	Id        string      `datastore:"-"`
-	Title     string      `datastore:"t,noindex"`
-	Link      string      `datastore:"l,noindex"`
-	Created   time.Time   `datastore:"c,noindex"`
-	Published time.Time   `datastore:"p"`
-	Updated   time.Time   `datastore:"u,noindex"`
-	Date      int64       `datastore:"e,noindex"`
-	Author    string      `datastore:"a,noindex"`
-	Summary   string      `datastore:"s,noindex"`
+	Id        string         `datastore:"-" goon:"id"`
+	Parent    *datastore.Key `datastore:"-" goon:"parent"`
+	Kind      string         `datastore:"-" goon:"kind,S"`
+	Title     string         `datastore:"t,noindex"`
+	Link      string         `datastore:"l,noindex"`
+	Created   time.Time      `datastore:"c,noindex"`
+	Published time.Time      `datastore:"p"`
+	Updated   time.Time      `datastore:"u,noindex"`
+	Date      int64          `datastore:"e,noindex"`
+	Author    string         `datastore:"a,noindex"`
+	Summary   string         `datastore:"s,noindex"`
 
 	content string
 }
 
 // parent: Story, key: 1
 type StoryContent struct {
-	_goon   interface{} `kind:"SC"`
-	Content string      `datastore:"c,noindex"`
+	Id      int64          `datastore:"-" goon:"id"`
+	Parent  *datastore.Key `datastore:"-" goon:"parent"`
+	Kind    string         `datastore:"-" goon:"kind,SC"`
+	Content string         `datastore:"c,noindex"`
 }
 
 type FeedList map[string]*FeedData

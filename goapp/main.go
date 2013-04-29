@@ -83,13 +83,14 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if u := user.Current(c); u != nil {
+	if cu := user.Current(c); cu != nil {
 		gn := goon.FromContext(c)
-		user := User{}
-		if ue, err := gn.GetById(&user, u.ID, 0, nil); err == nil && ue.NotFound {
-			user.Email = u.Email
-			user.Read = time.Now().Add(-time.Hour * 24)
-			gn.Put(ue)
+		u := &User{Id: cu.ID}
+		if err := gn.Get(u); err == datastore.ErrNoSuchEntity {
+			u.Email = cu.Email
+			u.Read = time.Now().Add(-time.Hour * 24)
+			c.Errorf("u: %v", *u)
+			gn.Put(u)
 		}
 	}
 
@@ -107,9 +108,9 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{}
-	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
-	if ue.NotFound {
+	u := User{Id: cu.ID}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
 		return
 	}
 
@@ -193,11 +194,13 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	wg.Wait()
 
-	ud := UserData{}
+	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
+		if err := gn.Get(&ud); err != nil {
+			return nil
+		}
 		addUserFeed(&ud, ufs...)
-		return gn.Put(ude)
+		return gn.Put(ud)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		c.Errorf("ude update error: %v", err.Error())
@@ -218,12 +221,8 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 	gn := goon.FromContext(c)
 	c.Infof("adding feed %s to user %s", uf.Url, userid)
 
-	f := Feed{}
-	fe, err := gn.GetById(&f, uf.Url, 0, nil)
-	if err != nil {
-		return err
-	}
-	if fe.NotFound {
+	f := Feed{Url: uf.Url}
+	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		if feed, stories := fetchFeed(c, uf.Url); feed == nil {
 			return errors.New(fmt.Sprintf("could not add feed %s", uf.Url))
 		} else {
@@ -231,7 +230,7 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 			f.Updated = time.Time{}
 			f.Checked = f.Updated
 			f.NextUpdate = f.Updated
-			gn.Put(fe)
+			gn.Put(&f)
 			if err := updateFeed(c, uf.Url, feed, stories); err != nil {
 				return err
 			}
@@ -241,6 +240,8 @@ func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
 				uf.Title = feed.Title
 			}
 		}
+	} else if err != nil {
+		return err
 	} else {
 		uf.Link = f.Link
 		if uf.Title == "" {
@@ -280,10 +281,10 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	gn := goon.FromContext(c)
-	ud := UserData{}
-	ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
+	gn.Get(&ud)
 	addUserFeed(&ud, uf)
-	gn.Put(ude)
+	gn.Put(&ud)
 }
 
 func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -293,16 +294,16 @@ func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{}
-	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
-	if ue.NotFound {
+	u := User{Id: cu.ID}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
 		return
 	}
 	u.Messages = append(u.Messages,
 		"Reader import is happening. It can take a minute.",
 		"Refresh at will - you'll continue to see this page until it's done.",
 	)
-	gn.Put(ue)
+	gn.Put(&u)
 
 	t := &oauth.Transport{
 		Config:    oauth_conf,
@@ -382,11 +383,13 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	wg.Wait()
 
-	ud := UserData{}
+	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), userid, 0, nil))
+		if err := gn.Get(&ud); err != nil {
+			return nil
+		}
 		addUserFeed(&ud, ufs...)
-		return gn.Put(ude)
+		return gn.Put(&ud)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		c.Errorf("ude update error: %v", err.Error())
@@ -405,25 +408,25 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(goon.Kind(&Feed{})).KeysOnly()
+	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
 	q = q.Filter("n <=", time.Now())
-	es, _ := gn.GetAll(q, nil)
-	for _, e := range es {
+	keys, _ := gn.GetAll(q, nil)
+	for _, k := range keys {
 		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
-			"feed": {e.Key.StringID()},
+			"feed": {k.StringID()},
 		})
 		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
 			c.Errorf("taskqueue error: %v", err.Error())
 		}
 	}
-	c.Infof("updating %d feeds", len(es))
+	c.Infof("updating %d feeds", len(keys))
 }
 
 func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
 	cl := urlfetch.Client(c)
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
 		b, _ := ioutil.ReadAll(resp.Body)
-		return ParseFeed(c, b)
+		return ParseFeed(c, url, b)
 	} else if err != nil {
 		c.Errorf("fetch feed error: %s", err.Error())
 	} else {
@@ -434,9 +437,8 @@ func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
 
 func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	gn := goon.FromContext(c)
-	f := Feed{}
-	fe, _ := gn.GetById(&f, url, 0, nil)
-	if fe.NotFound {
+	f := Feed{Url: url}
+	if err := gn.Get(&f); err != nil {
 		return errors.New(fmt.Sprintf("feed not found: %s", url))
 	}
 
@@ -455,7 +457,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	if hasUpdated && isFeedUpdated {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
-		gn.Put(fe)
+		gn.Put(&f)
 		return nil
 	}
 
@@ -469,36 +471,34 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	}
 	c.Debugf("%v possible stories to update", len(newStories))
 
-	puts := []*goon.Entity{fe}
+	puts := make([]interface{}, 0)
 
 	// find non existant stories
+	fk := gn.Key(&f)
 	getStories := make([]Story, len(newStories))
-	ses := make([]*goon.Entity, len(newStories))
 	for i, s := range newStories {
-		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, &getStories[i])
+		getStories[i] = Story{Id: s.Id, Parent: fk}
 	}
-	gn.GetMulti(ses)
+	err := gn.GetMulti(getStories)
 	var updateStories []*Story
-	for i, e := range ses {
-		if e.NotFound {
+	for i, s := range getStories {
+		if goon.NotFound(err, i) {
 			updateStories = append(updateStories, newStories[i])
 		} else if !newStories[i].Updated.IsZero() {
-			newStories[i].Created = getStories[i].Created
+			newStories[i].Created = s.Created
 			updateStories = append(updateStories, newStories[i])
 		}
 	}
 	c.Debugf("%v update stories", len(updateStories))
 
-	ses = make([]*goon.Entity, len(updateStories))
-	scs := make([]StoryContent, len(updateStories))
-	sces := make([]*goon.Entity, len(updateStories))
-	for i, s := range updateStories {
-		ses[i], _ = gn.NewEntityById(s.Id, 0, fe.Key, s)
-		scs[i].Content = s.content
-		sces[i], _ = gn.NewEntityById("", 1, ses[i].Key, &scs[i])
+	for _, s := range updateStories {
+		puts = append(puts, s,
+			&StoryContent{
+				Id:      1,
+				Parent:  gn.Key(s),
+				Content: s.content,
+			})
 	}
-	puts = append(puts, ses...)
-	puts = append(puts, sces...)
 	c.Debugf("putting %v entities", len(puts))
 
 	if !hasUpdated && len(puts) > 1 {
@@ -516,16 +516,15 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	url := r.FormValue("feed")
 	c.Debugf("update feed %s", url)
-	f := Feed{}
-	fe, _ := gn.GetById(&f, url, 0, nil)
-	if fe.NotFound {
+	f := Feed{Url: url}
+	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		return
 	}
 	if feed, stories := fetchFeed(c, url); feed != nil {
 		updateFeed(c, url, feed, stories)
 	} else {
 		f.NextUpdate = time.Now().Add(time.Hour * 2)
-		gn.Put(fe)
+		gn.Put(&f)
 		c.Infof("error with %v, bump next update to %v", url, f.NextUpdate)
 	}
 }
@@ -533,10 +532,9 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{}
-	ud := UserData{}
-	ue, _ := gn.GetById(&u, cu.ID, 0, nil)
-	ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
+	u := &User{Id: cu.ID}
+	ud := &UserData{Id: "data", Parent: gn.Key(u)}
+	gn.Get(ud)
 
 	read := make(Read)
 	var uf Feeds
@@ -544,17 +542,16 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(ud.Read, &read)
 		json.Unmarshal(ud.Feeds, &uf)
 	})
-	feeds := make([]Feed, len(uf))
-	feedes := make([]*goon.Entity, len(uf))
+	feeds := make([]*Feed, len(uf))
 	c.Step("fetch feeds", func() {
 		for i, f := range uf {
-			feedes[i], _ = gn.NewEntityById(f.Url, 0, nil, &feeds[i])
+			feeds[i] = &Feed{Url: f.Url}
 		}
-		gn.GetMulti(feedes)
+		gn.GetMulti(feeds)
 	})
 	lock := sync.Mutex{}
 	fl := make(FeedList)
-	q := datastore.NewQuery(goon.Kind(&Story{}))
+	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
 	hasStories := false
 	c.Step("feed fetch + wait", func() {
 		wg := sync.WaitGroup{}
@@ -569,25 +566,28 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				}
 
 				if u.Read.Before(f.Date) {
-					c.Debugf("query for %v", feedes[i].Key)
-					sq := q.Ancestor(feedes[i].Key).Filter("p >=", u.Read).KeysOnly()
-					ses, _ := gn.GetAll(sq, nil)
-					stories := make([]Story, len(ses))
-					for j := range ses {
-						ses[j].Src = &stories[j]
+					c.Debugf("query for %v", feeds[i].Url)
+					fk := gn.Key(feeds[i])
+					sq := q.Ancestor(fk).Filter("p >=", u.Read).KeysOnly()
+					keys, _ := gn.GetAll(sq, nil)
+					stories := make([]*Story, len(keys))
+					for j, key := range keys {
+						stories[j] = &Story{
+							Id:     key.StringID(),
+							Parent: fk,
+						}
 					}
-					gn.GetMulti(ses)
-					for j, se := range ses {
-						stories[j].Id = se.Key.StringID()
+					gn.GetMulti(stories)
+					for _, st := range stories {
 						found := false
 						for _, s := range read[ufeed.Url] {
-							if s == stories[j].Id {
+							if s == st.Id {
 								found = true
 								break
 							}
 						}
 						if !found {
-							fd.Stories = append(fd.Stories, &stories[j])
+							fd.Stories = append(fd.Stories, st)
 						}
 					}
 				}
@@ -613,7 +613,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Debugf("setting %v read to %v", cu.ID, last)
 			u.Read = last
 			ud.Read = nil
-			gn.PutMany(ue, ude)
+			gn.PutMany(&u, &ud)
 		}
 	}
 	c.Step("json marshal", func() {
@@ -625,36 +625,39 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	ud := UserData{}
 	read := make(Read)
 	feed := r.FormValue("feed")
 	story := r.FormValue("story")
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		ude, _ := gn.GetById(&ud, "data", 0, datastore.NewKey(c, goon.Kind(&User{}), cu.ID, 0, nil))
+		u := &User{Id: cu.ID}
+		ud := &UserData{
+			Id:     "data",
+			Parent: gn.Key(u),
+		}
+		gn.Get(ud)
 		json.Unmarshal(ud.Read, &read)
 		read[feed] = append(read[feed], story)
 		b, _ := json.Marshal(&read)
 		ud.Read = b
-		return gn.Put(ude)
+		return gn.Put(ud)
 	}, nil)
 }
 
 func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{}
-	ud := UserData{}
+	u := &User{Id: cu.ID}
+	ud := &UserData{Id: "data", Parent: gn.Key(u)}
 	last := r.FormValue("last")
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		ue, _ := gn.GetById(&u, cu.ID, 0, nil)
-		ude, _ := gn.GetById(&ud, "data", 0, ue.Key)
+		gn.GetMulti([]interface{}{u, ud})
 		if ilast, err := strconv.ParseInt(last, 10, 64); err == nil && ilast > 0 && false {
 			u.Read = time.Unix(ilast, 0)
 		} else {
 			u.Read = time.Now()
 		}
 		ud.Read = nil
-		return gn.PutMany(ue, ude)
+		return gn.PutMany(u, ud)
 	}, nil)
 }
 
@@ -668,15 +671,14 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	scs := make([]StoryContent, len(reqs))
-	sces := make([]*goon.Entity, len(reqs))
+	scs := make([]*StoryContent, len(reqs))
 	gn := goon.FromContext(c)
 	for i, r := range reqs {
-		fk := datastore.NewKey(c, goon.Kind(&Feed{}), r.Feed, 0, nil)
-		sk := datastore.NewKey(c, goon.Kind(&Story{}), r.Story, 0, fk)
-		sces[i], _ = gn.NewEntityById("", 1, sk, &scs[i])
+		f := &Feed{Url: r.Feed}
+		s := &Story{Id: r.Story, Parent: gn.Key(f)}
+		scs[i] = &StoryContent{Id: 1, Parent: gn.Key(s)}
 	}
-	gn.GetMulti(sces)
+	gn.GetMulti(scs)
 	ret := make([]string, len(reqs))
 	for i, sc := range scs {
 		ret[i] = sc.Content
