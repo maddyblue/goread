@@ -22,8 +22,8 @@ import (
 )
 
 type User struct {
+	_kind    string    `goon:"kind,U"`
 	Id       string    `datastore:"-" goon:"id"`
-	Kind     string    `datastore:"-" goon:"kind,U"`
 	Email    string    `datastore:"e,noindex"`
 	Messages []string  `datastore:"m,noindex"`
 	Read     time.Time `datastore:"r,noindex"`
@@ -35,8 +35,8 @@ func (u *User) String() string {
 
 // parent: User, key: "data"
 type UserData struct {
+	_kind  string         `goon:"kind,UD"`
 	Id     string         `datastore:"-" goon:"id"`
-	Kind   string         `datastore:"-" goon:"kind,UD"`
 	Parent *datastore.Key `datastore:"-" goon:"parent"`
 	Feeds  []byte         `datastore:"f,noindex"`
 	Read   []byte         `datastore:"r,noindex"`
@@ -53,8 +53,8 @@ type Feeds []*UserFeed
 type Read map[string][]string
 
 type Feed struct {
+	_kind      string    `goon:"kind,F"`
 	Url        string    `datastore:"-" goon:"id"`
-	Kind       string    `datastore:"-" goon:"kind,F"`
 	Title      string    `datastore:"t,noindex"`
 	Updated    time.Time `datastore:"u,noindex"`
 	Date       time.Time `datastore:"d,noindex"`
@@ -65,9 +65,9 @@ type Feed struct {
 
 // parent: Feed, key: story ID
 type Story struct {
+	_kind     string         `goon:"kind,S"`
 	Id        string         `datastore:"-" goon:"id"`
 	Parent    *datastore.Key `datastore:"-" goon:"parent"`
-	Kind      string         `datastore:"-" goon:"kind,S"`
 	Title     string         `datastore:"t,noindex"`
 	Link      string         `datastore:"l,noindex"`
 	Created   time.Time      `datastore:"c,noindex"`
@@ -82,9 +82,9 @@ type Story struct {
 
 // parent: Story, key: 1
 type StoryContent struct {
+	_kind   string         `goon:"kind,SC"`
 	Id      int64          `datastore:"-" goon:"id"`
 	Parent  *datastore.Key `datastore:"-" goon:"parent"`
-	Kind    string         `datastore:"-" goon:"kind,SC"`
 	Content string         `datastore:"c,noindex"`
 }
 
