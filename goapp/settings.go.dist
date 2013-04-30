@@ -12,6 +12,10 @@ var (
 	oauth_conf           *oauth.Config
 )
 
+const (
+	GOOGLE_ANALYTICS_ID = ""
+)
+
 func init() {
 	if appengine.IsDevAppServer() {
 		GOOGLE_CLIENT_ID = ""

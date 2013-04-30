@@ -43,13 +43,14 @@ func serveError(w http.ResponseWriter, err error) {
 }
 
 type Includes struct {
-	Angular      string
-	BootstrapCss string
-	BootstrapJs  string
-	Jquery       string
-	MiniProfiler template.HTML
-	User         *User
-	Messages     []string
+	Angular         string
+	BootstrapCss    string
+	BootstrapJs     string
+	Jquery          string
+	MiniProfiler    template.HTML
+	User            *User
+	Messages        []string
+	GoogleAnalytics string
 }
 
 var (
@@ -79,11 +80,12 @@ func init() {
 
 func includes(c mpg.Context) *Includes {
 	i := &Includes{
-		Angular:      Angular,
-		BootstrapCss: BootstrapCss,
-		BootstrapJs:  BootstrapJs,
-		Jquery:       Jquery,
-		MiniProfiler: c.Includes(),
+		Angular:         Angular,
+		BootstrapCss:    BootstrapCss,
+		BootstrapJs:     BootstrapJs,
+		Jquery:          Jquery,
+		MiniProfiler:    c.Includes(),
+		GoogleAnalytics: GOOGLE_ANALYTICS_ID,
 	}
 
 	if cu := user.Current(c); cu != nil {
