@@ -195,9 +195,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		if err := gn.Get(&ud); err != nil {
-			return nil
-		}
+		gn.Get(&ud)
 		addUserFeed(&ud, ufs...)
 		return gn.Put(ud)
 	}, nil); err != nil {
@@ -384,9 +382,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		if err := gn.Get(&ud); err != nil {
-			return nil
-		}
+		gn.Get(&ud)
 		addUserFeed(&ud, ufs...)
 		return gn.Put(&ud)
 	}, nil); err != nil {
