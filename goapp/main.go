@@ -533,7 +533,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	u := &User{Id: cu.ID}
 	ud := &UserData{Id: "data", Parent: gn.Key(u)}
-	gn.Get(ud)
+	gn.GetMulti([]interface{}{u, ud})
 
 	read := make(Read)
 	var uf Feeds
