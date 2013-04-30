@@ -470,7 +470,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	}
 	c.Debugf("%v possible stories to update", len(newStories))
 
-	puts := []interface{} {&f}
+	puts := []interface{}{&f}
 
 	// find non existant stories
 	fk := gn.Key(&f)
