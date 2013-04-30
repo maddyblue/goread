@@ -67,12 +67,12 @@ type Feed struct {
 type Story struct {
 	_kind     string         `goon:"kind,S"`
 	Id        string         `datastore:"-" goon:"id"`
-	Parent    *datastore.Key `datastore:"-" goon:"parent"`
+	Parent    *datastore.Key `datastore:"-" goon:"parent" json:"-"`
 	Title     string         `datastore:"t,noindex"`
 	Link      string         `datastore:"l,noindex"`
-	Created   time.Time      `datastore:"c,noindex"`
-	Published time.Time      `datastore:"p"`
-	Updated   time.Time      `datastore:"u,noindex"`
+	Created   time.Time      `datastore:"c" json:"-"`
+	Published time.Time      `datastore:"p,noindex" json:"-"`
+	Updated   time.Time      `datastore:"u,noindex" json:"-"`
 	Date      int64          `datastore:"e,noindex"`
 	Author    string         `datastore:"a,noindex"`
 	Summary   string         `datastore:"s,noindex"`
