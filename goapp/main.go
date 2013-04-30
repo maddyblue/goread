@@ -567,7 +567,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				if u.Read.Before(f.Date) {
 					c.Debugf("query for %v", feeds[i].Url)
 					fk := gn.Key(feeds[i])
-					sq := q.Ancestor(fk).Filter("p >=", u.Read).KeysOnly()
+					sq := q.Ancestor(fk).Filter("c >", u.Read).KeysOnly()
 					keys, _ := gn.GetAll(sq, nil)
 					stories := make([]*Story, len(keys))
 					for j, key := range keys {
