@@ -470,9 +470,9 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	// find non existant stories
 	fk := gn.Key(&f)
-	getStories := make([]Story, len(newStories))
+	getStories := make([]*Story, len(newStories))
 	for i, s := range newStories {
-		getStories[i] = Story{Id: s.Id, Parent: fk}
+		getStories[i] = &Story{Id: s.Id, Parent: fk}
 	}
 	err := gn.GetMulti(getStories)
 	var updateStories []*Story
