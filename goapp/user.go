@@ -17,20 +17,21 @@
 package goapp
 
 import (
-	"appengine/datastore"
-	"appengine/taskqueue"
-	"appengine/urlfetch"
-	"appengine/user"
-	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
 	"time"
+
+	"appengine/datastore"
+	"appengine/taskqueue"
+	"appengine/urlfetch"
+	"appengine/user"
+	"code.google.com/p/goauth2/oauth"
+	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {

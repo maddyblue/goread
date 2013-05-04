@@ -17,21 +17,22 @@
 package goapp
 
 import (
-	"appengine/datastore"
-	"appengine/taskqueue"
-	"appengine/urlfetch"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
 	"time"
+
+	"appengine/datastore"
+	"appengine/taskqueue"
+	"appengine/urlfetch"
+	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 )
 
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {

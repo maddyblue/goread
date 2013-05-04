@@ -17,18 +17,19 @@
 package goapp
 
 import (
-	"appengine/datastore"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/mjibson/MiniProfiler/go/miniprofiler"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 	"html/template"
 	"log"
 	"net/http"
 	"time"
+
+	"appengine/datastore"
+	"github.com/gorilla/mux"
+	"github.com/mjibson/MiniProfiler/go/miniprofiler"
+	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 )
 
 var router = new(mux.Router)

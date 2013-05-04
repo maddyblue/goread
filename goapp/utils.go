@@ -17,18 +17,10 @@
 package goapp
 
 import (
-	"appengine"
-	"appengine/user"
 	"bytes"
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	"code.google.com/p/rsc/blog/atom"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
-	"github.com/mjibson/rssgo"
 	"html"
 	"html/template"
 	"math/rand"
@@ -36,6 +28,15 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"appengine"
+	"appengine/user"
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	"code.google.com/p/rsc/blog/atom"
+	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
+	"github.com/mjibson/rssgo"
 )
 
 func serveError(w http.ResponseWriter, err error) {

@@ -17,8 +17,9 @@
 package goapp
 
 import (
-	"appengine/datastore"
 	"time"
+
+	"appengine/datastore"
 )
 
 type User struct {
