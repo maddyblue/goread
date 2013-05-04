@@ -106,14 +106,34 @@ func includes(c mpg.Context) *Includes {
 }
 
 var dateFormats = []string{
+	"01.02.06",
+	"02 Jan 2006 15:04:05 UT",
+	"02 Jan 2006",
+	"2 January 2006",
+	"2006-01-02 15:04:05 MST",
 	"2006-01-02",
+	"2006-01-02T15:04:05 -0700",
 	"2006-01-02T15:04:05",
+	"2006-01-02T15:04:05-0700",
 	"2006-01-02T15:04:05-07:00",
+	"2006-1-2 15:04:05",
+	"2006-1-2",
+	"Jan 2, 2006 15:04:05 MST",
+	"Jan 2, 2006 3:04:05 PM MST",
 	"January 02, 2006 15:04:05 MST",
+	"Mon, 02 2006 15:04:05 MST",
+	"Mon, 02 Jan 2006 15:04:05 -0700",
+	"Mon, 02 Jan 2006 15:04:05 MST",
+	"Mon, 02 Jan 2006 15:04:05 UT",
+	"Mon, 02 Jan 2006 15:04:05 Z",
 	"Mon, 02 Jan 2006 15:04:05",
+	"Mon, 02 Jan 2006",
+	"Mon, 02 January 2006",
+	"Mon, 2 Jan 2006",
 	"Mon, 2 Jan 2006, 15:04 -0700",
 	"Mon, 2 January 2006, 15:04 -0700",
 	"Monday, 02 January 2006 15:04:05 -0700",
+	"Monday, 2 Jan 2006 15:04:05 -0700",
 	time.ANSIC,
 	time.RubyDate,
 	time.UnixDate,
@@ -127,6 +147,7 @@ var dateFormats = []string{
 
 func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
 	for _, d := range ds {
+		d = strings.TrimSpace(d)
 		if d == "" {
 			continue
 		}
