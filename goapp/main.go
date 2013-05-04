@@ -68,6 +68,7 @@ func init() {
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
 	router.Handle("/user/mark-all-read", mpg.NewHandler(MarkAllRead)).Name("mark-all-read")
 	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
+	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
 	http.Handle("/", router)
 
 	miniprofiler.ShowControls = true
@@ -678,4 +679,53 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	b, _ = json.Marshal(&ret)
 	w.Write(b)
+}
+
+func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	if !isDevServer {
+		return
+	}
+
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	done := make(chan bool)
+	go func() {
+		u := &User{Id: cu.ID}
+		defer func() { done <- true }()
+		ud := &UserData{Id: "data", Parent: gn.Key(u)}
+		if err := gn.Get(u); err != nil {
+			c.Errorf("user del err: %v", err.Error())
+			return
+		}
+		gn.Get(ud)
+		u.Read = time.Time{}
+		ud.Read = nil
+		ud.Feeds = nil
+		gn.PutMany(u, ud)
+		c.Infof("%v cleared", u.Email)
+	}()
+	del := func(kind string) {
+		defer func() { done <- true }()
+		q := datastore.NewQuery(kind).KeysOnly()
+		keys, err := gn.GetAll(q, nil)
+		if err != nil {
+			c.Errorf("err: %v", err.Error())
+			return
+		}
+		if err := gn.DeleteMulti(keys); err != nil {
+			c.Errorf("err: %v", err.Error())
+			return
+		}
+		c.Infof("%v deleted", kind)
+	}
+	for _, i := range []interface{}{&Feed{}, &Story{}, &StoryContent{}} {
+		k := gn.Key(i).Kind()
+		go del(k)
+	}
+
+	for i := 0; i < 4; i++ {
+		<-done
+	}
+
+	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }

@@ -51,6 +51,7 @@ type Includes struct {
 	User            *User
 	Messages        []string
 	GoogleAnalytics string
+	IsDev           bool
 }
 
 var (
@@ -58,12 +59,14 @@ var (
 	BootstrapCss string
 	BootstrapJs  string
 	Jquery       string
+	isDevServer  bool
 )
 
 func init() {
 	angular_ver := "1.0.5"
 	bootstrap_ver := "2.3.1"
 	jquery_ver := "1.9.1"
+	isDevServer = appengine.IsDevAppServer()
 
 	if appengine.IsDevAppServer() {
 		Angular = fmt.Sprintf("/static/js/angular-%v.js", angular_ver)
@@ -86,6 +89,7 @@ func includes(c mpg.Context) *Includes {
 		Jquery:          Jquery,
 		MiniProfiler:    c.Includes(),
 		GoogleAnalytics: GOOGLE_ANALYTICS_ID,
+		IsDev:           isDevServer,
 	}
 
 	if cu := user.Current(c); cu != nil {

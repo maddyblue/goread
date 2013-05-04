@@ -143,6 +143,10 @@
 								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
 								<li class="divider"></li>
 								<li><a href="{{url "logout"}}">logout</a></li>
+								{{if .IsDev}}
+									<li class="divider"></li>
+									<li><a href="{{url "clear-feeds"}}">clear feeds</a></li>
+								{{end}}
 							</ul>
 						</li>
 					{{else}}
@@ -314,6 +318,14 @@
 		ga('create', '{{.GoogleAnalytics}}', 'go-read.appspot.com');
 		ga('send', 'pageview');
 	</script>
+	{{end}}
+
+	{{if .IsDev}}
+		<script type="text/javascript">
+			Mousetrap.bind('c', function() {
+				window.location.replace("{{url "clear-feeds"}}");
+			});
+		</script>
 	{{end}}
 </body>
 </html>
