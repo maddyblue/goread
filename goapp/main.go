@@ -36,7 +36,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -131,8 +130,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		XmlUrl  string    `xml:"xmlUrl,attr"`
 	}
 
-	type Body struct {
-		Outline []outline `xml:"outline"`
+	type Opml struct {
+		XMLName string    `xml:"opml"`
+		Outline []outline `xml:"body>outline"`
 	}
 
 	gn := goon.FromContext(c)
@@ -169,11 +169,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	idx0 := strings.Index(data, "<body>")
-	idx1 := strings.LastIndex(data, "</body>")
-	data = data[idx0 : idx1+7]
-	feed := Body{}
+	feed := Opml{}
 	if err := xml.Unmarshal([]byte(data), &feed); err != nil {
+		c.Errorf("opml error: %v", err.Error())
 		return
 	}
 	proc("", feed.Outline)
