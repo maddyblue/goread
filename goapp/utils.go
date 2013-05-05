@@ -249,8 +249,6 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
-			} else {
-				st.Id = i.Title
 			}
 			if t, err := parseDate(c, i.PubDate, i.Date, i.Published); err == nil {
 				st.Published = t
@@ -283,12 +281,6 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				Author: i.Creator,
 			}
 			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description))
-			if i.About == "" && i.Link != "" {
-				st.Id = i.Link
-			} else if i.About == "" && i.Link == "" {
-				c.Errorf("rdf error, no story id: %v", i)
-				return nil, nil
-			}
 			if t, err := parseDate(c, i.Date); err == nil {
 				st.Published = t
 				st.Updated = t
@@ -326,6 +318,16 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 			s.Date = s.Updated.Unix()
 		} else {
 			s.Date = s.Published.Unix()
+		}
+		if s.Id == "" {
+			if s.Link != "" {
+				s.Id = s.Link
+			} else if s.Title != "" {
+				s.Id = s.Title
+			} else {
+				c.Errorf("story has no id: %v", s)
+				return nil, nil
+			}
 		}
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
