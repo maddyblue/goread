@@ -98,11 +98,11 @@ type FeedData struct {
 
 type outline struct {
 	Outline []outline `xml:"outline"`
-	Title   string    `xml:"title,attr"`
+	Title   string    `xml:"title,attr,omitempty"`
 	XmlUrl  string    `xml:"xmlUrl,attr"`
-	Type    string    `xml:"type,attr"`
-	Text    string    `xml:"text,attr"`
-	HtmlUrl string    `xml:"htmlUrl,attr"`
+	Type    string    `xml:"type,attr,omitempty"`
+	Text    string    `xml:"text,attr,omitempty"`
+	HtmlUrl string    `xml:"htmlUrl,attr,omitempty"`
 }
 
 type Opml struct {
