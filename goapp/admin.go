@@ -33,10 +33,6 @@ func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	for i, k := range keys {
 		fs[i] = &Feed{Url: k.StringID()}
 	}
-	if err := gn.GetMulti(fs); err != nil {
-		serveError(w, err)
-		return
-	}
 	b := feedsToOpml(fs)
 	w.Write(b)
 }
