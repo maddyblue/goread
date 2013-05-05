@@ -1,4 +1,4 @@
 cron:
 - description: hourly feed update
   url: /tasks/update-feeds
-  schedule: every 1 minutes
+  schedule: every 5 minutes
