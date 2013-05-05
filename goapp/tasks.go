@@ -278,21 +278,27 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	}
 	c.Debugf("%v update stories", len(updateStories))
 
+	wg := sync.WaitGroup{}
+	wg.Add(len(updateStories))
 	for _, s := range updateStories {
-		puts = append(puts, s,
-			&StoryContent{
+		puts = append(puts, s)
+		go func(s *Story) {
+			gn.Put(&StoryContent{
 				Id:      1,
 				Parent:  gn.Key(s),
 				Content: s.content,
 			})
+			wg.Done()
+		}(s)
 	}
-	c.Debugf("putting %v entities", len(puts))
+	wg.Wait()
 
-	if !hasUpdated && len(puts) > 1 {
-		f.Updated = time.Now()
-	}
+	c.Debugf("putting %v entities", len(puts))
 	if len(puts) > 1 {
 		f.Date = time.Now()
+		if !hasUpdated {
+			f.Updated = f.Date
+		}
 	}
 	gn.PutMulti(puts)
 
