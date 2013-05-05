@@ -42,7 +42,7 @@ func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func feedsToOpml(feeds []*Feed) []byte {
-	opml := Opml{}
+	opml := Opml{Version: "1.0"}
 	opml.Outline = make([]outline, len(feeds))
 	for i, f := range feeds {
 		opml.Outline[i] = outline{
@@ -54,5 +54,6 @@ func feedsToOpml(feeds []*Feed) []byte {
 		}
 	}
 	b, _ := xml.Marshal(&opml)
+	b = append([]byte(`<?xml version="1.0" encoding="UTF-8"?>`), b...)
 	return b
 }

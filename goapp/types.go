@@ -107,5 +107,6 @@ type outline struct {
 
 type Opml struct {
 	XMLName string    `xml:"opml"`
+	Version string    `xml:"version,attr"`
 	Outline []outline `xml:"body>outline"`
 }
