@@ -53,6 +53,7 @@ type Includes struct {
 	Messages        []string
 	GoogleAnalytics string
 	IsDev           bool
+	IsAdmin         bool
 }
 
 var (
@@ -98,6 +99,7 @@ func includes(c mpg.Context) *Includes {
 		user := &User{Id: cu.ID}
 		if err := gn.Get(user); err == nil {
 			i.User = user
+			i.IsAdmin = cu.Admin
 
 			if len(user.Messages) > 0 {
 				i.Messages = user.Messages

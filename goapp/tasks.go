@@ -36,17 +36,6 @@ import (
 )
 
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	type outline struct {
-		Outline []outline `xml:"outline"`
-		Title   string    `xml:"title,attr"`
-		XmlUrl  string    `xml:"xmlUrl,attr"`
-	}
-
-	type Opml struct {
-		XMLName string    `xml:"opml"`
-		Outline []outline `xml:"body>outline"`
-	}
-
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
 	data := r.FormValue("data")

@@ -95,3 +95,17 @@ type FeedData struct {
 	Feed    *UserFeed
 	Stories []*Story
 }
+
+type outline struct {
+	Outline []outline `xml:"outline"`
+	Title   string    `xml:"title,attr"`
+	XmlUrl  string    `xml:"xmlUrl,attr"`
+	Type    string    `xml:"type,attr"`
+	Text    string    `xml:"text,attr"`
+	HtmlUrl string    `xml:"htmlUrl,attr"`
+}
+
+type Opml struct {
+	XMLName string    `xml:"opml"`
+	Outline []outline `xml:"body>outline"`
+}
