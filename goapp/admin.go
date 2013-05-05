@@ -34,6 +34,8 @@ func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fs[i] = &Feed{Url: k.StringID()}
 	}
 	b := feedsToOpml(fs)
+	w.Header().Add("Content-Type", "text/xml")
+	w.Header().Add("Content-Disposition", "attachment; filename=all.opml")
 	w.Write(b)
 }
 
