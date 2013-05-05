@@ -283,6 +283,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 			updateStories = append(updateStories, newStories[i])
 		} else if !newStories[i].Updated.IsZero() {
 			newStories[i].Created = s.Created
+			newStories[i].Published = s.Published
 			updateStories = append(updateStories, newStories[i])
 		}
 	}
