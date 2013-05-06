@@ -62,6 +62,7 @@ type Feed struct {
 	Checked    time.Time `datastore:"c,noindex"`
 	NextUpdate time.Time `datastore:"n"`
 	Link       string    `datastore:"l,noindex"`
+	Errors     int       `datastore:"e,noindex"`
 }
 
 // parent: Feed, key: story ID

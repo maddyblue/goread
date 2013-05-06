@@ -310,8 +310,14 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if feed, stories := fetchFeed(c, url); feed != nil {
 		updateFeed(c, url, feed, stories)
 	} else {
-		f.NextUpdate = time.Now().Add(time.Hour * 2)
+		f.Errors++
+		v := f.Errors + 1
+		const max = 24 * 7
+		if v > max {
+			v = max
+		}
+		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
 		gn.Put(&f)
-		c.Infof("error with %v, bump next update to %v", url, f.NextUpdate)
+		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
 	}
 }
