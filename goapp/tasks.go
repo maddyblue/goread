@@ -238,6 +238,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	if !hasUpdated {
 		feed.Updated = f.Updated
 	}
+	feed.Date = f.Date
 	f = *feed
 
 	if hasUpdated && isFeedUpdated {
