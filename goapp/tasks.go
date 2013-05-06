@@ -270,7 +270,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	for i, s := range getStories {
 		if goon.NotFound(err, i) {
 			updateStories = append(updateStories, newStories[i])
-		} else if !newStories[i].Updated.IsZero() {
+		} else if !newStories[i].Updated.IsZero() && !newStories[i].Updated.Equal(s.Updated) {
 			newStories[i].Created = s.Created
 			newStories[i].Published = s.Published
 			updateStories = append(updateStories, newStories[i])
