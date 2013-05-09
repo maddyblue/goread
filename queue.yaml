@@ -4,9 +4,9 @@ queue:
   retry_parameters:
     task_retry_limit: 3
 - name: update-feed
-  rate: 5/s
+  rate: 20/s
   retry_parameters:
-    task_retry_limit: 3
+    task_retry_limit: 1
 - name: import-reader
   rate: 5/s
   retry_parameters:
