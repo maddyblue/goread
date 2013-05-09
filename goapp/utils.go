@@ -83,13 +83,13 @@ func init() {
 	}
 }
 
-func includes(c mpg.Context) *Includes {
+func includes(c mpg.Context, r *http.Request) *Includes {
 	i := &Includes{
 		Angular:         Angular,
 		BootstrapCss:    BootstrapCss,
 		BootstrapJs:     BootstrapJs,
 		Jquery:          Jquery,
-		MiniProfiler:    c.Includes(),
+		MiniProfiler:    c.Includes(r),
 		GoogleAnalytics: GOOGLE_ANALYTICS_ID,
 		IsDev:           isDevServer,
 	}
