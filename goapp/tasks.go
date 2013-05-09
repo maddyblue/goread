@@ -307,6 +307,9 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		return
+	} else if time.Now().Before(f.NextUpdate) {
+		c.Infof("feed %v already updated", url)
+		return
 	}
 	if feed, stories := fetchFeed(c, url); feed != nil {
 		updateFeed(c, url, feed, stories)
