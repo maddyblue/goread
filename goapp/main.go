@@ -27,8 +27,8 @@ import (
 
 	"appengine/datastore"
 	"github.com/gorilla/mux"
-	"github.com/mjibson/MiniProfiler/go/miniprofiler"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	"github.com/MiniProfiler/go/miniprofiler"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 )
 

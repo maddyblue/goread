@@ -34,7 +34,7 @@ import (
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
 	"code.google.com/p/rsc/blog/atom"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 	"github.com/mjibson/rssgo"
 )

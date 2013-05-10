@@ -21,7 +21,7 @@ import (
 	"encoding/xml"
 	"net/http"
 
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 )
 

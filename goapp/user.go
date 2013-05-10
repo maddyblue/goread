@@ -30,7 +30,7 @@ import (
 	"appengine/urlfetch"
 	"appengine/user"
 	"code.google.com/p/goauth2/oauth"
-	mpg "github.com/mjibson/MiniProfiler/go/miniprofiler_gae"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 )
 
