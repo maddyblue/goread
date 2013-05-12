@@ -26,9 +26,9 @@ import (
 	"time"
 
 	"appengine/datastore"
-	"github.com/gorilla/mux"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/gorilla/mux"
 	"github.com/mjibson/goon"
 )
 
