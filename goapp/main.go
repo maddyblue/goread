@@ -77,55 +77,79 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addFeed(c mpg.Context, userid string, uf *UserFeed) error {
+func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	gn := goon.FromContext(c)
-	c.Infof("adding feed %s to user %s", uf.Url, userid)
+	o := outline.Outline[0]
+	c.Infof("adding feed %v to user %s", o.XmlUrl, userid)
 
-	f := Feed{Url: uf.Url}
+	f := Feed{Url: o.XmlUrl}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
-		if feed, stories := fetchFeed(c, uf.Url); feed == nil {
-			return errors.New(fmt.Sprintf("could not add feed %s", uf.Url))
+		if feed, stories := fetchFeed(c, o.XmlUrl); feed == nil {
+			return errors.New(fmt.Sprintf("could not add feed %s", o.XmlUrl))
 		} else {
 			f = *feed
 			f.Updated = time.Time{}
 			f.Checked = f.Updated
 			f.NextUpdate = f.Updated
 			gn.Put(&f)
-			if err := updateFeed(c, uf.Url, feed, stories); err != nil {
+			if err := updateFeed(c, o.XmlUrl, feed, stories); err != nil {
 				return err
 			}
 
-			uf.Link = feed.Link
-			if uf.Title == "" {
-				uf.Title = feed.Title
+			o.HtmlUrl = feed.Link
+			if o.Title == "" {
+				o.Title = feed.Title
 			}
 		}
 	} else if err != nil {
 		return err
 	} else {
-		uf.Link = f.Link
-		if uf.Title == "" {
-			uf.Title = f.Title
+		o.HtmlUrl = f.Link
+		if o.Title == "" {
+			o.Title = f.Title
 		}
 	}
+	o.Text = ""
 
 	return nil
 }
 
-func addUserFeed(ud *UserData, ufs ...*UserFeed) {
-	var fs Feeds
-	json.Unmarshal(ud.Feeds, &fs)
-	for _, uf := range ufs {
-		found := false
-		for _, f := range fs {
-			if f.Url == uf.Url {
-				found = true
-				break
+func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
+	var fs Opml
+	json.Unmarshal(ud.Opml, &fs)
+	urls := make(map[string]bool)
+
+	for _, o := range fs.Outline {
+		if o.XmlUrl != "" {
+			urls[o.XmlUrl] = true
+		} else {
+			for _, so := range o.Outline {
+				urls[so.XmlUrl] = true
 			}
 		}
-		if !found {
-			fs = append(fs, uf)
+	}
+
+	for _, outline := range outlines {
+		label := outline.Title
+		url := outline.Outline[0].XmlUrl
+		if _, present := urls[url]; present {
+			continue
+		} else if label == "" {
+			fs.Outline = append(fs.Outline, outline.Outline[0])
+		} else {
+			done := false
+			for _, ol := range fs.Outline {
+				if ol.Title == label && ol.XmlUrl == "" {
+					ol.Outline = append(ol.Outline, outline.Outline[0])
+					done = true
+					break
+				}
+			}
+			if !done {
+				fs.Outline = append(fs.Outline, outline)
+			}
 		}
 	}
-	ud.Feeds, _ = json.Marshal(&fs)
+
+	ud.Opml, _ = json.Marshal(&fs)
 }

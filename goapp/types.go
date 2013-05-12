@@ -39,18 +39,10 @@ type UserData struct {
 	_kind  string         `goon:"kind,UD"`
 	Id     string         `datastore:"-" goon:"id"`
 	Parent *datastore.Key `datastore:"-" goon:"parent"`
-	Feeds  []byte         `datastore:"f,noindex"`
+	Opml   []byte         `datastore:"o,noindex"`
 	Read   []byte         `datastore:"r,noindex"`
 }
 
-type UserFeed struct {
-	Url   string
-	Title string
-	Link  string
-	Label string
-}
-
-type Feeds []*UserFeed
 type Read map[string][]string
 
 type Feed struct {
@@ -90,24 +82,17 @@ type StoryContent struct {
 	Content string         `datastore:"c,noindex"`
 }
 
-type FeedList map[string]*FeedData
-
-type FeedData struct {
-	Feed    *UserFeed
-	Stories []*Story
-}
-
-type outline struct {
-	Outline []outline `xml:"outline"`
-	Title   string    `xml:"title,attr,omitempty"`
-	XmlUrl  string    `xml:"xmlUrl,attr"`
-	Type    string    `xml:"type,attr,omitempty"`
-	Text    string    `xml:"text,attr,omitempty"`
-	HtmlUrl string    `xml:"htmlUrl,attr,omitempty"`
+type OpmlOutline struct {
+	Outline []*OpmlOutline `xml:"outline" json:",omitempty"`
+	Title   string         `xml:"title,attr,omitempty" json:",omitempty"`
+	XmlUrl  string         `xml:"xmlUrl,attr" json:",omitempty"`
+	Type    string         `xml:"type,attr,omitempty" json:",omitempty"`
+	Text    string         `xml:"text,attr,omitempty" json:",omitempty"`
+	HtmlUrl string         `xml:"htmlUrl,attr,omitempty" json:",omitempty"`
 }
 
 type Opml struct {
-	XMLName string    `xml:"opml"`
-	Version string    `xml:"version,attr"`
-	Outline []outline `xml:"body>outline"`
+	XMLName string         `xml:"opml"`
+	Version string         `xml:"version,attr"`
+	Outline []*OpmlOutline `xml:"body>outline"`
 }

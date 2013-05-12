@@ -197,8 +197,10 @@
 		<div class="row-fluid" ng-init="refresh()">
 			<div ng-show="nav" class="span2">
 				<ul class="unstyled">
-					<li ng-repeat="(k, f) in feeds">
-						{{`{{f.Feed.Title}}`}}
+					<li ng-repeat="f in feeds">
+						<div ng-hide="f.Outline" ng-bind="f.Title"></div>
+						<strong ng-show="f.Outline" ng-bind="f.Title"></strong>
+						<em ng-repeat="o in f.Outline" ng-bind="o.Title"></em>
 					</li>
 				</ul>
 			</div>
@@ -219,7 +221,7 @@
 					<div class="story-content" ng-show="$index == currentStory">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
-							from <a ng-href="{{`{{s.feed.Link}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 						</small></p>
 						<div id="story{{`{{$index}}`}}"></div>

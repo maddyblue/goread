@@ -41,9 +41,9 @@ func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func feedsToOpml(feeds []*Feed) []byte {
 	opml := Opml{Version: "1.0"}
-	opml.Outline = make([]outline, len(feeds))
+	opml.Outline = make([]*OpmlOutline, len(feeds))
 	for i, f := range feeds {
-		opml.Outline[i] = outline{
+		opml.Outline[i] = &OpmlOutline{
 			XmlUrl:  f.Url,
 			Type:    "rss",
 			Text:    f.Title,

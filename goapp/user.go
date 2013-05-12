@@ -79,8 +79,12 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	url := r.FormValue("url")
-	uf := &UserFeed{Url: url}
-	if err := addFeed(c, cu.ID, uf); err != nil {
+	o := &OpmlOutline{
+		Outline: []*OpmlOutline{
+			&OpmlOutline{XmlUrl: url},
+		},
+	}
+	if err := addFeed(c, cu.ID, o); err != nil {
 		c.Errorf("add sub error (%s): %s", url, err.Error())
 		serveError(w, err)
 		return
@@ -89,7 +93,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
 	gn.Get(&ud)
-	addUserFeed(&ud, uf)
+	mergeUserOpml(&ud, o)
 	gn.Put(&ud)
 }
 
@@ -139,20 +143,26 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.GetMulti([]interface{}{u, ud})
 
 	read := make(Read)
-	var uf Feeds
+	var uf Opml
 	c.Step("unmarshal user data", func() {
 		json.Unmarshal(ud.Read, &read)
-		json.Unmarshal(ud.Feeds, &uf)
+		json.Unmarshal(ud.Opml, &uf)
 	})
-	feeds := make([]*Feed, len(uf))
+	var feeds []*Feed
 	c.Step("fetch feeds", func() {
-		for i, f := range uf {
-			feeds[i] = &Feed{Url: f.Url}
+		for _, outline := range uf.Outline {
+			if outline.XmlUrl == "" {
+				for _, so := range outline.Outline {
+					feeds = append(feeds, &Feed{Url: so.XmlUrl})
+				}
+			} else {
+				feeds = append(feeds, &Feed{Url: outline.XmlUrl})
+			}
 		}
 		gn.GetMulti(feeds)
 	})
 	lock := sync.Mutex{}
-	fl := make(FeedList)
+	fl := make(map[string][]*Story)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
 	hasStories := false
 	c.Step("feed fetch + wait", func() {
@@ -162,10 +172,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			go func(i int) {
 				f := feeds[i]
 				defer wg.Done()
-				ufeed := uf[i]
-				fd := FeedData{
-					Feed: ufeed,
-				}
+				ufeed := feeds[i]
+				var newStories []*Story
 
 				if u.Read.Before(f.Date) {
 					c.Debugf("query for %v", feeds[i].Url)
@@ -189,13 +197,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 							}
 						}
 						if !found {
-							fd.Stories = append(fd.Stories, st)
+							newStories = append(newStories, st)
 						}
 					}
 				}
 				lock.Lock()
-				fl[ufeed.Url] = &fd
-				if len(fd.Stories) > 0 {
+				fl[ufeed.Url] = newStories
+				if len(newStories) > 0 {
 					hasStories = true
 				}
 				lock.Unlock()
@@ -219,7 +227,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	c.Step("json marshal", func() {
-		b, _ := json.Marshal(&fl)
+		b, _ := json.Marshal(struct {
+			Opml    []*OpmlOutline
+			Stories map[string][]*Story
+		}{
+			Opml:    uf.Outline,
+			Stories: fl,
+		})
 		w.Write(b)
 	})
 }
@@ -308,7 +322,7 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Get(ud)
 		u.Read = time.Time{}
 		ud.Read = nil
-		ud.Feeds = nil
+		ud.Opml = nil
 		gn.PutMany(u, ud)
 		c.Infof("%v cleared", u.Email)
 	}()

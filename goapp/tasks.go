@@ -46,20 +46,19 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
-	var ufs []*UserFeed
+	var userOpml []*OpmlOutline
 	remaining := skip
 
-	var proc func(label string, outlines []outline)
-	proc = func(label string, outlines []outline) {
+	var proc func(label string, outlines []*OpmlOutline)
+	proc = func(label string, outlines []*OpmlOutline) {
 		for _, o := range outlines {
 			if o.XmlUrl != "" {
 				if remaining > 0 {
 					remaining--
-				} else if len(ufs) < IMPORT_LIMIT {
-					ufs = append(ufs, &UserFeed{
-						Label: label,
-						Url:   o.XmlUrl,
-						Title: o.Title,
+				} else if len(userOpml) < IMPORT_LIMIT {
+					userOpml = append(userOpml, &OpmlOutline{
+						Title:   label,
+						Outline: []*OpmlOutline{o},
 					})
 				}
 			}
@@ -70,23 +69,24 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	feed := Opml{}
-	if err := xml.Unmarshal([]byte(data), &feed); err != nil {
+	opml := Opml{}
+	if err := xml.Unmarshal([]byte(data), &opml); err != nil {
 		c.Errorf("opml error: %v", err.Error())
 		return
 	}
-	proc("", feed.Outline)
+	proc("", opml.Outline)
 
 	// todo: refactor below with similar from ImportReaderTask
 	wg := sync.WaitGroup{}
-	wg.Add(len(ufs))
-	for i := range ufs {
+	wg.Add(len(userOpml))
+	for i := range userOpml {
 		go func(i int) {
-			if err := addFeed(c, userid, ufs[i]); err != nil {
+			o := userOpml[i].Outline[0]
+			if err := addFeed(c, userid, userOpml[i]); err != nil {
 				c.Errorf("opml import error: %v", err.Error())
 				// todo: do something here?
 			}
-			c.Debugf("opml import: %s, %s", ufs[i].Title, ufs[i].Url)
+			c.Debugf("opml import: %s, %s", o.Title, o.XmlUrl)
 			wg.Done()
 		}(i)
 	}
@@ -95,7 +95,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.Get(&ud)
-		addUserFeed(&ud, ufs...)
+		mergeUserOpml(&ud, opml.Outline...)
 		return gn.Put(ud)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -103,7 +103,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(ufs) == IMPORT_LIMIT {
+	if len(userOpml) == IMPORT_LIMIT {
 		task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
 			"data": {data},
 			"user": {userid},
@@ -146,7 +146,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	wg := sync.WaitGroup{}
 	wg.Add(end - skip)
-	ufs := make([]*UserFeed, end-skip)
+	userOpml := make([]*OpmlOutline, end-skip)
 
 	for i := range v.Subscriptions[skip:end] {
 		go func(i int) {
@@ -155,13 +155,17 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			if len(sub.Categories) > 0 {
 				label = sub.Categories[0].Label
 			}
-			uf := &UserFeed{
-				Label: label,
-				Url:   sub.Id[5:],
-				Title: sub.Title,
+			outline := &OpmlOutline{
+				Title: label,
+				Outline: []*OpmlOutline{
+					&OpmlOutline{
+						XmlUrl: sub.Id[5:],
+						Title:  sub.Title,
+					},
+				},
 			}
-			ufs[i] = uf
-			if err := addFeed(c, userid, uf); err != nil {
+			userOpml[i] = outline
+			if err := addFeed(c, userid, outline); err != nil {
 				c.Errorf("reader import error: %v", err.Error())
 				// todo: do something here?
 			}
@@ -174,7 +178,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.Get(&ud)
-		addUserFeed(&ud, ufs...)
+		mergeUserOpml(&ud, userOpml...)
 		return gn.Put(&ud)
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

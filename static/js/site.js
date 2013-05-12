@@ -69,40 +69,52 @@ function GoreadCtrl($scope, $http, $timeout) {
 		delete $scope.currentStory;
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
-				$scope.feeds = data;
+				$scope.feeds = data.Opml || [];
 				$scope.numfeeds = 0;
 				$scope.stories = [];
 				$scope.unreadStories = {};
 				$scope.last = 0;
 				var today = new Date().toDateString();
-				for(var p in $scope.feeds) {
+
+				var loadStories = function(feed) {
 					$scope.numfeeds++;
-					var f = $scope.feeds[p];
-					if (!f.Stories)
-						continue;
-					for(var i = 0; i < f.Stories.length; i++) {
-						f.Stories[i].feed = f.Feed;
-						var d = new Date(f.Stories[i].Date * 1000);
+					var stories = data.Stories[feed.XmlUrl] || [];
+					for(var i = 0; i < stories.length; i++) {
+						stories[i].feed = feed;
+						var d = new Date(stories[i].Date * 1000);
 						if (d.toDateString() == today) {
-							f.Stories[i].dispdate = d.format("shortTime");
+							stories[i].dispdate = d.format("shortTime");
 						} else {
-							f.Stories[i].dispdate = d.format("mediumDate");
+							stories[i].dispdate = d.format("mediumDate");
 						}
-						if ($scope.last < f.Stories[i].Date) {
-							$scope.last = f.Stories[i].Date;
+						if ($scope.last < stories[i].Date) {
+							$scope.last = stories[i].Date;
 						}
-						f.Stories[i].read = false;
-						f.Stories[i].guid = f.Feed.Url + '|' + f.Stories[i].Id;
-						if (!f.Stories[i].Title) {
-							f.Stories[i].Title = '(title unknown)';
+						stories[i].read = false;
+						stories[i].guid = feed.XmlUrl + '|' + stories[i].Id;
+						if (!stories[i].Title) {
+							stories[i].Title = '(title unknown)';
 						}
-						$scope.stories.push(f.Stories[i]);
-						$scope.unreadStories[f.Stories[i].guid] = true;
+						$scope.stories.push(stories[i]);
+						$scope.unreadStories[stories[i].guid] = true;
 					}
-					$scope.stories.sort(function(a, b) {
-						return b.Date - a.Date;
-					});
+				};
+
+				for(var i = 0; i < $scope.feeds.length; i++) {
+					var f = $scope.feeds[i];
+
+					if (f.XmlUrl) {
+						loadStories(f);
+					} else {
+						for(var j = 0; j < f.Outline.length; j++) {
+							loadStories(f.Outline[j].XmlUrl);
+						}
+					}
 				}
+				$scope.stories.sort(function(a, b) {
+					return b.Date - a.Date;
+				});
+
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				var ur = $scope.unread();
@@ -169,7 +181,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 			delete $scope.unreadStories[s.guid];
 			s.read = true;
 			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				feed: s.feed.Url,
+				feed: s.feed.XmlUrl,
 				story: s.Id
 			});
 			$scope.updateTitle();
@@ -236,7 +248,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		for (var i = 0; i < tofetch.length; i++) {
 			$scope.contents[tofetch[i].guid] = '';
 			data.push({
-				Feed: tofetch[i].feed.Url,
+				Feed: tofetch[i].feed.XmlUrl,
 				Story: tofetch[i].Id
 			});
 		}
