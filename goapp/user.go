@@ -18,6 +18,8 @@ package goapp
 
 import (
 	"encoding/json"
+	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -350,4 +352,20 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+}
+
+func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
+		return
+	}
+	gn.Get(&ud)
+	opml := Opml{}
+	json.Unmarshal(ud.Opml, &opml)
+	b, _ := xml.Marshal(&opml)
+	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>`, string(b))
 }

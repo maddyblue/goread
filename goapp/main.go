@@ -54,6 +54,7 @@ func init() {
 	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
 	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
+	router.Handle("/user/export-opml", mpg.NewHandler(ExportOpml)).Name("export-opml")
 	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/import/reader", mpg.NewHandler(ImportReader)).Name("import-reader")
