@@ -367,5 +367,7 @@ func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	opml := Opml{}
 	json.Unmarshal(ud.Opml, &opml)
 	b, _ := xml.Marshal(&opml)
+	w.Header().Add("Content-Type", "text/xml")
+	w.Header().Add("Content-Disposition", "attachment; filename=subscriptions.opml")
 	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>`, string(b))
 }
