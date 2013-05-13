@@ -96,3 +96,8 @@ type Opml struct {
 	Version string         `xml:"version,attr"`
 	Outline []*OpmlOutline `xml:"body>outline"`
 }
+
+type DateFormat struct {
+	Id    string `datastore:"-" goon:"id"`
+	_kind string `goon:"kind,DF"`
+}

@@ -167,7 +167,8 @@ func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
 				return
 			}
 		}
-		c.Errorf("could not parse date: %v", d)
+		gn := goon.FromContext(c)
+		gn.Put(&DateFormat{Id: d})
 	}
 	err = errors.New(fmt.Sprintf("could not parse date: %v", strings.Join(ds, ", ")))
 	return
