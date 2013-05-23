@@ -130,24 +130,39 @@ func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
 		}
 	}
 
-	for _, outline := range outlines {
-		label := outline.Title
-		url := outline.Outline[0].XmlUrl
-		if _, present := urls[url]; present {
-			continue
-		} else if label == "" {
-			fs.Outline = append(fs.Outline, outline.Outline[0])
+	mergeOutline := func(label string, outline *OpmlOutline) {
+		if _, present := urls[outline.XmlUrl]; present {
+			return
 		} else {
-			done := false
-			for _, ol := range fs.Outline {
-				if ol.Title == label && ol.XmlUrl == "" {
-					ol.Outline = append(ol.Outline, outline.Outline[0])
-					done = true
-					break
+			urls[outline.XmlUrl] = true
+
+			if label == "" {
+				fs.Outline = append(fs.Outline, outline)
+			} else {
+				done := false
+				for _, ol := range fs.Outline {
+					if ol.Title == label && ol.XmlUrl == "" {
+						ol.Outline = append(ol.Outline, outline)
+						done = true
+						break
+					}
+				}
+				if !done {
+					fs.Outline = append(fs.Outline, &OpmlOutline{
+						Title:   label,
+						Outline: []*OpmlOutline{outline},
+					})
 				}
 			}
-			if !done {
-				fs.Outline = append(fs.Outline, outline)
+		}
+	}
+
+	for _, outline := range outlines {
+		if outline.XmlUrl != "" {
+			mergeOutline("", outline)
+		} else {
+			for _, o := range outline.Outline {
+				mergeOutline(outline.Title, o)
 			}
 		}
 	}
