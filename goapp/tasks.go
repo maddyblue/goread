@@ -218,7 +218,7 @@ func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
 		b, _ := ioutil.ReadAll(resp.Body)
 		return ParseFeed(c, url, b)
 	} else if err != nil {
-		c.Errorf("fetch feed error: %s", err.Error())
+		c.Warningf("fetch feed error: %s", err.Error())
 	} else {
 		c.Warningf("fetch feed error: status code: %s", resp.Status)
 	}
