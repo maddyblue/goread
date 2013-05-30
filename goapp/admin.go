@@ -19,6 +19,7 @@ package goapp
 import (
 	"appengine/datastore"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -92,4 +93,14 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		stories,
 		time.Now(),
 	})
+}
+
+func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("f")
+	if feed, stories := fetchFeed(c, url); feed != nil {
+		updateFeed(c, url, feed, stories)
+		fmt.Fprintf(w, "updated: %v", url)
+	} else {
+		fmt.Fprintf(w, "error updating: %v", url)
+	}
 }
