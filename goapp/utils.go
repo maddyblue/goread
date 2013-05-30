@@ -145,14 +145,14 @@ var dateFormats = []string{
 	"Monday, 02 January 2006 15:04:05 -0700",
 	"Monday, 2 Jan 2006 15:04:05 -0700",
 	time.ANSIC,
-	time.RubyDate,
-	time.UnixDate,
-	time.RFC822,
-	time.RFC822Z,
-	time.RFC850,
 	time.RFC1123,
 	time.RFC1123Z,
 	time.RFC3339,
+	time.RFC822,
+	time.RFC822Z,
+	time.RFC850,
+	time.RubyDate,
+	time.UnixDate,
 }
 
 func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
