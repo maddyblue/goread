@@ -1,0 +1,29 @@
+<html>
+<body>
+
+
+feed:
+<ul style="text-align: right;">
+	<li>url: {{.Feed.Url}}</li>
+	<li>title: {{.Feed.Title}}</li>
+	<li>now: {{.Now}}</li>
+	<li>updated: {{.Feed.Updated}}</li>
+	<li>date: {{.Feed.Date}}</li>
+	<li>checked: {{.Feed.Checked}}</li>
+	<li>next: {{.Feed.NextUpdate}}</li>
+	<li>link: {{.Feed.Link}}</li>
+	<li>errors: {{.Feed.Errors}}</li>
+</ul>
+
+stories:
+<ul>
+{{range .Stories}}
+	<li>
+		{{.Published}}
+		{{.Title}}
+	</li>
+{{end}}
+</ul>
+
+</body>
+</html>

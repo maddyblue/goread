@@ -1,0 +1,9 @@
+<html>
+<body>
+<ul>
+{{range .}}
+	<li><a href="{{url "admin-feed"}}?f={{.StringID}}">{{.StringID}}</a></li>
+{{end}}
+</ul>
+</body>
+</html>

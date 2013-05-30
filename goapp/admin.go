@@ -20,6 +20,7 @@ import (
 	"appengine/datastore"
 	"encoding/xml"
 	"net/http"
+	"time"
 
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -54,4 +55,41 @@ func feedsToOpml(feeds []*Feed) []byte {
 	b, _ := xml.Marshal(&opml)
 	b = append([]byte(`<?xml version="1.0" encoding="UTF-8"?>`), b...)
 	return b
+}
+
+func AllFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
+	keys, _ := gn.GetAll(q, nil)
+	templates.ExecuteTemplate(w, "admin-all-feeds.html", keys)
+}
+
+func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	f := Feed{Url: r.URL.Query().Get("f")}
+	gn.Get(&f)
+	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).KeysOnly()
+	fk := gn.Key(&f)
+	q = q.Ancestor(fk)
+	q = q.Filter("p >", time.Now().Add(time.Hour*-48))
+	q = q.Order("p")
+	keys, _ := gn.GetAll(q, nil)
+	stories := make([]*Story, len(keys))
+	for j, key := range keys {
+		stories[j] = &Story{
+			Id:     key.StringID(),
+			Parent: fk,
+		}
+	}
+	gn.GetMulti(stories)
+
+	templates.ExecuteTemplate(w, "admin-feed.html", struct {
+		Feed    *Feed
+		Stories []*Story
+		Now     time.Time
+	}{
+		&f,
+		stories,
+		time.Now(),
+	})
 }

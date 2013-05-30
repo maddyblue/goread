@@ -41,6 +41,8 @@ func init() {
 	if templates, err = template.New("").Funcs(funcs).
 		ParseFiles(
 		"templates/base.html",
+		"templates/admin-all-feeds.html",
+		"templates/admin-feed.html",
 	); err != nil {
 		log.Fatal(err)
 	}
@@ -64,6 +66,8 @@ func init() {
 	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
 
 	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
+	router.Handle("/admin/all-feeds", mpg.NewHandler(AllFeeds)).Name("all-feeds")
+	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
 
 	http.Handle("/", router)
 
