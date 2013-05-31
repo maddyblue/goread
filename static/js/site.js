@@ -107,7 +107,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 						loadStories(f);
 					} else {
 						for(var j = 0; j < f.Outline.length; j++) {
-							loadStories(f.Outline[j].XmlUrl);
+							loadStories(f.Outline[j]);
 						}
 					}
 				}
