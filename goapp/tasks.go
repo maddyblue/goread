@@ -214,10 +214,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
 	cl := urlfetch.Client(c)
-	cl.Transport = &urlfetch.Transport{
-		Context:  c,
-		Deadline: 60,
-	}
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
 		b, _ := ioutil.ReadAll(resp.Body)
 		return ParseFeed(c, url, b)
