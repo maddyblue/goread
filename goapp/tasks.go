@@ -96,7 +96,8 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.Get(&ud)
 		mergeUserOpml(&ud, opml.Outline...)
-		return gn.Put(&ud)
+		_, err := gn.Put(&ud)
+		return err
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		c.Errorf("ude update error: %v", err.Error())
@@ -179,7 +180,8 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.Get(&ud)
 		mergeUserOpml(&ud, userOpml...)
-		return gn.Put(&ud)
+		_, err := gn.Put(&ud)
+		return err
 	}, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		c.Errorf("ude update error: %v", err.Error())

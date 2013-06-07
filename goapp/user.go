@@ -257,7 +257,8 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		read[feed] = append(read[feed], story)
 		b, _ := json.Marshal(&read)
 		ud.Read = b
-		return gn.Put(ud)
+		_, err := gn.Put(ud)
+		return err
 	}, nil)
 }
 
@@ -275,7 +276,8 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			u.Read = time.Now()
 		}
 		ud.Read = nil
-		return gn.PutMany(u, ud)
+		_, err := gn.PutMany(u, ud)
+		return err
 	}, nil)
 }
 
