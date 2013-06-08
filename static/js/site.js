@@ -16,6 +16,8 @@ function countProperties(obj) {
 function GoreadCtrl($scope, $http, $timeout) {
 	$scope.loading = 0;
 	$scope.contents = {};
+	$scope.nav = true;
+	$scope.folderClose = {};
 
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';

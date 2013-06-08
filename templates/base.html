@@ -29,7 +29,7 @@
 			line-height: 33px;
 			font-size: 13px;
 		}
-		.story-title {
+		.story-title, .feed-title {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
@@ -54,6 +54,12 @@
 			margin: 0;
 			margin-top: 4px;
 			line-height: 24px;
+		}
+		.feed-list {
+			font-size: 13px;
+		}
+		.feed-child {
+			margin-left: 20px;
 		}
 		.top-margin {
 			margin-top: 20px;
@@ -197,12 +203,22 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="nav" class="span2">
+			<div ng-show="nav" class="span2 feed-list">
 				<ul class="unstyled">
 					<li ng-repeat="f in feeds">
-						<div ng-hide="f.Outline" ng-bind="f.Title"></div>
-						<strong ng-show="f.Outline" ng-bind="f.Title"></strong>
-						<em ng-repeat="o in f.Outline" ng-bind="o.Title"></em>
+						<div class="feed-title" ng-hide="f.Outline" ng-bind="f.Title"></div>
+						<div ng-show="f.Outline">
+							<div ng-show="f.Outline" ng-click="folderClose[f.Title] = !folderClose[f.Title]">
+								<i class="icon-folder-open" ng-hide="folderClose[f.Title]"></i>
+								<i class="icon-folder-close" ng-show="folderClose[f.Title]"></i>
+								{{`{{f.Title}}`}}
+							</div>
+							<ul class="unstyled" ng-hide="folderClose[f.Title]">
+								<li ng-repeat="o in f.Outline">
+									<div class="feed-title feed-child" ng-bind="o.Title"></div>
+								</li>
+							</ul>
+						</div>
 					</li>
 				</ul>
 			</div>
