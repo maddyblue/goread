@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"appengine"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -51,11 +52,19 @@ func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if u, err := user.LogoutURL(c, routeUrl("main")); err == nil {
-		http.Redirect(w, r, u, http.StatusFound)
+	if appengine.IsDevAppServer() {
+		if u, err := user.LogoutURL(c, routeUrl("main")); err == nil {
+			http.Redirect(w, r, u, http.StatusFound)
+			return
+		}
 	} else {
-		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+		http.SetCookie(w, &http.Cookie{
+			Name:    "ACSID",
+			Value:   "",
+			Expires: time.Time{},
+		})
 	}
+	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
 func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
