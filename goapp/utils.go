@@ -23,6 +23,11 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -30,6 +35,9 @@ import (
 	"time"
 
 	"appengine"
+	"appengine/blobstore"
+	aimage "appengine/image"
+	"appengine/urlfetch"
 	"appengine/user"
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
@@ -311,6 +319,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	f.Checked = time.Now()
 	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(300)))
 	fk := g.Key(f)
+	f.Image = loadImage(c, f)
 
 	for _, s := range ss {
 		s.Parent = fk
@@ -345,4 +354,59 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	}
 
 	return f, ss
+}
+
+func loadImage(c appengine.Context, f *Feed) string {
+	s := f.Link
+	if s == "" {
+		s = f.Url
+	}
+	u, err := url.Parse(s)
+	if err != nil {
+		return ""
+	}
+	u.Path = "/favicon.ico"
+	u.RawQuery = ""
+	u.Fragment = ""
+
+	g := goon.FromContext(c)
+	i := &Image{Id: u.String()}
+	if err := g.Get(i); err == nil {
+		return i.Url
+	}
+	client := urlfetch.Client(c)
+	r, err := client.Get(u.String())
+	if err != nil || r.StatusCode != http.StatusOK || r.ContentLength == 0 {
+		return ""
+	}
+	b, err := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+	if err != nil {
+		return ""
+	}
+	buf := bytes.NewBuffer(b)
+	_, t, err := image.Decode(buf)
+	if err != nil {
+		t = "application/octet-stream"
+	} else {
+		t = "image/" + t
+	}
+	w, err := blobstore.Create(c, t)
+	if err != nil {
+		return ""
+	}
+	if _, err := w.Write(b); err != nil {
+		return ""
+	}
+	if w.Close() != nil {
+		return ""
+	}
+	i.Blob, _ = w.Key()
+	su, err := aimage.ServingURL(c, i.Blob, &aimage.ServingURLOptions{Size: 16})
+	if err != nil {
+		return ""
+	}
+	i.Url = su.String()
+	g.Put(i)
+	return i.Url
 }

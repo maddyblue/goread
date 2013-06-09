@@ -176,6 +176,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fl := make(map[string][]*Story)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
 	hasStories := false
+	icons := make(map[string]string)
 	c.Step("feed fetch + wait", func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(feeds))
@@ -217,6 +218,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				if len(newStories) > 0 {
 					hasStories = true
 				}
+				if ufeed.Image != "" {
+					icons[ufeed.Url] = ufeed.Image
+				}
 				lock.Unlock()
 			}(_i)
 		}
@@ -241,9 +245,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		b, _ := json.Marshal(struct {
 			Opml    []*OpmlOutline
 			Stories map[string][]*Story
+			Icons   map[string]string
 		}{
 			Opml:    uf.Outline,
 			Stories: fl,
+			Icons:   icons,
 		})
 		w.Write(b)
 	})

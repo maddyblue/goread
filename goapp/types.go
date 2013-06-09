@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"appengine"
 	"time"
 
 	"appengine/datastore"
@@ -55,6 +56,7 @@ type Feed struct {
 	NextUpdate time.Time `datastore:"n"`
 	Link       string    `datastore:"l,noindex"`
 	Errors     int       `datastore:"e,noindex"`
+	Image      string    `datastore:"i,noindex"`
 }
 
 // parent: Feed, key: story ID
@@ -100,4 +102,10 @@ type Opml struct {
 type DateFormat struct {
 	Id    string `datastore:"-" goon:"id"`
 	_kind string `goon:"kind,DF"`
+}
+
+type Image struct {
+	Id   string            `datastore:"-" goon:"id"`
+	Blob appengine.BlobKey `datastore:"b,noindex"`
+	Url  string            `datastore:"u,noindex"`
 }

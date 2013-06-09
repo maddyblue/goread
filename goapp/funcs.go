@@ -51,7 +51,12 @@ func routeUrl(name string, pairs ...string) string {
 	return u.String()
 }
 
+func htmlattr(s string) template.HTMLAttr {
+	return template.HTMLAttr(s)
+}
+
 var funcs = template.FuncMap{
 	"eq":  eq,
+	"htmlattr": htmlattr,
 	"url": routeUrl,
 }

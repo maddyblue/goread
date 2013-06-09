@@ -77,6 +77,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.unreadStories = {};
 				$scope.last = 0;
 				$scope.xmlurls = {};
+				$scope.icons = data.Icons;
 				var today = new Date().toDateString();
 
 				var loadStories = function(feed) {
