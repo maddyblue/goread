@@ -119,7 +119,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
-				var ur = $scope.unread();
+				$scope.updateUnread();
 				$scope.updateTitle();
 			})
 			.error(function() {
@@ -129,7 +129,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.updateTitle = function() {
-		var ur = $scope.unread();
+		var ur = $scope.unread['all'] || 0;
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
@@ -174,8 +174,38 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 	};
 
-	$scope.unread = function() {
-		return countProperties($scope.unreadStories);
+	$scope.updateUnread = function() {
+		$scope.unread = {
+			'all': 0,
+			'feeds': {},
+			'folders': {}
+		};
+
+		var folder = {};
+
+		for (var i = 0; i < $scope.feeds.length; i++) {
+			var f = $scope.feeds[i];
+			if (f.Outline) {
+				$scope.unread['folders'][f.Title] = 0;
+				for (var j = 0; j < f.Outline.length; j++) {
+					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
+					folder[f.Outline[j].XmlUrl] = f.Title;
+				}
+			} else {
+				$scope.unread['feeds'][f.XmlUrl] = 0;
+			}
+		}
+
+		for (var i = 0; i < $scope.stories.length; i++) {
+			var s = $scope.stories[i];
+			if ($scope.unreadStories[s.guid]) {
+				$scope.unread['all']++;
+				$scope.unread['feeds'][s.feed.XmlUrl]++;
+				if (folder[s.feed.XmlUrl]) {
+					$scope.unread['folders'][folder[s.feed.XmlUrl]]++;
+				}
+			}
+		}
 	};
 
 	$scope.markRead = function(s) {
@@ -186,6 +216,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				feed: s.feed.XmlUrl,
 				story: s.Id
 			});
+			$scope.updateUnread();
 			$scope.updateTitle();
 		}
 	};
@@ -196,6 +227,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 		$scope.unreadStories = {};
 		$scope.stories = [];
+		$scope.updateUnread();
 		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 		$scope.updateTitle();
 	};
