@@ -221,17 +221,17 @@
 			<div ng-show="nav && shown == 'feeds'" class="span2 feed-list">
 				<ul class="unstyled">
 					<li ng-repeat="f in feeds">
-						<div class="feed-title" ng-hide="f.Outline" ng-bind="f.Title" ng-click="setActiveFeed(f.XmlUrl)">
-							{{`{{f.Title}}`}}
+						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
+							<span class="hand" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
 								({{`{{unread['feeds'][f.XmlUrl]}}`}})
 							</span>
 						</div>
 						<div ng-show="f.Outline">
 							<div ng-show="f.Outline">
-								<i class="icon-folder-open" ng-hide="folderClose[f.Title]" ng-click="folderClose[f.Title] = true"></i>
-								<i class="icon-folder-close" ng-show="folderClose[f.Title]" ng-click="folderClose[f.Title] = false"></i>
-								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
+								<i class="icon-folder-open hand" ng-hide="folderClose[f.Title]" ng-click="folderClose[f.Title] = true"></i>
+								<i class="icon-folder-close hand" ng-show="folderClose[f.Title]" ng-click="folderClose[f.Title] = false"></i>
+								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
@@ -239,7 +239,7 @@
 							<ul class="unstyled" ng-hide="folderClose[f.Title]">
 								<li ng-repeat="o in f.Outline">
 									<div class="feed-title feed-child">
-										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title" ng-click="setActiveFeed(o.XmlUrl)"></span>
+										<span class="hand" ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title" ng-click="setActiveFeed(o.XmlUrl)"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
 											({{`{{unread['feeds'][o.XmlUrl]}}`}})
 										</span>
