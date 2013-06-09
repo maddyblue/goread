@@ -120,6 +120,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				$scope.updateUnread();
+				$scope.updateStories();
 				$scope.updateTitle();
 			})
 			.error(function() {
@@ -181,7 +182,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 			'folders': {}
 		};
 
-		var folder = {};
+		$scope.folder = {};
 
 		for (var i = 0; i < $scope.feeds.length; i++) {
 			var f = $scope.feeds[i];
@@ -189,7 +190,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.unread['folders'][f.Title] = 0;
 				for (var j = 0; j < f.Outline.length; j++) {
 					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
-					folder[f.Outline[j].XmlUrl] = f.Title;
+					$scope.folder[f.Outline[j].XmlUrl] = f.Title;
 				}
 			} else {
 				$scope.unread['feeds'][f.XmlUrl] = 0;
@@ -201,8 +202,8 @@ function GoreadCtrl($scope, $http, $timeout) {
 			if ($scope.unreadStories[s.guid]) {
 				$scope.unread['all']++;
 				$scope.unread['feeds'][s.feed.XmlUrl]++;
-				if (folder[s.feed.XmlUrl]) {
-					$scope.unread['folders'][folder[s.feed.XmlUrl]]++;
+				if ($scope.folder[s.feed.XmlUrl]) {
+					$scope.unread['folders'][$scope.folder[s.feed.XmlUrl]]++;
 				}
 			}
 		}
@@ -228,6 +229,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.unreadStories = {};
 		$scope.stories = [];
 		$scope.updateUnread();
+		$scope.updateStories();
 		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 		$scope.updateTitle();
 	};
@@ -299,6 +301,39 @@ function GoreadCtrl($scope, $http, $timeout) {
 					}
 				}
 			});
+	};
+
+	$scope.setActiveFeed = function(feed) {
+		delete $scope.activeFolder;
+		$scope.activeFeed = feed;
+		$scope.updateStories();
+	};
+
+	$scope.setActiveFolder = function(folder) {
+		delete $scope.activeFeed;
+		$scope.activeFolder = folder;
+		$scope.updateStories();
+	};
+
+	$scope.updateStories = function() {
+		$scope.dispStories = [];
+		if ($scope.activeFolder) {
+			for (var i = 0; i < $scope.stories.length; i++) {
+				var s = $scope.stories[i];
+				if ($scope.folder[s.feed.XmlUrl] == $scope.activeFolder) {
+					$scope.dispStories.push(s);
+				}
+			}
+		} else if ($scope.activeFeed) {
+			for (var i = 0; i < $scope.stories.length; i++) {
+				var s = $scope.stories[i];
+				if (s.feed.XmlUrl == $scope.activeFeed) {
+					$scope.dispStories.push(s);
+				}
+			}
+		} else {
+			$scope.dispStories = $scope.stories;
+		}
 	};
 
 	var shortcuts = $('#shortcuts');

@@ -221,7 +221,7 @@
 			<div ng-show="nav && shown == 'feeds'" class="span2 feed-list">
 				<ul class="unstyled">
 					<li ng-repeat="f in feeds">
-						<div class="feed-title" ng-hide="f.Outline" ng-bind="f.Title">
+						<div class="feed-title" ng-hide="f.Outline" ng-bind="f.Title" ng-click="setActiveFeed(f.XmlUrl)">
 							{{`{{f.Title}}`}}
 							<span ng-show="unread['feeds'][f.XmlUrl]">
 								({{`{{unread['feeds'][f.XmlUrl]}}`}})
@@ -231,7 +231,7 @@
 							<div ng-show="f.Outline" ng-click="folderClose[f.Title] = !folderClose[f.Title]">
 								<i class="icon-folder-open" ng-hide="folderClose[f.Title]"></i>
 								<i class="icon-folder-close" ng-show="folderClose[f.Title]"></i>
-								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
+								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
@@ -239,7 +239,7 @@
 							<ul class="unstyled" ng-hide="folderClose[f.Title]">
 								<li ng-repeat="o in f.Outline">
 									<div class="feed-title feed-child">
-										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
+										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title" ng-click="setActiveFeed(o.XmlUrl)"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
 											({{`{{unread['feeds'][o.XmlUrl]}}`}})
 										</span>
@@ -252,7 +252,7 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div ng-repeat="s in stories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
+				<div ng-repeat="s in dispStories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="story-header hand unread" ng-click="setCurrent($index)">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title">
