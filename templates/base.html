@@ -29,7 +29,7 @@
 			line-height: 33px;
 			font-size: 13px;
 		}
-		.story-title, .feed-title {
+		.story-title, .feed-title, .folder-title {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
@@ -244,7 +244,7 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div ng-show="f.Outline">
+							<div ng-show="f.Outline" class="folder-title">
 								<i class="icon-folder-open hand" ng-hide="folderClose[f.Title]" ng-click="folderClose[f.Title] = true"></i>
 								<i class="icon-folder-close hand" ng-show="folderClose[f.Title]" ng-click="folderClose[f.Title] = false"></i>
 								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
