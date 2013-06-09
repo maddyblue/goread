@@ -228,9 +228,9 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div ng-show="f.Outline" ng-click="folderClose[f.Title] = !folderClose[f.Title]">
-								<i class="icon-folder-open" ng-hide="folderClose[f.Title]"></i>
-								<i class="icon-folder-close" ng-show="folderClose[f.Title]"></i>
+							<div ng-show="f.Outline">
+								<i class="icon-folder-open" ng-hide="folderClose[f.Title]" ng-click="folderClose[f.Title] = true"></i>
+								<i class="icon-folder-close" ng-show="folderClose[f.Title]" ng-click="folderClose[f.Title] = false"></i>
 								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
