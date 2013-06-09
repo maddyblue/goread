@@ -55,6 +55,10 @@
 			margin-top: 4px;
 			line-height: 24px;
 		}
+		.active-name {
+			font-weight: bold;
+			padding: 10px 0;
+		}
 		.feed-list {
 			font-size: 13px;
 		}
@@ -224,7 +228,9 @@
 		<div class="row-fluid" ng-init="refresh()">
 			<div ng-show="nav && shown == 'feeds'" class="span2 feed-list">
 				<ul class="unstyled">
-					<li class="all-subs hand" ng-click="setActiveFeed()">all subscriptions</li>
+					<li class="all-subs hand" ng-click="setActiveFeed()">
+						all items ({{`{{unread.all || 0}}`}})
+					</li>
 					<li ng-repeat="f in feeds">
 						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
 							<span class="hand" ng-bind="f.Title"></span>
@@ -257,6 +263,12 @@
 			</div>
 
 			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
+				<div class="row-fluid active-name story">
+					<span ng-hide="activeFeed" ng-bind="active()"></span>
+					<a ng-show="activeFeed" ng-href="{{`{{xmlurls[activeFeed].HtmlUrl}}`}}" style="color: #333">
+						{{`{{active()}}`}} »
+					</a>
+				</div>
 				<div ng-repeat="s in dispStories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="story-header hand unread" ng-click="setCurrent($index)">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>

@@ -76,10 +76,12 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.stories = [];
 				$scope.unreadStories = {};
 				$scope.last = 0;
+				$scope.xmlurls = {};
 				var today = new Date().toDateString();
 
 				var loadStories = function(feed) {
 					$scope.numfeeds++;
+					$scope.xmlurls[feed.XmlUrl] = feed;
 					var stories = data.Stories[feed.XmlUrl] || [];
 					for(var i = 0; i < stories.length; i++) {
 						stories[i].feed = feed;
@@ -110,6 +112,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 					} else {
 						for(var j = 0; j < f.Outline.length; j++) {
 							loadStories(f.Outline[j]);
+							$scope.xmlurls[f.Outline[j].XmlUrl].folder = f.Title;
 						}
 					}
 				}
@@ -182,15 +185,12 @@ function GoreadCtrl($scope, $http, $timeout) {
 			'folders': {}
 		};
 
-		$scope.folder = {};
-
 		for (var i = 0; i < $scope.feeds.length; i++) {
 			var f = $scope.feeds[i];
 			if (f.Outline) {
 				$scope.unread['folders'][f.Title] = 0;
 				for (var j = 0; j < f.Outline.length; j++) {
 					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
-					$scope.folder[f.Outline[j].XmlUrl] = f.Title;
 				}
 			} else {
 				$scope.unread['feeds'][f.XmlUrl] = 0;
@@ -202,8 +202,9 @@ function GoreadCtrl($scope, $http, $timeout) {
 			if ($scope.unreadStories[s.guid]) {
 				$scope.unread['all']++;
 				$scope.unread['feeds'][s.feed.XmlUrl]++;
-				if ($scope.folder[s.feed.XmlUrl]) {
-					$scope.unread['folders'][$scope.folder[s.feed.XmlUrl]]++;
+				var folder = $scope.xmlurls[s.feed.XmlUrl].folder;
+				if (folder) {
+					$scope.unread['folders'][folder]++;
 				}
 			}
 		}
@@ -232,6 +233,12 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.updateStories();
 		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 		$scope.updateTitle();
+	};
+
+	$scope.active = function() {
+		if ($scope.activeFolder) return $scope.activeFolder;
+		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed].Title;
+		return 'all items';
 	};
 
 	$scope.nothing = function() {
@@ -320,7 +327,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		if ($scope.activeFolder) {
 			for (var i = 0; i < $scope.stories.length; i++) {
 				var s = $scope.stories[i];
-				if ($scope.folder[s.feed.XmlUrl] == $scope.activeFolder) {
+				if ($scope.xmlurls[s.feed.XmlUrl].folder == $scope.activeFolder) {
 					$scope.dispStories.push(s);
 				}
 			}
