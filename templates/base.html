@@ -61,6 +61,10 @@
 		.feed-child {
 			margin-left: 20px;
 		}
+		.all-subs {
+			font-weight: bold;
+			padding: 5px 0;
+		}
 		.top-margin {
 			margin-top: 20px;
 		}
@@ -220,6 +224,7 @@
 		<div class="row-fluid" ng-init="refresh()">
 			<div ng-show="nav && shown == 'feeds'" class="span2 feed-list">
 				<ul class="unstyled">
+					<li class="all-subs hand" ng-click="setActiveFeed()">all subscriptions</li>
 					<li ng-repeat="f in feeds">
 						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
 							<span class="hand" ng-bind="f.Title"></span>
