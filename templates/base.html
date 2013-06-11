@@ -59,8 +59,25 @@
 			font-weight: bold;
 			padding: 10px 0;
 		}
+		.story-list {
+			position: absolute;
+			left: 245px;
+			overflow-y: auto;
+			top: 40px;
+			bottom: 0;
+			right: 0;
+		}
+		.no-nav {
+			left: 20px;
+		}
 		.feed-list {
+			position: absolute;
 			font-size: 13px;
+			width: 220px;
+			top: 40px;
+			bottom: 0;
+			overflow-y: auto;
+			left: 20px;
 		}
 		.feed-child {
 			margin-left: 20px;
@@ -230,7 +247,7 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="nav && shown == 'feeds'" class="span2 feed-list">
+			<div ng-show="nav && shown == 'feeds'" class="feed-list">
 				<ul class="unstyled">
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
@@ -268,14 +285,14 @@
 				</ul>
 			</div>
 
-			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()">
-				<div class="row-fluid active-name story">
+			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()" class="story-list">
+				<div class="active-name story">
 					<span ng-hide="activeFeed" ng-bind="active()"></span>
 					<a ng-show="activeFeed" ng-href="{{`{{xmlurls[activeFeed].HtmlUrl}}`}}" style="color: #333">
 						{{`{{active()}}`}} »
 					</a>
 				</div>
-				<div ng-repeat="s in dispStories" class="story row-fluid" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
+				<div ng-repeat="s in dispStories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
 					<div class="story-header hand unread" ng-click="setCurrent($index)">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title">
@@ -296,7 +313,7 @@
 						<div id="story{{`{{$index}}`}}"></div>
 					</div>
 				</div>
-				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="row-fluid top-margin">
+				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="top-margin">
 					<div class="offset2 span8">
 						<div class="hero-unit">
 							<p class="text-center">No unread items.</p>

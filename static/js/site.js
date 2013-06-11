@@ -250,7 +250,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$scope.nav = !$scope.nav;
 	}
 	$scope.navspan = function() {
-		return 'span' + ($scope.nav ? '10' : '12');
+		return $scope.nav ? '' : 'no-nav';
 	};
 	$scope.navmargin = function() {
 		return $scope.nav ? {} : {'margin-left': '0'};
