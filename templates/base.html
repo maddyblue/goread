@@ -140,7 +140,7 @@
 					<ul class="nav">
 						<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
 					{{if .User}}
-						<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'">feeds</a></li>
+						<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'; setActiveFeed();">feeds</a></li>
 						<li>
 							<a href="#" ng-click="shown = 'feeds'">{{`{{unread.all || 'no'}}`}} unread items</a>
 						</li>
