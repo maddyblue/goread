@@ -389,7 +389,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		if ($scope.nouser) {
 			return;
 		}
-		$scope.$apply("shown = 'feeds'");
+		$scope.$apply("shown = 'feeds'; setActiveFeed();");
 	});
 	Mousetrap.bind('u', function() {
 		$scope.$apply("toggleNav()");
