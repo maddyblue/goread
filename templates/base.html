@@ -255,7 +255,7 @@
 					<li ng-repeat="f in feeds">
 						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/favicon.ico'}}"`}} class="feed-icon hand">
-							<span class="hand" ng-bind="f.Title"></span>
+							<span class="hand" ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
 								({{`{{unread['feeds'][f.XmlUrl]}}`}})
 							</span>
