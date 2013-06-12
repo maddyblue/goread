@@ -293,14 +293,14 @@
 					</a>
 				</div>
 				<div ng-repeat="s in dispStories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
-					<div class="story-header hand unread" ng-click="setCurrent($index)">
+					<div class="story-header hand unread">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
-						<div class="story-title">
+						<div class="story-title" ng-click="setCurrent($index)">
 							<strong ng-bind="s.Title"></strong>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="story-date muted visible-desktop">
-							<span ng-click="setCurrent($index)" ng-bind="s.dispdate"></span>
+							<span ng-bind="s.dispdate" ng-click="setCurrent($index)"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
