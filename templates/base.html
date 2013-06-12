@@ -59,7 +59,7 @@
 			font-weight: bold;
 			padding: 10px 0;
 		}
-		.story-list {
+		#story-list {
 			position: absolute;
 			left: 245px;
 			overflow-y: auto;
@@ -70,7 +70,7 @@
 		.no-nav {
 			left: 20px;
 		}
-		.feed-list {
+		#feed-list {
 			position: absolute;
 			font-size: 13px;
 			width: 220px;
@@ -247,7 +247,7 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="nav && shown == 'feeds'" class="feed-list">
+			<div ng-show="nav && shown == 'feeds'" id="feed-list">
 				<ul class="unstyled">
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
@@ -285,7 +285,7 @@
 				</ul>
 			</div>
 
-			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()" class="story-list">
+			<div ng-show="loading == 0 && shown == 'feeds' && numfeeds" ng-class="navspan()" ng-style="navmargin()" id="story-list">
 				<div class="active-name story">
 					<span ng-hide="activeFeed" ng-bind="active()"></span>
 					<a ng-show="activeFeed" ng-href="{{`{{xmlurls[activeFeed].HtmlUrl}}`}}" style="color: #333">
