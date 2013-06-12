@@ -238,7 +238,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Debugf("setting %v read to %v", cu.ID, last)
 			u.Read = last
 			ud.Read = nil
-			gn.PutMany(&u, &ud)
+			gn.PutMany(u, ud)
 		}
 	}
 	c.Step("json marshal", func() {
