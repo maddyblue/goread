@@ -157,12 +157,10 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$('#story' + i).html($scope.contents[story.guid] || '');
 		setTimeout(function() {
 			se = $('#storydiv' + i);
-			var docTop = $(window).scrollTop() + 40;
 			$('.story-header', se).addClass('read');
-			var docBottom = docTop + $(window).height() + 40;
 			var eTop = se.offset().top;
-			if (docTop > eTop || docBottom < eTop) {
-				window.scrollTo(0, eTop - 40);
+			if (eTop < 0 || eTop > $('#story-list').height()) {
+				se[0].scrollIntoView();
 			}
 		});
 	};
