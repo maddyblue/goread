@@ -238,6 +238,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	r := rssgo.Rss{}
 	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = charset.NewReader
+	d.DefaultSpace = "DefaultSpace"
 	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
 		f.Link = r.Link
