@@ -160,14 +160,17 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(ud.Opml, &uf)
 	})
 	var feeds []*Feed
+	opmlMap := make(map[string]*OpmlOutline)
 	c.Step("fetch feeds", func() {
 		for _, outline := range uf.Outline {
 			if outline.XmlUrl == "" {
 				for _, so := range outline.Outline {
 					feeds = append(feeds, &Feed{Url: so.XmlUrl})
+					opmlMap[so.XmlUrl] = so
 				}
 			} else {
 				feeds = append(feeds, &Feed{Url: outline.XmlUrl})
+				opmlMap[outline.XmlUrl] = outline
 			}
 		}
 		gn.GetMulti(feeds)
@@ -176,6 +179,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fl := make(map[string][]*Story)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
 	hasStories := false
+	updatedLinks := false
 	icons := make(map[string]string)
 	c.Step("feed fetch + wait", func() {
 		wg := sync.WaitGroup{}
@@ -213,6 +217,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						}
 					}
 				}
+				if ufeed.Link != opmlMap[ufeed.Url].HtmlUrl {
+					updatedLinks = true
+					c.Debugf("fixing link %v, %v -> %v", ufeed.Url, opmlMap[ufeed.Url].HtmlUrl, ufeed.Link)
+					opmlMap[ufeed.Url].HtmlUrl = ufeed.Link
+				}
 				lock.Lock()
 				fl[ufeed.Url] = newStories
 				if len(newStories) > 0 {
@@ -240,6 +249,10 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			ud.Read = nil
 			gn.PutMany(u, ud)
 		}
+	}
+	if updatedLinks {
+		ud.Opml, _ = json.Marshal(&uf)
+		gn.Put(ud)
 	}
 	c.Step("json marshal", func() {
 		b, _ := json.Marshal(struct {
