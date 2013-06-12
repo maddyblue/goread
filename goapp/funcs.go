@@ -56,7 +56,7 @@ func htmlattr(s string) template.HTMLAttr {
 }
 
 var funcs = template.FuncMap{
-	"eq":  eq,
+	"eq":       eq,
 	"htmlattr": htmlattr,
-	"url": routeUrl,
+	"url":      routeUrl,
 }
