@@ -70,6 +70,9 @@
 		#story-list.no-nav {
 			left: 20px;
 		}
+		#story-list .config {
+			margin-right: 20px;
+		}
 		#feed-list {
 			position: absolute;
 			font-size: 13px;
@@ -298,7 +301,7 @@
 						<a ng-href="{{`{{xmlurls[activeFeed].HtmlUrl || ''}}`}}" style="color: #333">
 							{{`{{active()}}`}} »
 						</a>
-						<div class="pull-right btn-group">
+						<div class="pull-right btn-group config">
 							<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
 								<i class="icon-cog"></i>
 								<span class="caret"></span>
