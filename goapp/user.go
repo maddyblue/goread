@@ -401,3 +401,22 @@ func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Disposition", "attachment; filename=subscriptions.opml")
 	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>`, string(b))
 }
+
+func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	opml := Opml{}
+	if err := json.Unmarshal([]byte(r.FormValue("opml")), &opml.Outline); err != nil {
+		serveError(w, err)
+		return
+	}
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
+		return
+	}
+	gn.Get(&ud)
+	ud.Opml, _ = json.Marshal(&opml)
+	gn.Put(&ud)
+}

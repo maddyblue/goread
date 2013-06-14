@@ -342,6 +342,40 @@ function GoreadCtrl($scope, $http, $timeout) {
 		}
 	};
 
+	$scope.rename = function(feed) {
+		var name = prompt('Rename to');
+		if (!name) return;
+		$scope.xmlurls[feed].Title = name;
+		$scope.uploadOpml();
+	};
+
+	$scope.unsubscribe = function(feed) {
+		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + '?')) return;
+		for (var i = 0; i < $scope.feeds.length; i++) {
+			var f = $scope.feeds[i];
+			if (f.Outline) {
+				for (var j = 0; j < f.Outline.length; j++) {
+					if (f.Outline[j].XmlUrl == feed) {
+						f.Outline.splice(j, 1);
+						break;
+					}
+				}
+			}
+			if (f.XmlUrl == feed) {
+				$scope.feeds.splice(i, 1);
+				break;
+			}
+		}
+		$scope.setActiveFeed();
+		$scope.uploadOpml();
+	};
+
+	$scope.uploadOpml = function() {
+		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
+			opml: JSON.stringify($scope.feeds)
+		});
+	};
+
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		shortcuts.modal('toggle');
