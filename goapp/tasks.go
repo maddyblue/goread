@@ -240,8 +240,17 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
-		if u, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
-			return fetchFeed(c, origUrl, u)
+		if autoUrl, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
+			if autoU, err := url.Parse(autoUrl); err == nil {
+				if autoU.Scheme == "" {
+					autoU.Scheme = u.Scheme
+				}
+				if autoU.Host == "" {
+					autoU.Host = u.Host
+				}
+				autoUrl = autoU.String()
+			}
+			return fetchFeed(c, origUrl, autoUrl)
 		}
 		return ParseFeed(c, origUrl, b)
 	} else if err != nil {
