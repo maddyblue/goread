@@ -231,6 +231,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func fetchFeed(c mpg.Context, url string) (*Feed, []*Story) {
 	cl := urlfetch.Client(c)
 	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
 		return ParseFeed(c, url, b)
 	} else if err != nil {
