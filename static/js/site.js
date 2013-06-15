@@ -88,9 +88,9 @@ function GoreadCtrl($scope, $http, $timeout) {
 						stories[i].feed = feed;
 						var d = new Date(stories[i].Date * 1000);
 						if (d.toDateString() == today) {
-							stories[i].dispdate = d.format("shortTime");
+							stories[i].dispdate = moment(d).format("h:mm a");
 						} else {
-							stories[i].dispdate = d.format("mediumDate");
+							stories[i].dispdate = moment(d).format("MMM D, YYYY");
 						}
 						if ($scope.last < stories[i].Date) {
 							$scope.last = stories[i].Date;
