@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"code.google.com/p/go.net/html"
 	"code.google.com/p/go.net/html/atom"
-	"fmt"
 	_html "html"
 	"io"
 	"regexp"
