@@ -36,7 +36,7 @@ func Autodiscover(b []byte) (string, error) {
 			if err := z.Err(); err == io.EOF {
 				break
 			} else {
-				return "done", ErrNoRssLink
+				return "", ErrNoRssLink
 			}
 		}
 		t := z.Token()
@@ -58,5 +58,5 @@ func Autodiscover(b []byte) (string, error) {
 		}
 	}
 
-	return "end", ErrNoRssLink
+	return "", ErrNoRssLink
 }
