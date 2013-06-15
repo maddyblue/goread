@@ -207,19 +207,18 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	hasStories := false
 	updatedLinks := false
 	icons := make(map[string]string)
+
 	c.Step("feed fetch + wait", func() {
+		queue := make(chan *Feed)
 		wg := sync.WaitGroup{}
-		wg.Add(len(feeds))
-		for _i := range feeds {
-			go func(i int) {
-				f := feeds[i]
+		feedProc := func() {
+			for f := range queue {
 				defer wg.Done()
-				ufeed := feeds[i]
 				var newStories []*Story
 
 				if u.Read.Before(f.Date) {
-					c.Debugf("query for %v", feeds[i].Url)
-					fk := gn.Key(feeds[i])
+					c.Debugf("query for %v", f.Url)
+					fk := gn.Key(f)
 					sq := q.Ancestor(fk).Filter("p >", u.Read).KeysOnly()
 					keys, _ := gn.GetAll(sq, nil)
 					stories := make([]*Story, len(keys))
@@ -232,7 +231,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					gn.GetMulti(stories)
 					for _, st := range stories {
 						found := false
-						for _, s := range read[ufeed.Url] {
+						for _, s := range read[f.Url] {
 							if s == st.Id {
 								found = true
 								break
@@ -243,23 +242,30 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						}
 					}
 				}
-				if ufeed.Link != opmlMap[ufeed.Url].HtmlUrl {
+				if f.Link != opmlMap[f.Url].HtmlUrl {
 					updatedLinks = true
-					c.Debugf("fixing link %v, %v -> %v", ufeed.Url, opmlMap[ufeed.Url].HtmlUrl, ufeed.Link)
-					opmlMap[ufeed.Url].HtmlUrl = ufeed.Link
+					c.Debugf("fixing link %v, %v -> %v", f.Url, opmlMap[f.Url].HtmlUrl, f.Link)
+					opmlMap[f.Url].HtmlUrl = f.Link
 				}
 				lock.Lock()
-				fl[ufeed.Url] = newStories
+				fl[f.Url] = newStories
 				if len(newStories) > 0 {
 					hasStories = true
 				}
-				if ufeed.Image != "" {
-					icons[ufeed.Url] = ufeed.Image
+				if f.Image != "" {
+					icons[f.Url] = f.Image
 				}
 				lock.Unlock()
-			}(_i)
+			}
 		}
-
+		for i := 0; i < 20; i++ {
+			go feedProc()
+		}
+		wg.Add(len(feeds))
+		for _, f := range feeds {
+			queue <- f
+		}
+		close(queue)
 		wg.Wait()
 	})
 	if !hasStories {
