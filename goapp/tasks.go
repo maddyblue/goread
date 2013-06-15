@@ -228,22 +228,15 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Infof("updating %d feeds", len(keys))
 }
 
-func fetchFeed(c mpg.Context, url string, depth int) (*Feed, []*Story) {
-	if depth > 1 {
-		return nil, nil
-	}
+func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	cl := urlfetch.Client(c)
-	if resp, err := cl.Get(url); err == nil && resp.StatusCode == http.StatusOK {
+	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
-		if u, err := Autodiscover(b); err == nil {
-			f, ss := fetchFeed(c, u, depth+1)
-			if f != nil {
-				f.Url = url
-			}
-			return f, ss
+		if u, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
+			return fetchFeed(c, origUrl, u)
 		}
-		return ParseFeed(c, url, b)
+		return ParseFeed(c, origUrl, b)
 	} else if err != nil {
 		c.Warningf("fetch feed error: %s", err.Error())
 	} else {
@@ -342,7 +335,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("feed %v already updated", url)
 		return
 	}
-	if feed, stories := fetchFeed(c, url, 0); feed != nil {
+	if feed, stories := fetchFeed(c, url, url); feed != nil {
 		updateFeed(c, url, feed, stories)
 	} else {
 		f.Errors++
