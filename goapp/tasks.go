@@ -229,6 +229,13 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
+	u, err := url.Parse(fetchUrl)
+	if err == nil && u.Scheme == "" {
+		u.Scheme = "http"
+		origUrl = u.String()
+		fetchUrl = origUrl
+	}
+
 	cl := urlfetch.Client(c)
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()

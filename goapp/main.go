@@ -99,10 +99,11 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 			f.Checked = f.Updated
 			f.NextUpdate = f.Updated
 			gn.Put(&f)
-			if err := updateFeed(c, o.XmlUrl, feed, stories); err != nil {
+			if err := updateFeed(c, f.Url, feed, stories); err != nil {
 				return err
 			}
 
+			o.XmlUrl = feed.Url
 			o.HtmlUrl = feed.Link
 			if o.Title == "" {
 				o.Title = feed.Title
