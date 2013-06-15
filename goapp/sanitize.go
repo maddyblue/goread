@@ -38,13 +38,11 @@ func Sanitize(s string) (string, string) {
 			if err := z.Err(); err == io.EOF {
 				break
 			} else {
-				fmt.Println("SANITIZE ERROR", err.Error())
 				return s, snipper(s)
 			}
 		}
 		t := z.Token()
 		if t.DataAtom == atom.Script {
-			fmt.Println("NUKING", t)
 			if t.Type == html.StartTagToken {
 				scripts++
 			} else if t.Type == html.EndTagToken {
