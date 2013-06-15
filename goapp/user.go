@@ -28,6 +28,7 @@ import (
 	"sync"
 	"time"
 
+	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
@@ -78,8 +79,13 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	if file, _, err := r.FormFile("file"); err == nil {
 		if fdata, err := ioutil.ReadAll(file); err == nil {
+			bk, err := saveFile(c, fdata)
+			if err != nil {
+				serveError(w, err)
+				return
+			}
 			task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
-				"data": {string(fdata)},
+				"key":  {string(bk)},
 				"user": {cu.ID},
 			})
 			taskqueue.Add(c, task, "import-reader")
@@ -137,13 +143,33 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	defer resp.Body.Close()
 	b, _ := ioutil.ReadAll(resp.Body)
+	bk, err := saveFile(c, b)
+	if err != nil {
+		serveError(w, err)
+		return
+	}
 	task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
-		"data": {string(b)},
+		"key":  {string(bk)},
 		"user": {cu.ID},
 	})
 	taskqueue.Add(c, task, "import-reader")
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+}
+
+func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
+	w, err := blobstore.Create(c, "application/json")
+	if err != nil {
+		return "", err
+	}
+	if _, err := w.Write(b); err != nil {
+		return "", err
+	}
+	if err := w.Close(); err != nil {
+		return "", err
+	}
+	return w.Key()
 }
 
 func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {

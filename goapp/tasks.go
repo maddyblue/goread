@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"appengine"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -28,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
@@ -38,7 +40,12 @@ import (
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
-	data := r.FormValue("data")
+	bk := r.FormValue("key")
+	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
+	data, err := ioutil.ReadAll(fr)
+	if err != nil {
+		return
+	}
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -70,7 +77,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opml := Opml{}
-	if err := xml.Unmarshal([]byte(data), &opml); err != nil {
+	if err := xml.Unmarshal(data, &opml); err != nil {
 		c.Errorf("opml error: %v", err.Error())
 		return
 	}
@@ -106,7 +113,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(userOpml) == IMPORT_LIMIT {
 		task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
-			"data": {data},
+			"key":  {bk},
 			"user": {userid},
 			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
 		})
@@ -119,7 +126,12 @@ const IMPORT_LIMIT = 20
 func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
-	data := r.FormValue("data")
+	bk := r.FormValue("key")
+	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
+	data, err := ioutil.ReadAll(fr)
+	if err != nil {
+		return
+	}
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -137,7 +149,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			} `json:"categories"`
 		} `json:"subscriptions"`
 	}{}
-	json.Unmarshal([]byte(data), &v)
+	json.Unmarshal(data, &v)
 	c.Debugf("reader import for %v, skip %v, len %v", userid, skip, len(v.Subscriptions))
 
 	end := skip + IMPORT_LIMIT
@@ -190,11 +202,13 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	if end < len(v.Subscriptions) {
 		task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
-			"data": {data},
+			"key":  {bk},
 			"user": {userid},
 			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
 		})
 		taskqueue.Add(c, task, "import-reader")
+	} else {
+		blobstore.Delete(c, appengine.BlobKey(bk))
 	}
 }
 
