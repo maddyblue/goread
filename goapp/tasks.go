@@ -167,7 +167,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 			userOpml[i] = outline
 			if err := addFeed(c, userid, outline); err != nil {
-				c.Errorf("reader import error: %v", err.Error())
+				c.Warning("reader import error: %v", err.Error())
 				// todo: do something here?
 			}
 			c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
