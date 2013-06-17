@@ -42,6 +42,7 @@ func init() {
 		ParseFiles(
 		"templates/base.html",
 		"templates/admin-all-feeds.html",
+		"templates/admin-date-formats.html",
 		"templates/admin-feed.html",
 	); err != nil {
 		log.Fatal(err)
@@ -68,6 +69,7 @@ func init() {
 
 	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
 	router.Handle("/admin/all-feeds", mpg.NewHandler(AllFeeds)).Name("all-feeds")
+	router.Handle("/admin/date-formats", mpg.NewHandler(AdminDateFormats)).Name("admin-date-formats")
 	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
 	router.Handle("/admin/update-feed", mpg.NewHandler(AdminUpdateFeed)).Name("admin-update-feed")
 
