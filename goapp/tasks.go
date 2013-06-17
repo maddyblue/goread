@@ -90,7 +90,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		go func(i int) {
 			o := userOpml[i].Outline[0]
 			if err := addFeed(c, userid, userOpml[i]); err != nil {
-				c.Errorf("opml import error: %v", err.Error())
+				c.Warningf("opml import error: %v", err.Error())
 				// todo: do something here?
 			}
 			c.Debugf("opml import: %s, %s", o.Title, o.XmlUrl)
