@@ -179,14 +179,11 @@ var dateFormats = []string{
 	time.UnixDate,
 }
 
-func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
+func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err error) {
 	for _, d := range ds {
 		d = strings.TrimSpace(d)
 		if d == "" {
 			continue
-		}
-		if t, err = rssgo.ParseRssDate(d); err == nil {
-			return
 		}
 		for _, f := range dateFormats {
 			if t, err = time.Parse(f, d); err == nil {
@@ -194,7 +191,14 @@ func parseDate(c appengine.Context, ds ...string) (t time.Time, err error) {
 			}
 		}
 		gn := goon.FromContext(c)
-		gn.Put(&DateFormat{Id: d})
+		gn.Put(&DateFormat{
+			Id:     d,
+			Parent: gn.Key(feed),
+		})
+		// log dates this function doesn't cover so we can eventually retire it
+		if t, err = rssgo.ParseRssDate(d); err == nil {
+			return
+		}
 	}
 	err = errors.New(fmt.Sprintf("could not parse date: %v", strings.Join(ds, ", ")))
 	return
@@ -210,7 +214,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	d.CharsetReader = charset.NewReader
 	if atomerr = d.Decode(&a); atomerr == nil {
 		f.Title = a.Title
-		if t, err := parseDate(c, string(a.Updated)); err == nil {
+		if t, err := parseDate(c, &f, string(a.Updated)); err == nil {
 			f.Updated = t
 		}
 		for _, l := range a.Link {
@@ -225,10 +229,10 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				Id:    i.ID,
 				Title: i.Title,
 			}
-			if t, err := parseDate(c, string(i.Updated)); err == nil {
+			if t, err := parseDate(c, &f, string(i.Updated)); err == nil {
 				st.Updated = t
 			}
-			if t, err := parseDate(c, string(i.Published)); err == nil {
+			if t, err := parseDate(c, &f, string(i.Published)); err == nil {
 				st.Published = t
 			}
 			if len(i.Link) > 0 {
@@ -255,7 +259,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
 		f.Link = r.Link
-		if t, err := parseDate(c, r.LastBuildDate, r.PubDate); err == nil {
+		if t, err := parseDate(c, &f, r.LastBuildDate, r.PubDate); err == nil {
 			f.Updated = t
 		} else {
 			c.Warningf("no rss feed date: %v", f.Link)
@@ -279,7 +283,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
 			}
-			if t, err := parseDate(c, i.PubDate, i.Date, i.Published); err == nil {
+			if t, err := parseDate(c, &f, i.PubDate, i.Date, i.Published); err == nil {
 				st.Published = t
 				st.Updated = t
 			}
@@ -297,7 +301,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 		if rdf.Channel != nil {
 			f.Title = rdf.Channel.Title
 			f.Link = rdf.Channel.Link
-			if t, err := parseDate(c, rdf.Channel.Date); err == nil {
+			if t, err := parseDate(c, &f, rdf.Channel.Date); err == nil {
 				f.Updated = t
 			}
 		}
@@ -310,7 +314,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				Author: i.Creator,
 			}
 			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description))
-			if t, err := parseDate(c, i.Date); err == nil {
+			if t, err := parseDate(c, &f, i.Date); err == nil {
 				st.Published = t
 				st.Updated = t
 			}

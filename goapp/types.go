@@ -100,8 +100,9 @@ type Opml struct {
 }
 
 type DateFormat struct {
-	Id    string `datastore:"-" goon:"id"`
-	_kind string `goon:"kind,DF"`
+	Id     string         `datastore:"-" goon:"id"`
+	_kind  string         `goon:"kind,DF"`
+	Parent *datastore.Key `datastore:"-" goon:"parent"`
 }
 
 type Image struct {
