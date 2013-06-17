@@ -122,6 +122,7 @@ func includes(c mpg.Context, r *http.Request) *Includes {
 
 var dateFormats = []string{
 	"01.02.06",
+	"02 Jan 2006 15:04:05 -0700",
 	"02 Jan 2006 15:04:05 MST",
 	"02 Jan 2006 15:04:05 UT",
 	"02 Jan 2006",
@@ -144,7 +145,7 @@ var dateFormats = []string{
 	"Jan 2, 2006 3:04:05 PM MST",
 	"January 02, 2006 15:04:05 MST",
 	"January 2, 2006 15:04:05 MST",
-	"Mon, 02 2006 15:04:05 MST",
+	"Mon, 02 Jan 2006 15:04 MST",
 	"Mon, 02 Jan 2006 15:04:05 -0700",
 	"Mon, 02 Jan 2006 15:04:05 MST",
 	"Mon, 02 Jan 2006 15:04:05 UT",
@@ -153,6 +154,7 @@ var dateFormats = []string{
 	"Mon, 02 Jan 2006 3:04:05 PM MST",
 	"Mon, 02 Jan 2006",
 	"Mon, 02 January 2006",
+	"Mon, 2 Jan 06 15:04:05 -0700",
 	"Mon, 2 Jan 2006 15:04:05 -0700",
 	"Mon, 2 Jan 2006 15:04:05 MST",
 	"Mon, 2 Jan 2006",
