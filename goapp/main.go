@@ -67,8 +67,8 @@ func init() {
 	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
 	router.Handle("/user/upload-opml", mpg.NewHandler(UploadOpml)).Name("upload-opml")
 
-	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
 	router.Handle("/admin/all-feeds", mpg.NewHandler(AllFeeds)).Name("all-feeds")
+	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
 	router.Handle("/admin/date-formats", mpg.NewHandler(AdminDateFormats)).Name("admin-date-formats")
 	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
 	router.Handle("/admin/update-feed", mpg.NewHandler(AdminUpdateFeed)).Name("admin-update-feed")
