@@ -217,8 +217,8 @@ function GoreadCtrl($scope, $http, $timeout) {
 			delete $scope.unreadStories[s.guid];
 			s.read = true;
 			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				feed: s.feed.XmlUrl,
-				story: s.Id
+				Feed: s.feed.XmlUrl,
+				Story: s.Id
 			});
 			$scope.updateUnread();
 			$scope.updateTitle();
@@ -226,6 +226,32 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.markAllRead = function(s) {
+		if ($scope.activeFeed || $scope.activeFolder) {
+			var ss = [];
+			for (var i = 0; i < $scope.dispStories.length; i++) {
+				var s = $scope.dispStories[i];
+				if (!s.read) {
+					s.remove = true;
+					ss.push({
+						feed: s.feed.XmlUrl,
+						story: s.Id
+					});
+				}
+			}
+			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
+				stories: JSON.stringify(ss)
+			});
+			for (var i = $scope.stories.length - 1; i >= 0; i--) {
+				if ($scope.stories[i].remove) {
+					$scope.stories.splice(i, 1);
+				}
+			}
+			$scope.updateUnread();
+			$scope.updateStories();
+			$scope.updateTitle();
+			return;
+		}
+
 		if ($scope.stories.length == 0) {
 			return;
 		}
