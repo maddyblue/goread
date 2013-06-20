@@ -16,8 +16,10 @@ function countProperties(obj) {
 function GoreadCtrl($scope, $http, $timeout) {
 	$scope.loading = 0;
 	$scope.contents = {};
-	$scope.nav = true;
-	$scope.folderClose = {};
+	$scope.opts = {
+		folderClose: {},
+		nav: true
+	};
 
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';
@@ -78,6 +80,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.last = 0;
 				$scope.xmlurls = {};
 				$scope.icons = data.Icons;
+				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				var today = new Date().toDateString();
 
 				var loadStories = function(feed) {
@@ -245,13 +248,22 @@ function GoreadCtrl($scope, $http, $timeout) {
 	};
 
 	$scope.toggleNav = function() {
-		$scope.nav = !$scope.nav;
+		$scope.opts.nav = !$scope.opts.nav;
+		$scope.saveOpts();
 	}
+
 	$scope.navspan = function() {
-		return $scope.nav ? '' : 'no-nav';
+		return $scope.opts.nav ? '' : 'no-nav';
 	};
+
 	$scope.navmargin = function() {
-		return $scope.nav ? {} : {'margin-left': '0'};
+		return $scope.opts.nav ? {} : {'margin-left': '0'};
+	};
+
+	$scope.saveOpts = function() {
+		$scope.http('POST', $('#story-list').attr('data-url-options'), {
+			options: JSON.stringify($scope.opts)
+		});
 	};
 
 	$scope.overContents = function(s) {

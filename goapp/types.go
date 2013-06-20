@@ -17,9 +17,9 @@
 package goapp
 
 import (
-	"appengine"
 	"time"
 
+	"appengine"
 	"appengine/datastore"
 )
 
@@ -29,6 +29,7 @@ type User struct {
 	Email    string    `datastore:"e,noindex"`
 	Messages []string  `datastore:"m,noindex"`
 	Read     time.Time `datastore:"r,noindex"`
+	Options  string    `datastore:"o,noindex"`
 }
 
 func (u *User) String() string {

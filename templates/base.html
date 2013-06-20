@@ -251,7 +251,7 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="nav && !nothing()" id="feed-list">
+			<div ng-show="opts.nav && !nothing()" id="feed-list">
 				<ul class="unstyled">
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
@@ -266,14 +266,14 @@
 						</div>
 						<div ng-show="f.Outline">
 							<div ng-show="f.Outline" class="folder-title">
-								<i class="icon-folder-open hand" ng-hide="folderClose[f.Title]" ng-click="folderClose[f.Title] = true"></i>
-								<i class="icon-folder-close hand" ng-show="folderClose[f.Title]" ng-click="folderClose[f.Title] = false"></i>
+								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
+								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
 								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
 							</div>
-							<ul class="unstyled" ng-hide="folderClose[f.Title]">
+							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
 								<li ng-repeat="o in f.Outline">
 									<div class="feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
@@ -295,6 +295,7 @@
 				ng-style="navmargin()"
 				id="story-list"
 				data-url-upload="{{url "upload-opml"}}"
+				data-url-options="{{url "save-options"}}"
 			>
 				<div class="active-name story">
 					<span ng-hide="activeFeed" ng-bind="active()"></span>

@@ -291,10 +291,12 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Opml    []*OpmlOutline
 			Stories map[string][]*Story
 			Icons   map[string]string
+			Options string
 		}{
 			Opml:    uf.Outline,
 			Stories: fl,
 			Icons:   icons,
+			Options: u.Options,
 		})
 		w.Write(b)
 	})
@@ -451,4 +453,16 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.Get(&ud)
 	ud.Opml, _ = json.Marshal(&opml)
 	gn.Put(&ud)
+}
+
+func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
+		return
+	}
+	u.Options = r.FormValue("options")
+	gn.Put(&u)
 }
