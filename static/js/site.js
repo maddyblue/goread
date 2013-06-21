@@ -216,8 +216,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			delete $scope.unreadStories[s.guid];
 			s.read = true;
 			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				Feed: s.feed.XmlUrl,
-				Story: s.Id
+				feed: s.feed.XmlUrl,
+				story: s.Id
 			});
 			$scope.updateUnread();
 			$scope.updateTitle();
@@ -232,8 +232,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				if (!s.read) {
 					s.remove = true;
 					ss.push({
-						feed: s.feed.XmlUrl,
-						story: s.Id
+						Feed: s.feed.XmlUrl,
+						Story: s.Id
 					});
 				}
 			}
