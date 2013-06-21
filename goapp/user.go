@@ -488,9 +488,6 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fk := gn.Key(&f)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
 	q = q.Order("-p")
-	if d := r.URL.Query().Get("d"); d != "" {
-		// parse date
-	}
 	if c := r.URL.Query().Get("c"); c != "" {
 		if dc, err := datastore.DecodeCursor(c); err == nil {
 			q = q.Start(dc)
