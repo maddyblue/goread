@@ -358,6 +358,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.updateStories();
 	};
 
+	$scope.setMode = function(mode) {
+		$scope.mode = mode;
+		$scope.updateStories();
+		$scope.getFeed();
+	};
+
 	$scope.updateStories = function() {
 		$scope.dispStories = [];
 		if ($scope.activeFolder) {

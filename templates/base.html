@@ -152,8 +152,8 @@
 									<b class="caret"></b>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="#" ng-show="mode != 'unread'" ng-click="mode = 'unread'">{{`{{unread.all || 'no'}}`}} unread items</a></li>
-									<li><a href="#" ng-hide="mode != 'unread'" ng-click="mode = 'all'">all items</a></li>
+									<li><a href="#" ng-show="mode != 'unread'" ng-click="setMode('unread')">{{`{{unread.all || 'no'}}`}} unread items</a></li>
+									<li><a href="#" ng-hide="mode != 'unread'" ng-click="setMode('all')">all items</a></li>
 								</ul>
 							</li>
 						</li>
