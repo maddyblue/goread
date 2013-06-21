@@ -468,8 +468,11 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		});
 		$scope.fetching[f] = true;
 	};
-	sl.on('scroll', $scope.getFeed);
-	$window.onscroll = $scope.getFeed;
+	$scope.applyGetFeed = function() {
+		$scope.$apply($scope.getFeed);
+	};
+	sl.on('scroll', $scope.applyGetFeed);
+	$window.onscroll = $scope.applyGetFeed;
 
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
