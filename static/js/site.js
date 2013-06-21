@@ -146,13 +146,13 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			delete $scope.currentStory;
 			return;
 		}
-		var story = $scope.stories[i];
+		var story = $scope.dispStories[i];
 		$scope.getContents(story);
 		if (i > 0) {
-			$scope.getContents($scope.stories[i - 1]);
+			$scope.getContents($scope.dispStories[i - 1]);
 		}
-		if (i < $scope.stories.length - 2) {
-			$scope.getContents($scope.stories[i + 1]);
+		if (i < $scope.dispStories.length - 2) {
+			$scope.getContents($scope.dispStories[i + 1]);
 		}
 		$('#story' + $scope.currentStory).empty();
 		$scope.currentStory = i;
@@ -172,9 +172,9 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 	};
 	$scope.next = function() {
-		if ($scope.stories && typeof $scope.currentStory === 'undefined') {
+		if ($scope.dispStories && typeof $scope.currentStory === 'undefined') {
 			$scope.setCurrent(0);
-		} else if ($scope.stories && $scope.currentStory < $scope.stories.length - 1) {
+		} else if ($scope.dispStories && $scope.currentStory < $scope.dispStories.length - 1) {
 			$scope.setCurrent($scope.currentStory + 1);
 		}
 	};
@@ -334,8 +334,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$http.post($('#mark-all-read').attr('data-url-contents'), data)
 			.success(function(data) {
 				var current = '';
-				if ($scope.stories[$scope.currentStory]) {
-					current = $scope.stories[$scope.currentStory].guid;
+				if ($scope.dispStories[$scope.currentStory]) {
+					current = $scope.dispStories[$scope.currentStory].guid;
 				}
 				for (var i = 0; i < data.length; i++) {
 					$scope.contents[tofetch[i].guid] = data[i];
@@ -473,8 +473,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.$apply('prev()');
 	});
 	Mousetrap.bind('v', function() {
-		if ($scope.stories[$scope.currentStory]) {
-			window.open($scope.stories[$scope.currentStory].Link);
+		if ($scope.dispStories[$scope.currentStory]) {
+			window.open($scope.dispStories[$scope.currentStory].Link);
 		}
 	});
 	Mousetrap.bind('shift+a', function() {
