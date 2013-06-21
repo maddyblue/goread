@@ -145,7 +145,17 @@
 					{{if .User}}
 						<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'; setActiveFeed();">feeds</a></li>
 						<li>
-							<a href="#" ng-click="shown = 'feeds'">{{`{{unread.all || 'no'}}`}} unread items</a>
+							<li ng-click="shown = 'feeds'" class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" ng-init="mode = 'unread'">
+									<span ng-show="mode == 'unread'">{{`{{unread.all || 'no'}}`}} unread items</span>
+									<span ng-hide="mode == 'unread'">all items</span>
+									<b class="caret"></b>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="#" ng-show="mode != 'unread'" ng-click="mode = 'unread'">{{`{{unread.all || 'no'}}`}} unread items</a></li>
+									<li><a href="#" ng-hide="mode != 'unread'" ng-click="mode = 'all'">all items</a></li>
+								</ul>
+							</li>
 						</li>
 						<li>
 							<form class="navbar-form">
@@ -296,6 +306,7 @@
 				id="story-list"
 				data-url-upload="{{url "upload-opml"}}"
 				data-url-options="{{url "save-options"}}"
+				data-url-get-feed="{{url "get-feed"}}"
 			>
 				<div class="active-name story">
 					<span ng-hide="activeFeed" ng-bind="active()"></span>
@@ -316,7 +327,7 @@
 					</div>
 				</div>
 				<div ng-repeat="s in dispStories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
-					<div class="story-header hand unread">
+					<div class="story-header hand" ng-class="{read: s.read}">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title" ng-click="setCurrent($index)">
 							<strong ng-bind="s.Title"></strong>

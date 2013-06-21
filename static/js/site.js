@@ -13,7 +13,7 @@ function countProperties(obj) {
 	return count;
 }
 
-function GoreadCtrl($scope, $http, $timeout) {
+function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
 	$scope.contents = {};
 	$scope.opts = {
@@ -67,6 +67,18 @@ function GoreadCtrl($scope, $http, $timeout) {
 		});
 	};
 
+	$scope.procStory = function(xmlurl, story, read) {
+		story.read = read;
+		story.feed = $scope.xmlurls[xmlurl];
+		story.guid = xmlurl + '|' + story.Id;
+		if (!story.Title) {
+			story.Title = '(title unknown)';
+		}
+		var today = new Date().toDateString();
+		var d = new Date(story.Date * 1000);
+		story.dispdate = moment(d).format(d.toDateString() == today ? "h:mm a" : "MMM D, YYYY");
+	};
+
 	$scope.refresh = function(cb) {
 		$scope.loading++;
 		$scope.shown = 'feeds';
@@ -81,27 +93,15 @@ function GoreadCtrl($scope, $http, $timeout) {
 				$scope.xmlurls = {};
 				$scope.icons = data.Icons;
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
-				var today = new Date().toDateString();
 
 				var loadStories = function(feed) {
 					$scope.numfeeds++;
 					$scope.xmlurls[feed.XmlUrl] = feed;
 					var stories = data.Stories[feed.XmlUrl] || [];
 					for(var i = 0; i < stories.length; i++) {
-						stories[i].feed = feed;
-						var d = new Date(stories[i].Date * 1000);
-						if (d.toDateString() == today) {
-							stories[i].dispdate = moment(d).format("h:mm a");
-						} else {
-							stories[i].dispdate = moment(d).format("MMM D, YYYY");
-						}
+						$scope.procStory(feed.XmlUrl, stories[i], false);
 						if ($scope.last < stories[i].Date) {
 							$scope.last = stories[i].Date;
-						}
-						stories[i].read = false;
-						stories[i].guid = feed.XmlUrl + '|' + stories[i].Id;
-						if (!stories[i].Title) {
-							stories[i].Title = '(title unknown)';
 						}
 						$scope.stories.push(stories[i]);
 						$scope.unreadStories[stories[i].guid] = true;
@@ -160,7 +160,6 @@ function GoreadCtrl($scope, $http, $timeout) {
 		$('#story' + i).html($scope.contents[story.guid] || '');
 		setTimeout(function() {
 			se = $('#storydiv' + i);
-			$('.story-header', se).addClass('read');
 			var eTop = se.offset().top;
 			if (eTop < 0 || eTop > $('#story-list').height()) {
 				se[0].scrollIntoView();
@@ -351,6 +350,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		delete $scope.activeFolder;
 		$scope.activeFeed = feed;
 		$scope.updateStories();
+		$scope.getFeed(feed);
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -374,6 +374,9 @@ function GoreadCtrl($scope, $http, $timeout) {
 				if (s.feed.XmlUrl == $scope.activeFeed) {
 					$scope.dispStories.push(s);
 				}
+			}
+			if ($scope.mode != 'unread' && $scope.readStories[$scope.activeFeed]) {
+				$scope.dispStories.push.apply($scope.dispStories, $scope.readStories[$scope.activeFeed]);
 			}
 		} else {
 			$scope.dispStories = $scope.stories;
@@ -413,6 +416,42 @@ function GoreadCtrl($scope, $http, $timeout) {
 			opml: JSON.stringify($scope.feeds)
 		});
 	};
+
+	var sl = $('#story-list');
+	$scope.readStories = {};
+	$scope.cursors = {};
+	$scope.fetching = {};
+	$scope.getFeed = function() {
+		var f = $scope.activeFeed
+		if (!f || $scope.fetching[f]) return
+		if ($scope.dispStories.length != 0) {
+			var sh = sl[0].scrollHeight;
+			var h = sl.height();
+			var st = sl.scrollTop()
+			if (sh - (st + h) > 200) {
+				return;
+			}
+		}
+		$scope.http('GET', sl.attr('data-url-get-feed') + '?' + $.param({
+			f: f,
+			c: $scope.cursors[f] || ''
+		})).success(function (data) {
+			if (!data || !data.Stories) return
+			delete $scope.fetching[f]
+			$scope.cursors[$scope.activeFeed] = data.Cursor;
+			if (!$scope.readStories[f])
+				$scope.readStories[f] = [];
+			for (var i = 0; i < data.Stories.length; i++) {
+				$scope.procStory(f, data.Stories[i], true);
+				$scope.readStories[f].push(data.Stories[i]);
+			}
+			$scope.updateStories();
+			$scope.getFeed();
+		});
+		$scope.fetching[f] = true;
+	};
+	sl.on('scroll', $scope.getFeed);
+	$window.onscroll = $scope.getFeed;
 
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {

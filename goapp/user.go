@@ -481,3 +481,45 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u.Options = r.FormValue("options")
 	gn.Put(&u)
 }
+
+func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	f := Feed{Url: r.URL.Query().Get("f")}
+	fk := gn.Key(&f)
+	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
+	q = q.Order("-p")
+	if d := r.URL.Query().Get("d"); d != "" {
+		// parse date
+	}
+	if c := r.URL.Query().Get("c"); c != "" {
+		if dc, err := datastore.DecodeCursor(c); err == nil {
+			q = q.Start(dc)
+		}
+	}
+	iter := gn.Run(q)
+	var stories []*Story
+	for i := 0; i < 3; i++ {
+		if k, err := iter.Next(nil); err == nil {
+			stories = append(stories, &Story{
+				Id:     k.StringID(),
+				Parent: k.Parent(),
+			})
+		} else if err != datastore.Done {
+			serveError(w, err)
+			return
+		}
+	}
+	cursor := ""
+	if ic, err := iter.Cursor(); err == nil {
+		cursor = ic.String()
+	}
+	gn.GetMulti(&stories)
+	b, _ := json.Marshal(struct {
+		Cursor  string
+		Stories []*Story
+	}{
+		Cursor:  cursor,
+		Stories: stories,
+	})
+	w.Write(b)
+}
