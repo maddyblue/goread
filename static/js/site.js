@@ -120,9 +120,6 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 						}
 					}
 				}
-				$scope.stories.sort(function(a, b) {
-					return b.Date - a.Date;
-				});
 
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
@@ -383,6 +380,13 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		} else {
 			$scope.dispStories = $scope.stories;
 		}
+
+		$scope.dispStories.sort(function(a, b) {
+			var d = b.Date - a.Date;
+			if (!d)
+				return a.guid.localeCompare(b.guid);
+			return d;
+		});
 	};
 
 	$scope.rename = function(feed) {
