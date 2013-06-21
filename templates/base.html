@@ -261,7 +261,7 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="opts.nav && !nothing()" id="feed-list">
+			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
 				<ul class="unstyled">
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
