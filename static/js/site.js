@@ -39,7 +39,7 @@ function GoreadCtrl($scope, $http, $timeout) {
 		return $http({
 			method: method,
 			url: url,
-			data: $.param(data),
+			data: $.param(data || ''),
 			headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		});
 	};
