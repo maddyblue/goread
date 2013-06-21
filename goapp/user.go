@@ -473,13 +473,16 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{Id: cu.ID}
-	if err := gn.Get(&u); err != nil {
-		serveError(w, err)
-		return
-	}
-	u.Options = r.FormValue("options")
-	gn.Put(&u)
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		u := User{Id: cu.ID}
+		if err := gn.Get(&u); err != nil {
+			serveError(w, err)
+			return nil
+		}
+		u.Options = r.FormValue("options")
+		_, err := gn.Put(&u)
+		return err
+	}, nil)
 }
 
 func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
