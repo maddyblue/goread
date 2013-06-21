@@ -14,9 +14,4 @@ indexes:
   ancestor: yes
   properties:
   - name: p
-
-- kind: S
-  ancestor: yes
-  properties:
-  - name: p
     direction: desc
