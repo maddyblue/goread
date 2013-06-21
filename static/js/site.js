@@ -368,14 +368,20 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				}
 			}
 		} else if ($scope.activeFeed) {
-			for (var i = 0; i < $scope.stories.length; i++) {
-				var s = $scope.stories[i];
-				if (s.feed.XmlUrl == $scope.activeFeed) {
+			if ($scope.mode != 'unread') {
+				angular.forEach($scope.readStories[$scope.activeFeed], function(s) {
+					if ($scope.unreadStories[s.guid]) {
+						s.read = false;
+					}
 					$scope.dispStories.push(s);
+				});
+			} else {
+				for (var i = 0; i < $scope.stories.length; i++) {
+					var s = $scope.stories[i];
+					if (s.feed.XmlUrl == $scope.activeFeed) {
+						$scope.dispStories.push(s);
+					}
 				}
-			}
-			if ($scope.mode != 'unread' && $scope.readStories[$scope.activeFeed]) {
-				$scope.dispStories.push.apply($scope.dispStories, $scope.readStories[$scope.activeFeed]);
 			}
 		} else {
 			$scope.dispStories = $scope.stories;
