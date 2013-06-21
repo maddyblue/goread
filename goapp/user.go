@@ -498,7 +498,7 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	iter := gn.Run(q)
 	var stories []*Story
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 20; i++ {
 		if k, err := iter.Next(nil); err == nil {
 			stories = append(stories, &Story{
 				Id:     k.StringID(),
