@@ -348,7 +348,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.activeFeed = feed;
 		delete $scope.currentStory;
 		$scope.updateStories();
-		$scope.getFeed(feed);
+		$scope.getFeed();
 	};
 
 	$scope.setActiveFolder = function(folder) {
