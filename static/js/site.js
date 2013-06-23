@@ -140,8 +140,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
-	$scope.setCurrent = function(i) {
-		if (i == $scope.currentStory) {
+	$scope.setCurrent = function(i, noClose) {
+		if (!noClose && i == $scope.currentStory) {
 			delete $scope.currentStory;
 			return;
 		}
