@@ -154,7 +154,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
 		$scope.currentStory = i;
-		$scope.markRead(story);
+		$scope.markAllRead(story);
 		setTimeout(function() {
 			se = $('#storydiv' + i);
 			var eTop = se.offset().top;
@@ -208,55 +208,40 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 	};
 
-	$scope.markRead = function(s) {
-		if ($scope.unreadStories[s.guid]) {
-			delete $scope.unreadStories[s.guid];
-			s.read = true;
-			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				feed: s.feed.XmlUrl,
-				story: s.Id
-			});
-			$scope.updateUnread();
-			$scope.updateTitle();
+	$scope.markAllRead = function(story) {
+		if (!$scope.dispStories.length) return;
+		var ss = [];
+		var checkStories = story ? [story] : $scope.dispStories;
+		for (var i = 0; i < checkStories.length; i++) {
+			var s = checkStories[i];
+			if (!s.read) {
+				if ($scope.mode == 'unread') s.remove = true;
+				s.read = true;
+				ss.push({
+					Feed: s.feed.XmlUrl,
+					Story: s.Id
+				});
+				delete $scope.unreadStories[s.guid];
+			}
 		}
-	};
-
-	$scope.markAllRead = function(s) {
-		if ($scope.activeFeed || $scope.activeFolder) {
-			var ss = [];
-			for (var i = 0; i < $scope.dispStories.length; i++) {
-				var s = $scope.dispStories[i];
-				if (!s.read) {
-					s.remove = true;
-					ss.push({
-						Feed: s.feed.XmlUrl,
-						Story: s.Id
-					});
-				}
+		$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
+			stories: JSON.stringify(ss)
+		});
+		var unread = false;
+		for (var i = $scope.stories.length - 1; i >= 0; i--) {
+			if (!story && $scope.stories[i].remove) {
+				$scope.stories.splice(i, 1);
+			} else if (!$scope.stories[i].read) {
+				unread = true;
 			}
-			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				stories: JSON.stringify(ss)
-			});
-			for (var i = $scope.stories.length - 1; i >= 0; i--) {
-				if ($scope.stories[i].remove) {
-					$scope.stories.splice(i, 1);
-				}
-			}
-			$scope.updateUnread();
-			$scope.updateStories();
-			$scope.updateTitle();
-			return;
 		}
 
-		if ($scope.stories.length == 0) {
-			return;
-		}
-		$scope.unreadStories = {};
-		$scope.stories = [];
 		$scope.updateUnread();
 		$scope.updateStories();
-		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 		$scope.updateTitle();
+
+		if (!unread)
+			$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 	};
 
 	$scope.active = function() {
