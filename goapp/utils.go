@@ -92,7 +92,7 @@ func init() {
 		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.min.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
-		Underscore = fmt.Sprintf("//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.3/underscore-min.js", underscore_ver)
+		Underscore = fmt.Sprintf("//cdnjs.cloudflare.com/ajax/libs/underscore.js/%v/underscore-min.js", underscore_ver)
 	}
 }
 
