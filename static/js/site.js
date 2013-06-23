@@ -272,7 +272,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.toggleNav = function() {
 		$scope.opts.nav = !$scope.opts.nav;
 		$scope.saveOpts();
-	}
+	};
 
 	$scope.navspan = function() {
 		return $scope.opts.nav ? '' : 'no-nav';
