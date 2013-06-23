@@ -56,6 +56,7 @@ type Includes struct {
 	BootstrapCss    string
 	BootstrapJs     string
 	Jquery          string
+	Underscore      string
 	MiniProfiler    template.HTML
 	User            *User
 	Messages        []string
@@ -69,6 +70,7 @@ var (
 	BootstrapCss string
 	BootstrapJs  string
 	Jquery       string
+	Underscore   string
 	isDevServer  bool
 )
 
@@ -76,6 +78,7 @@ func init() {
 	angular_ver := "1.0.5"
 	bootstrap_ver := "2.3.1"
 	jquery_ver := "1.9.1"
+	underscore_ver := "1.4.4"
 	isDevServer = appengine.IsDevAppServer()
 
 	if appengine.IsDevAppServer() {
@@ -83,11 +86,13 @@ func init() {
 		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-%v.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap-%v.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
+		Underscore = fmt.Sprintf("/static/js/underscore-%v.js", underscore_ver)
 	} else {
 		Angular = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular.min.js", angular_ver)
 		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.min.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
+		Underscore = fmt.Sprintf("//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.3/underscore-min.js", underscore_ver)
 	}
 }
 
@@ -97,6 +102,7 @@ func includes(c mpg.Context, r *http.Request) *Includes {
 		BootstrapCss:    BootstrapCss,
 		BootstrapJs:     BootstrapJs,
 		Jquery:          Jquery,
+		Underscore:      Underscore,
 		MiniProfiler:    c.Includes(r),
 		GoogleAnalytics: GOOGLE_ANALYTICS_ID,
 		IsDev:           isDevServer,

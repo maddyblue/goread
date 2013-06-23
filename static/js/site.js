@@ -18,7 +18,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.contents = {};
 	$scope.opts = {
 		folderClose: {},
-		nav: true
+		nav: true,
+		expanded: false
 	};
 
 	$scope.importOpml = function() {
@@ -126,6 +127,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				$scope.updateUnread();
 				$scope.updateStories();
 				$scope.updateTitle();
+				setTimeout($scope.applyGetFeed);
 			})
 			.error(function() {
 				if (typeof cb === 'function') cb();
@@ -151,14 +153,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		if (i < $scope.dispStories.length - 2) {
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
-		$('#story' + $scope.currentStory).empty();
 		$scope.currentStory = i;
 		$scope.markRead(story);
-		$('#story' + i).html($scope.contents[story.guid] || '');
 		setTimeout(function() {
 			se = $('#storydiv' + i);
 			var eTop = se.offset().top;
-			if (eTop < 0 || eTop > $('#story-list').height()) {
+			if ($scope.opts.expanded || eTop < 0 || eTop > $('#story-list').height()) {
 				se[0].scrollIntoView();
 			}
 		});
@@ -274,6 +274,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.saveOpts();
 	};
 
+	$scope.toggleExpanded = function() {
+		$scope.opts.expanded = !$scope.opts.expanded;
+		$scope.saveOpts();
+		$scope.applyGetFeed();
+	};
+
 	$scope.navspan = function() {
 		return $scope.opts.nav ? '' : 'no-nav';
 	};
@@ -336,9 +342,6 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				}
 				for (var i = 0; i < data.length; i++) {
 					$scope.contents[tofetch[i].guid] = data[i];
-					if (current == tofetch[i].guid) {
-						$('#story' + $scope.currentStory).html(data[i]);
-					}
 				}
 			});
 	};
@@ -348,7 +351,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.activeFeed = feed;
 		delete $scope.currentStory;
 		$scope.updateStories();
-		$scope.getFeed();
+		$scope.applyGetFeed();
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -356,12 +359,13 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.activeFolder = folder;
 		delete $scope.currentStory;
 		$scope.updateStories();
+		$scope.applyGetFeed();
 	};
 
 	$scope.setMode = function(mode) {
 		$scope.mode = mode;
 		$scope.updateStories();
-		$scope.getFeed();
+		$scope.applyGetFeed();
 	};
 
 	$scope.updateStories = function() {
@@ -464,15 +468,43 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				$scope.readStories[f].push(data.Stories[i]);
 			}
 			$scope.updateStories();
-			$scope.getFeed();
+			$scope.applyGetFeed();
 		});
 		$scope.fetching[f] = true;
 	};
+
 	$scope.applyGetFeed = function() {
-		$scope.$apply($scope.getFeed);
+		if ($scope.mode == 'all') {
+			$scope.getFeed();
+		}
+		if ($scope.opts.expanded) {
+			$scope.getVisibleContents();
+		}
 	};
-	sl.on('scroll', $scope.applyGetFeed);
-	$window.onscroll = $scope.applyGetFeed;
+
+	$scope.onScroll = _.debounce($scope.applyGetFeed, 300);
+	sl.on('scroll', $scope.onScroll);
+	$window.onscroll = $scope.onScroll;
+	$window.onresize = $scope.onScroll;
+
+	$scope.getVisibleContents = function() {
+		var h = sl.height();
+		var st = sl.scrollTop();
+		var b = st + h + 200;
+		var fetched = 0;
+		for (var i = 0; i < $scope.dispStories.length && fetched < 10; i++) {
+			var s = $scope.dispStories[i];
+			if ($scope.contents[s.guid]) continue;
+			var sd = $('#storydiv' + i);
+			if (!sd.length) continue;
+			var sdt = sd.position().top;
+			var sdb = sdt + sd.height();
+			if (sdt < b && sdb > 0) {
+				fetched += 1;
+				$scope.getContents(s);
+			}
+		}
+	};
 
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {

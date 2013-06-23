@@ -22,6 +22,10 @@
 		}
 		.story {
 			border-bottom: 1px solid #ccc;
+			border-left: 1px solid #fff;
+		}
+		.story.selected {
+			border-left: 1px solid #0088cc;
 		}
 		.story-header {
 			position: relative;
@@ -59,6 +63,9 @@
 			margin: 0;
 			margin-top: 4px;
 			line-height: 24px;
+		}
+		.story-content {
+			margin-left: 4px;
 		}
 		.active-name {
 			font-weight: bold;
@@ -188,6 +195,8 @@
 									><i class="icon-refresh"></i></button>
 								<button class="btn btn-small" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
 								<button class="btn btn-small" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
+								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="opts.expanded"><i class="icon-th-list"></i></button>
+								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="!opts.expanded"><i class="icon-align-justify"></i></button>
 							</form>
 						</li>
 						<li><a ng-show="loading" style="position: absolute">loading...</a></li>
@@ -338,7 +347,14 @@
 						</div>
 					</div>
 				</div>
-				<div ng-repeat="s in dispStories" class="story" ng-mouseenter="overContents(s)" ng-mouseleave="leaveContents(s)" id="storydiv{{`{{$index}}`}}">
+				<div
+					ng-repeat="s in dispStories"
+					class="story"
+					ng-mouseenter="overContents(s)"
+					ng-mouseleave="leaveContents(s)"
+					id="storydiv{{`{{$index}}`}}"
+					ng-class="{selected: $index == currentStory}"
+				>
 					<div class="story-header hand" ng-class="{read: s.read}">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
 						<div class="story-title" ng-click="setCurrent($index)">
@@ -350,13 +366,13 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-show="$index == currentStory">
+					<div class="story-content" ng-click="setCurrent($index)" ng-show="$index == currentStory || opts.expanded">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 						</small></p>
-						<div id="story{{`{{$index}}`}}"></div>
+						<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
 					</div>
 				</div>
 				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="top-margin">
@@ -449,6 +465,7 @@
 	</div>
 
 	<script src="{{.Jquery}}"></script>
+	<script src="{{.Underscore}}"></script>
 	<script src="{{.BootstrapJs}}"></script>
 	<script src="/static/js/jquery.form.js"></script>
 	<script src="/static/js/mousetrap.min.js"></script>
