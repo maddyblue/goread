@@ -236,7 +236,12 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 		fetchUrl = origUrl
 	}
 
-	cl := urlfetch.Client(c)
+	cl := &http.Client{
+		Transport: &urlfetch.Transport{
+			Context:  c,
+			Deadline: 60,
+		},
+	}
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
