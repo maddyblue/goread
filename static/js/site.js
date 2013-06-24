@@ -265,6 +265,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.applyGetFeed();
 	};
 
+	$scope.setExpanded = function(v) {
+		$scope.opts.expanded = v;
+		$scope.saveOpts();
+		$scope.applyGetFeed();
+	};
+
 	$scope.navspan = function() {
 		return $scope.opts.nav ? '' : 'no-nav';
 	};
@@ -504,10 +510,10 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 		$scope.$apply($scope.refresh());
 	});
-	Mousetrap.bind(['j', 'n'], function() {
+	Mousetrap.bind(['j', 'n', 'space'], function() {
 		$scope.$apply('next()');
 	});
-	Mousetrap.bind(['k', 'p'], function() {
+	Mousetrap.bind(['k', 'p', 'shift+space'], function() {
 		$scope.$apply('prev()');
 	});
 	Mousetrap.bind('v', function() {
@@ -540,6 +546,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	});
 	Mousetrap.bind('u', function() {
 		$scope.$apply("toggleNav()");
+	});
+	Mousetrap.bind('1', function() {
+		$scope.$apply("setExpanded(true)");
+	});
+	Mousetrap.bind('2', function() {
+		$scope.$apply("setExpanded(false)");
 	});
 
 	$scope.showMessage = function(m) {
