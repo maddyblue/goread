@@ -364,6 +364,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		const max = 24 * 7
 		if v > max {
 			v = max
+		} else if f.Errors == 1 {
+			v = 0
 		}
 		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
 		gn.Put(&f)
