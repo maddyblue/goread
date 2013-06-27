@@ -1,6 +1,6 @@
 # go read
 
-a google reader clone built with go on app engine and angularjs
+a google reader clone built with go on app engine and angularjs. Try it out at [goread.io](http://www.goread.io)
 
 ## how to host your own
 
