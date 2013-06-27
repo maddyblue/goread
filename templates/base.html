@@ -345,6 +345,9 @@
 							<ul class="dropdown-menu">
 								<li><a href="#" ng-click="rename(activeFeed)">rename</a></li>
 								<li><a href="#" ng-click="unsubscribe(activeFeed)">unsubscribe</a></li>
+								{{if .IsAdmin}}
+									<li><a ng-href="{{url "admin-feed"}}?f={{`{{activeFeed}}`}}">admin</a></li>
+								{{end}}
 							</ul>
 						</div>
 					</div>
