@@ -1,8 +1,4 @@
 queue:
-- name: add-feed
-  rate: 20/s
-  retry_parameters:
-    task_retry_limit: 3
 - name: update-feed
   rate: 50/s
   retry_parameters:
