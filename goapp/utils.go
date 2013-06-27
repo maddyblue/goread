@@ -213,10 +213,6 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 			Id:     d,
 			Parent: gn.Key(feed),
 		})
-		// log dates this function doesn't cover so we can eventually retire it
-		if t, err = rssgo.ParseRssDate(d); err == nil {
-			return
-		}
 	}
 	err = errors.New(fmt.Sprintf("could not parse date: %v", strings.Join(ds, ", ")))
 	return
