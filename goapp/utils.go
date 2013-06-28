@@ -379,8 +379,9 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				return nil, nil
 			}
 		}
-		if len(s.Id) > 500 { // datastore limits keys to 500 chars
-			s.Id = s.Id[:500]
+		const keySize = 499
+		if len(s.Id) > keySize { // datastore limits keys to 500 chars
+			s.Id = s.Id[:keySize]
 		}
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
