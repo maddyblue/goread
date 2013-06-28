@@ -224,6 +224,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			break
 		} else if err != nil {
 			c.Errorf("next error: %v", err.Error())
+			break
 		}
 		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
