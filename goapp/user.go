@@ -128,7 +128,7 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	u.Messages = append(u.Messages,
 		"Reader import is happening. It can take a minute.",
-		"Refresh at will - you'll continue to see this page until it's done.",
+		"Refresh to see if it's done.",
 	)
 	gn.Put(&u)
 
