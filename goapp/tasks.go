@@ -220,8 +220,10 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	i := 0
 	for {
 		k, err := it.Next(nil)
-		if err != nil {
+		if err == datastore.Done {
 			break
+		} else if err != nil {
+			c.Errorf("next error: %v", err.Error())
 		}
 		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
