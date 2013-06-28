@@ -419,7 +419,7 @@ func loadImage(c appengine.Context, f *Feed) string {
 		return ""
 	}
 	buf := bytes.NewBuffer(b)
-	_, t, err := image.Decode(buf)
+	_, t, err := image.DecodeConfig(buf)
 	if err != nil {
 		t = "application/octet-stream"
 	} else {
