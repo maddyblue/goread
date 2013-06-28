@@ -365,17 +365,17 @@
 					ng-class="{selected: $index == currentStory}"
 				>
 					<div class="story-header hand" ng-class="{read: s.read}">
-						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index)" ng-bind="s.feed.Title"></div>
-						<div class="story-title" ng-click="setCurrent($index)">
+						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index, false, true)" ng-bind="s.feed.Title"></div>
+						<div class="story-title" ng-click="setCurrent($index, false, true)">
 							<strong ng-bind="s.Title"></strong>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="story-date muted visible-desktop">
-							<span ng-bind="s.dispdate" ng-click="setCurrent($index)"></span>
+							<span ng-bind="s.dispdate" ng-click="setCurrent($index, false, true)"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-click="setCurrent($index, true)" ng-show="$index == currentStory || opts.expanded">
+					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>

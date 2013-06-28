@@ -140,7 +140,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
-	$scope.setCurrent = function(i, noClose) {
+	$scope.setCurrent = function(i, noClose, isClick) {
 		if (!noClose && i == $scope.currentStory) {
 			delete $scope.currentStory;
 			return;
@@ -153,21 +153,25 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		if (i < $scope.dispStories.length - 2) {
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
+		if ($scope.currentStory != i) {
+			setTimeout(function() {
+				se = $('#storydiv' + i);
+				var eTop = se.offset().top;
+				if (!isClick || eTop < 0 || eTop > $('#story-list').height()) {
+					se[0].scrollIntoView();
+				}
+			});
+		}
 		$scope.currentStory = i;
 		$scope.markAllRead(story);
-		setTimeout(function() {
-			se = $('#storydiv' + i);
-			var eTop = se.offset().top;
-			if ($scope.opts.expanded || eTop < 0 || eTop > $('#story-list').height()) {
-				se[0].scrollIntoView();
-			}
-		});
 	};
+
 	$scope.prev = function() {
 		if ($scope.currentStory > 0) {
 			$scope.setCurrent($scope.currentStory - 1);
 		}
 	};
+
 	$scope.next = function() {
 		if ($scope.dispStories && typeof $scope.currentStory === 'undefined') {
 			$scope.setCurrent(0);
