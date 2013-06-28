@@ -444,8 +444,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.cursors = {};
 	$scope.fetching = {};
 	$scope.getFeed = function() {
-		var f = $scope.activeFeed
-		if (!f || $scope.fetching[f]) return
+		var f = $scope.activeFeed;
+		if (!f || $scope.fetching[f]) return;
 		if ($scope.dispStories.length != 0) {
 			var sh = sl[0].scrollHeight;
 			var h = sl.height();
