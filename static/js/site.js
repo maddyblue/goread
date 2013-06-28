@@ -497,6 +497,14 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 	};
 
+	$scope.setAddSubscription = function() {
+		$scope.shown = 'add-subscription';
+		// need to wait for the keypress to finish before focusing
+		setTimeout(function() {
+			$('#add-subscription-form input').focus();
+		});
+	};
+
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		shortcuts.modal('toggle');
@@ -531,12 +539,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		if ($scope.nouser) {
 			return;
 		}
-		$scope.$apply("shown = 'add-subscription'");
-
-		// need to wait for the keypress to finish before focusing
-		setTimeout(function() {
-			$('#add-subscription-form input').focus();
-		}, 0);
+		$scope.$apply("setAddSubscription()");
 	});
 	Mousetrap.bind('g a', function() {
 		if ($scope.nouser) {
