@@ -120,12 +120,10 @@ func AdminDateFormats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminStats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	fc, _ := datastore.NewQuery(gn.Key(&Feed{}).Kind()).Count(c)
 	uc, _ := datastore.NewQuery(gn.Key(&User{}).Kind()).Count(c)
 	templates.ExecuteTemplate(w, "admin-stats.html", struct {
-		Users, Feeds int
+		Users int
 	}{
 		uc,
-		fc,
 	})
 }
