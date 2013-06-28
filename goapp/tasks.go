@@ -336,6 +336,17 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	c.Debugf("putting %v entities", len(puts))
 	if len(puts) > 1 {
+		if !f.Date.IsZero() {
+			// the feed has been updated, so update the average
+			// interval between updates
+			// rather than calculate a strict mean, we weight
+			// each new interval, gradually decaying the influence
+			// of older intervals
+			interval := time.Since(f.Date)
+			old := float64(f.Average) * (1.0 - NewIntervalWeight)
+			cur := float64(interval) * NewIntervalWeight
+			f.Average = time.Duration(old + cur)
+		}
 		f.Date = time.Now()
 		if !hasUpdated {
 			f.Updated = f.Date
