@@ -121,7 +121,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const IMPORT_LIMIT = 20
+const IMPORT_LIMIT = 10
 
 func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
