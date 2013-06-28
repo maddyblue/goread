@@ -137,7 +137,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 
 	$scope.updateTitle = function() {
 		var ur = $scope.unread['all'] || 0;
-		document.title = (ur != 0 ? ' (' + ur + ')' : '') + 'go read';
+		document.title = (ur != 0 ? '(' + ur + ') ' : '') + 'go read';
 	};
 
 	$scope.setCurrent = function(i, noClose, isClick) {
