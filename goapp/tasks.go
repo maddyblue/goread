@@ -215,7 +215,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
-	q = q.Filter("n <=", time.Now())
+	q = q.Filter("n <=", time.Now()).Limit(3000)
 	it := gn.Run(q)
 	i := 0
 	for {
