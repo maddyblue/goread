@@ -346,7 +346,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	return nil, nil
 }
 
-const UpdateTime = time.Hour
+const UpdateTime = time.Hour * 3
 
 func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
