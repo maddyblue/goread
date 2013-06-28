@@ -168,12 +168,12 @@
 						<li>
 							<li ng-click="shown = 'feeds'" class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown" ng-init="mode = 'unread'">
-									<span ng-show="mode == 'unread'">{{`{{unread.all || 'no'}}`}} unread items</span>
+									<span ng-show="mode == 'unread'">{{`{{unread.current || 'no'}}`}} unread items</span>
 									<span ng-hide="mode == 'unread'">all items</span>
 									<b class="caret"></b>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="#" ng-show="mode != 'unread'" ng-click="setMode('unread')">{{`{{unread.all || 'no'}}`}} unread items</a></li>
+									<li><a href="#" ng-show="mode != 'unread'" ng-click="setMode('unread')">{{`{{unread.current || 'no'}}`}} unread items</a></li>
 									<li><a href="#" ng-hide="mode != 'unread'" ng-click="setMode('all')">all items</a></li>
 								</ul>
 							</li>

@@ -206,6 +206,13 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				}
 			}
 		}
+		$scope.updateUnreadCurrent();
+	};
+
+	$scope.updateUnreadCurrent = function() {
+		if ($scope.activeFeed) $scope.unread.current = $scope.unread.feeds[$scope.activeFeed];
+		else if ($scope.activeFolder) $scope.unread.current = $scope.unread.folders[$scope.activeFolder];
+		else $scope.unread.current = $scope.unread.all;
 	};
 
 	$scope.markAllRead = function(story) {
@@ -343,6 +350,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		delete $scope.currentStory;
 		$scope.updateStories();
 		$scope.applyGetFeed();
+		$scope.updateUnreadCurrent();
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -351,6 +359,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		delete $scope.currentStory;
 		$scope.updateStories();
 		$scope.applyGetFeed();
+		$scope.updateUnreadCurrent();
 	};
 
 	$scope.setMode = function(mode) {
