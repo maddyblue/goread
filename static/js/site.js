@@ -188,11 +188,11 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			'folders': {}
 		};
 
-		for (var i = 0; i < $scope.feeds.length; i++) {
+		for (var i = 0,len=$scope.feeds.length; i < len; i++) {
 			var f = $scope.feeds[i];
 			if (f.Outline) {
 				$scope.unread['folders'][f.Title] = 0;
-				for (var j = 0; j < f.Outline.length; j++) {
+				for (var j = 0, jlen = f.Outline.length; j < jlen; j++) {
 					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
 				}
 			} else {
@@ -200,7 +200,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			}
 		}
 
-		for (var i = 0; i < $scope.stories.length; i++) {
+		for (var i = 0, len=$scope.stories.length; i < len; i++) {
 			var s = $scope.stories[i];
 			if ($scope.unreadStories[s.guid]) {
 				$scope.unread['all']++;

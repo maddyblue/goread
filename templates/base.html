@@ -8,9 +8,9 @@
 		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
 		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
 		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
-		#feed-list::-webkit-scrollbar { width: 8px; }
-		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#sidebar::-webkit-scrollbar { width: 8px; }
+		#sidebar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		.ng-cloak {
 			display: none;
 		}
@@ -25,6 +25,13 @@
 			position: absolute;
 			right: 0;
 			left: auto;
+		}
+		#sidebar {
+			position: absolute;
+			overflow-y: auto;
+			overflow-x: hidden;
+			top: 40px;
+			bottom: 0;
 		}
 		.story {
 			border-bottom: 1px solid #ccc;
@@ -99,10 +106,6 @@
 		#feed-list {
 			font-size: 13px;
 			padding: 0.5em;
-			overflow-y: hidden;
-		}
-		#feed-list:hover {
-			overflow-y: auto;
 		}
 		#feed-list-actions {
 			padding: 0.5em 0.5em 0 0.5em;
@@ -298,7 +301,7 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div class="span2" ng-show="opts.nav && !nothing() && shown == 'feeds'">
+			<div class="span2" id="sidebar" ng-show="opts.nav && !nothing() && shown == 'feeds'">
 				<div id="feed-list-actions" class="btn-toolbar">
 					<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<div class="btn-group">
