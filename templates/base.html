@@ -398,7 +398,7 @@
 			<div class="offset2 span8">
 				<p>You don't have any feeds.</p>
 				<p>You should probably add some.</p>
-				<p><a href="{{url "import-reader"}}">Import from Google Reader.</a></p>
+				<p><a href="{{url "import-reader"}}" class="btn btn-primary">Import from Google Reader</a></p>
 			</div>
 		</div>
 
@@ -406,7 +406,7 @@
 			<div class="offset2 span8">
 				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
 					<fieldset>
-						<legend>Feed URL (RSS or Atom)</legend>
+						<legend>Feed URL</legend>
 						<input type="text" class="span12" ng-model="addFeedUrl">
 						<p><button ng-click="addSubscription()" class="btn">import</button></p>
 					</fieldset>
