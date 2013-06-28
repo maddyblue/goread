@@ -114,7 +114,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 
 					if (f.XmlUrl) {
 						loadStories(f);
-					} else {
+					} else if (f.Outline) {  // check for empty groups
 						for(var j = 0; j < f.Outline.length; j++) {
 							loadStories(f.Outline[j]);
 							$scope.xmlurls[f.Outline[j].XmlUrl].folder = f.Title;
