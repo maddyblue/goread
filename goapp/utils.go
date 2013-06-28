@@ -347,8 +347,8 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 }
 
 const (
-	UpdateMin         = time.Minute * 10
-	UpdateMax         = time.Hour * 6
+	UpdateMin         = time.Minute * 20
+	UpdateMax         = time.Hour * 8
 	UpdateDefault     = time.Hour * 3
 	UpdateFraction    = 0.5
 	UpdateJitter      = time.Minute * 3
@@ -358,7 +358,7 @@ const (
 func scheduleNextUpdate(f *Feed) {
 	// calculate the delay until next check based on average time between updates
 	pause := time.Duration(float64(f.Average) * UpdateFraction)
-	if f.IntervalCount < UpdateMinCount {
+	if pause == 0 {
 		pause = UpdateDefault
 	}
 	if pause < UpdateMin {
@@ -367,7 +367,7 @@ func scheduleNextUpdate(f *Feed) {
 	if pause > UpdateMax {
 		pause = UpdateMax
 	}
-	jitter := rand.Int63n(int64(UpdateJitter))
+	jitter := time.Duration(rand.Int63n(int64(UpdateJitter)))
 	if rand.Intn(2) == 0 {
 		pause += jitter
 	} else {
@@ -380,6 +380,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	scheduleNextUpdate(f)
+	c.Debugf("next update scheduled for %v from now", f.NextUpdate.Sub(f.Checked))
 
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)

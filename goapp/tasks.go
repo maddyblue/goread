@@ -339,10 +339,17 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		if !f.Date.IsZero() {
 			// the feed has been updated, so update the average
 			// interval between updates
+			//
 			// rather than calculate a strict mean, we weight
 			// each new interval, gradually decaying the influence
 			// of older intervals
-			interval := time.Since(f.Date)
+			//
+			// the real update could have happened any time since
+			// our last check, so we treat it as being right in the middle
+			interval := time.Since(f.Date) - f.Average/2
+			if interval < UpdateMin/2 {
+				interval = UpdateMin / 2
+			}
 			old := float64(f.Average) * (1.0 - NewIntervalWeight)
 			cur := float64(interval) * NewIntervalWeight
 			f.Average = time.Duration(old + cur)
