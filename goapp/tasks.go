@@ -235,6 +235,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		i++
 	}
 	c.Infof("updating %d feeds", i)
+	fmt.Fprintf(w, "updating %d feeds", i)
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
