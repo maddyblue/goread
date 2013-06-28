@@ -275,7 +275,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.active = function() {
 		if ($scope.activeFolder) return $scope.activeFolder;
 		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed].Title;
-		return 'all items';
+		return 'All items';
 	};
 
 	$scope.nothing = function() {
