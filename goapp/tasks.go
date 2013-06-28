@@ -216,11 +216,12 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
 	q = q.Filter("n <=", time.Now())
-	it := g.Run(q)
+	it := gn.Run(q)
+	i := 0
 	for {
 		k, err := it.Next(nil)
 		if err != nil {
-			continue
+			break
 		}
 		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
@@ -228,8 +229,9 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
 			c.Errorf("taskqueue error: %v", err.Error())
 		}
+		i++
 	}
-	c.Infof("updating %d feeds", len(keys))
+	c.Infof("updating %d feeds", i)
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
