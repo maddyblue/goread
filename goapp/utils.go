@@ -52,17 +52,18 @@ func serveError(w http.ResponseWriter, err error) {
 }
 
 type Includes struct {
-	Angular         string
-	BootstrapCss    string
-	BootstrapJs     string
-	Jquery          string
-	Underscore      string
-	MiniProfiler    template.HTML
-	User            *User
-	Messages        []string
-	GoogleAnalytics string
-	IsDev           bool
-	IsAdmin         bool
+	Angular             string
+	BootstrapCss        string
+	BootstrapJs         string
+	Jquery              string
+	Underscore          string
+	MiniProfiler        template.HTML
+	User                *User
+	Messages            []string
+	GoogleAnalyticsId   string
+	GoogleAnalyticsHost string
+	IsDev               bool
+	IsAdmin             bool
 }
 
 var (
@@ -98,14 +99,15 @@ func init() {
 
 func includes(c mpg.Context, r *http.Request) *Includes {
 	i := &Includes{
-		Angular:         Angular,
-		BootstrapCss:    BootstrapCss,
-		BootstrapJs:     BootstrapJs,
-		Jquery:          Jquery,
-		Underscore:      Underscore,
-		MiniProfiler:    c.Includes(r),
-		GoogleAnalytics: GOOGLE_ANALYTICS_ID,
-		IsDev:           isDevServer,
+		Angular:             Angular,
+		BootstrapCss:        BootstrapCss,
+		BootstrapJs:         BootstrapJs,
+		Jquery:              Jquery,
+		Underscore:          Underscore,
+		MiniProfiler:        c.Includes(r),
+		GoogleAnalyticsId:   GOOGLE_ANALYTICS_ID,
+		GoogleAnalyticsHost: GOOGLE_ANALYTICS_HOST,
+		IsDev:               isDevServer,
 	}
 
 	if cu := user.Current(c); cu != nil {

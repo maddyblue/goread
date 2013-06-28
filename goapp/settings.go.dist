@@ -14,6 +14,7 @@ var (
 
 const (
 	GOOGLE_ANALYTICS_ID = ""
+	GOOGLE_ANALYTICS_HOST = ""
 )
 
 func init() {
