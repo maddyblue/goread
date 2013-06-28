@@ -7,7 +7,8 @@ a google reader clone built with go on app engine and angularjs
 1. checkout the code
 1. create a new app engine application
 1. install the app engine SDK
-1. set your GOPATH, run the app, and run `go get <package URL>` when it complains about a needed import
+1. set your GOPATH (to something like `/home/user/mygo`
+1. run `go get -d github.com/mjibson/goread`
 1. in `app.yaml`, change the first line to contain the name of the application you just created
 1. in the `goapp` folder, copy `settings.go.dist` to `settings.go`
 
