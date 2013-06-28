@@ -15,6 +15,7 @@ function countProperties(obj) {
 
 function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
+	$scope.feedlistMode = 'updated'
 	$scope.contents = {};
 	$scope.opts = {
 		folderClose: {},
@@ -212,6 +213,22 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 		$scope.updateUnreadCurrent();
 	};
+
+	$scope.isUpdatedFeed = function(feed) {
+		if (!feed.Outline) {
+			return !!$scope.unread['feeds'][feed.XmlUrl]
+		} else {
+			return !!$scope.unread['folders'][f.Title]
+		}
+	}
+
+	$scope.isHiddenFeed = function(feed) {
+		return $scope.feedlistMode == "updated" && !$scope.isUpdatedFeed(feed);
+	}
+
+	$scope.setFeedlistMode = function(mode) {
+		$scope.feedlistMode = mode;
+	}
 
 	$scope.updateUnreadCurrent = function() {
 		if ($scope.activeFeed) $scope.unread.current = $scope.unread.feeds[$scope.activeFeed];
