@@ -122,10 +122,10 @@ func includes(c mpg.Context, r *http.Request) *Includes {
 				user.Messages = nil
 				gn.Put(user)
 			}
+
+			i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
 		}
 	}
-
-	i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
 
 	return i
 }
