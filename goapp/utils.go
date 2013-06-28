@@ -97,7 +97,7 @@ func init() {
 	}
 }
 
-func includes(c mpg.Context, r *http.Request) *Includes {
+func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 	i := &Includes{
 		Angular:             Angular,
 		BootstrapCss:        BootstrapCss,
@@ -123,7 +123,14 @@ func includes(c mpg.Context, r *http.Request) *Includes {
 				gn.Put(user)
 			}
 
-			i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
+			if _, err := r.Cookie("update-bug"); err != nil {
+				i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
+				http.SetCookie(w, &http.Cookie{
+					Name: "update-bug",
+					Value: "done",
+					Expires: time.Now().Add(time.Hour * 24 * 7),
+				})
+			}
 		}
 	}
 

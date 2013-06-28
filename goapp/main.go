@@ -85,7 +85,7 @@ func init() {
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if err := templates.ExecuteTemplate(w, "base.html", includes(c, r)); err != nil {
+	if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
 		serveError(w, err)
 	}
 }
