@@ -218,9 +218,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q = q.Filter("n <=", time.Now())
 	retry, _ := strconv.Atoi(r.FormValue("retry"))
 	c.Errorf("retry: %v", retry)
-	if retry > 5 {
-		return
-	}
 
 	//* iterator
 	it := gn.Run(q)
