@@ -346,12 +346,51 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	return nil, nil
 }
 
-const UpdateTime = time.Hour * 3
+const (
+	UpdateMin         = time.Minute * 20
+	UpdateMax         = time.Hour * 12
+	UpdateDefault     = time.Hour * 3
+	UpdateFraction    = 0.5
+	UpdateJitter      = time.Minute * 3
+	UpdateLongFactor  = 20
+	NewIntervalWeight = 0.2
+)
+
+func scheduleNextUpdate(f *Feed) {
+	// calculate the delay until next check based on average time between updates
+	pause := time.Duration(float64(f.Average) * UpdateFraction)
+	if pause == 0 {
+		pause = UpdateDefault
+	}
+
+	// has it been much longer than expected since the last update?
+	// if so, stretch out the check interval
+	// this ensures that a source that is updated frequently then stops
+	// does not get stuck with fast checks permanently
+	if time.Since(f.Date) > pause*UpdateLongFactor {
+		pause = time.Duration(float64(time.Since(f.Date)) / UpdateLongFactor)
+	}
+	if pause < UpdateMin {
+		pause = UpdateMin
+	}
+	if pause > UpdateMax {
+		pause = UpdateMax
+	}
+	jitter := time.Duration(rand.Int63n(int64(UpdateJitter)))
+	if rand.Intn(2) == 0 {
+		pause += jitter
+	} else {
+		pause -= jitter
+	}
+	f.NextUpdate = time.Now().Add(pause)
+}
 
 func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
-	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(300)))
+	scheduleNextUpdate(f)
+	c.Debugf("next update scheduled for %v from now", f.NextUpdate.Sub(f.Checked))
+
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 
