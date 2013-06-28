@@ -125,6 +125,8 @@ func includes(c mpg.Context, r *http.Request) *Includes {
 		}
 	}
 
+	i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
+
 	return i
 }
 
