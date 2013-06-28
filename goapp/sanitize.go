@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"code.google.com/p/go.net/html"
 	"code.google.com/p/go.net/html/atom"
-	_html "html"
 	"io"
 	"regexp"
 	"strings"
@@ -64,7 +63,7 @@ var snipRe = regexp.MustCompile("[\\s]+")
 
 func snipper(s string) string {
 	s = snipRe.ReplaceAllString(strings.TrimSpace(s), " ")
-	s = _html.UnescapeString(s)
+	s = html.UnescapeString(s)
 	if len(s) <= snipLen {
 		return s
 	}
