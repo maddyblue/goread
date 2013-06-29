@@ -123,6 +123,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 				gn.Put(user)
 			}
 
+			/*
 			if _, err := r.Cookie("update-bug"); err != nil {
 				i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
 				http.SetCookie(w, &http.Cookie{
@@ -131,6 +132,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 					Expires: time.Now().Add(time.Hour * 24 * 7),
 				})
 			}
+			*/
 		}
 	}
 
