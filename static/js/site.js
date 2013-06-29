@@ -46,7 +46,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	};
 
 	function addhttp(url) {
-	    if (!url.match('~^(?:f|ht)tps?://~i')) {
+	    if (!url.match('^(http|https):\/\/')) {
 	        url = 'http://' + url;
 	    }
 	    return url;
