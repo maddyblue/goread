@@ -381,7 +381,8 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		getStories[i] = &Story{Id: s.Id, Parent: fk}
 	}
 	err := gn.GetMulti(getStories)
-	if _, ok := err.(appengine.MultiError); !ok {
+	if _, ok := err.(appengine.MultiError); err != nil && !ok {
+		c.Errorf("get multi error: %v", err.Error())
 		return err
 	}
 	var updateStories []*Story
