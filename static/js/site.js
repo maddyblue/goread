@@ -15,6 +15,7 @@ function countProperties(obj) {
 
 function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
+	$scope.feedlistMode = 'updated'
 	$scope.contents = {};
 	$scope.opts = {
 		folderClose: {},
@@ -187,11 +188,11 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			'folders': {}
 		};
 
-		for (var i = 0; i < $scope.feeds.length; i++) {
+		for (var i = 0,len=$scope.feeds.length; i < len; i++) {
 			var f = $scope.feeds[i];
 			if (f.Outline) {
 				$scope.unread['folders'][f.Title] = 0;
-				for (var j = 0; j < f.Outline.length; j++) {
+				for (var j = 0, jlen = f.Outline.length; j < jlen; j++) {
 					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
 				}
 			} else {
@@ -199,7 +200,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			}
 		}
 
-		for (var i = 0; i < $scope.stories.length; i++) {
+		for (var i = 0, len=$scope.stories.length; i < len; i++) {
 			var s = $scope.stories[i];
 			if ($scope.unreadStories[s.guid]) {
 				$scope.unread['all']++;
@@ -212,6 +213,22 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		}
 		$scope.updateUnreadCurrent();
 	};
+
+	$scope.isUpdatedFeed = function(feed) {
+		if (!feed.Outline) {
+			return !!$scope.unread['feeds'][feed.XmlUrl]
+		} else {
+			return !!$scope.unread['folders'][f.Title]
+		}
+	}
+
+	$scope.isHiddenFeed = function(feed) {
+		return $scope.feedlistMode == "updated" && !$scope.isUpdatedFeed(feed);
+	}
+
+	$scope.setFeedlistMode = function(mode) {
+		$scope.feedlistMode = mode;
+	}
 
 	$scope.updateUnreadCurrent = function() {
 		if ($scope.activeFeed) $scope.unread.current = $scope.unread.feeds[$scope.activeFeed];
@@ -258,7 +275,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.active = function() {
 		if ($scope.activeFolder) return $scope.activeFolder;
 		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed].Title;
-		return 'all items';
+		return 'All items';
 	};
 
 	$scope.nothing = function() {

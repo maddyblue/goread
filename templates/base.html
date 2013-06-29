@@ -5,6 +5,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
 	<style>
+		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
+		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#sidebar::-webkit-scrollbar { width: 8px; }
+		#sidebar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		.ng-cloak {
 			display: none;
 		}
@@ -19,6 +25,13 @@
 			position: absolute;
 			right: 0;
 			left: auto;
+		}
+		#sidebar {
+			position: absolute;
+			overflow-y: auto;
+			overflow-x: hidden;
+			top: 40px;
+			bottom: 0;
 		}
 		.story {
 			border-bottom: 1px solid #ccc;
@@ -43,11 +56,16 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
+		.feed-title, .folder-title {
+			padding: 2px;
+		}
+		.feed-title:hover, .folder-title:hover {
+			background-color: #eee;
+		}
 		.story-header.read {
 			background-color: #f5f5f5;
 		}
 		.story-feed {
-			width: 145px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			position: absolute;
@@ -65,7 +83,8 @@
 			line-height: 24px;
 		}
 		.story-content {
-			margin-left: 4px;
+			margin: 0.5em;
+			max-width: 650px;
 		}
 		.active-name {
 			font-weight: bold;
@@ -73,7 +92,6 @@
 		}
 		#story-list {
 			position: absolute;
-			left: 245px;
 			overflow-y: auto;
 			top: 40px;
 			bottom: 0;
@@ -86,13 +104,11 @@
 			margin-right: 20px;
 		}
 		#feed-list {
-			position: absolute;
 			font-size: 13px;
-			width: 220px;
-			top: 50px;
-			bottom: 0;
-			overflow-y: auto;
-			left: 20px;
+			padding: 0.5em;
+		}
+		#feed-list-actions {
+			padding: 0.5em 0.5em 0 0.5em;
 		}
 		.feed-child {
 			margin-left: 20px;
@@ -169,7 +185,7 @@
 							<li ng-click="shown = 'feeds'" class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown" ng-init="mode = 'unread'">
 									<span ng-show="mode == 'unread'">{{`{{unread.current || 'no'}}`}} unread items</span>
-									<span ng-hide="mode == 'unread'">all items</span>
+									<span ng-hide="mode == 'unread'">All items</span>
 									<b class="caret"></b>
 								</a>
 								<ul class="dropdown-menu">
@@ -285,48 +301,61 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
-				<ul class="unstyled">
-					<li>
-						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
-					<li>
-					<li class="all-subs hand" ng-click="setActiveFeed()">
-						all items ({{`{{unread.all || 0}}`}})
-					</li>
-					<li ng-repeat="f in feeds">
-						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
-							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-							<span class="hand" ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
-							<span ng-show="unread['feeds'][f.XmlUrl]">
-								({{`{{unread['feeds'][f.XmlUrl]}}`}})
-							</span>
-						</div>
-						<div ng-show="f.Outline">
-							<div ng-show="f.Outline" class="folder-title">
-								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
-								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
-								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
-								<span ng-show="unread['folders'][f.Title]">
-									({{`{{unread['folders'][f.Title]}}`}})
+			<div class="span2" id="sidebar" ng-show="opts.nav && !nothing() && shown == 'feeds'">
+				<div id="feed-list-actions" class="btn-toolbar">
+					<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
+					<div class="btn-group">
+						<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" >
+							<i class="icon-cog"></i>
+							<span class="caret"></span>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" ng-show="feedlistMode != 'updated'" ng-click="setFeedlistMode('updated')">Show updated</a></li>
+							<li><a href="#" ng-hide="feedlistMode != 'updated'" ng-click="setFeedlistMode('all')">Show all</a></li>
+						</ul>
+					</div>
+				</div>
+				<div id="feed-list">
+					<ul class="unstyled">
+						<li class="all-subs hand" ng-click="setActiveFeed()">
+							All items ({{`{{unread.all || 0}}`}})
+						</li>
+						<li ng-repeat="f in feeds">
+							<div class="hand feed-title" ng-hide="f.Outline || isHiddenFeed(f)" ng-click="setActiveFeed(f.XmlUrl)">
+								<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+								<span ng-class="{bold: isUpdatedFeed(f)}" ng-bind="f.Title"></span>
+								<span ng-show="unread['feeds'][f.XmlUrl]">
+									({{`{{unread['feeds'][f.XmlUrl]}}`}})
 								</span>
 							</div>
-							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
-								<li ng-repeat="o in f.Outline">
-									<div class="feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
-										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-										<span class="hand" ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
-										<span ng-show="unread['feeds'][o.XmlUrl]">
-											({{`{{unread['feeds'][o.XmlUrl]}}`}})
-										</span>
-									</div>
-								</li>
-							</ul>
-						</div>
-					</li>
-				</ul>
+							<div ng-show="f.Outline || !isHiddenFeed(f)">
+								<div class="hand folder-title" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)">
+									<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
+									<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
+									<span ng-class="{bold: isUpdatedFeed(f)}" ng-bind="f.Title"></span>
+									<span ng-show="isUpdatedFeed(f)">
+										({{`{{unread['folders'][f.Title]}}`}})
+									</span>
+								</div>
+								<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
+									<li ng-repeat="o in f.Outline">
+										<div class="hand feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
+											<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
+											<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
+											<span ng-show="unread['feeds'][o.XmlUrl]">
+												({{`{{unread['feeds'][o.XmlUrl]}}`}})
+											</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
 			</div>
 
 			<div
+				class="span10"
 				ng-show="loading == 0 && shown == 'feeds' && numfeeds"
 				ng-class="navspan()"
 				ng-style="navmargin()"
