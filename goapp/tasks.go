@@ -219,7 +219,33 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	retry, _ := strconv.Atoi(r.FormValue("retry"))
 	c.Errorf("retry: %v", retry)
 
-	//* iterator
+	//* iterator delayed task add
+	q = q.Limit(3000)
+	it := gn.Run(q)
+	var keys []*datastore.Key
+	for {
+		k, err := it.Next(nil)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			c.Errorf("next error: %v", err.Error())
+			break
+		}
+		keys = append(keys, k)
+	}
+	for _, k := range keys {
+		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+			"feed": {k.StringID()},
+		})
+		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
+			c.Errorf("taskqueue error: %v", err.Error())
+		}
+	}
+	c.Infof("updating %d feeds", len(keys))
+	fmt.Fprintf(w, "updating %d feeds", len(keys))
+	//*/
+
+	/* iterator
 	it := gn.Run(q)
 	i := 0
 	done := false
