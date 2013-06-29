@@ -19,7 +19,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	$scope.opts = {
 		folderClose: {},
 		nav: true,
-		expanded: false
+		expanded: false,
+		mode: 'unread'
 	};
 
 	$scope.importOpml = function() {
@@ -226,7 +227,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		for (var i = 0; i < checkStories.length; i++) {
 			var s = checkStories[i];
 			if (!s.read) {
-				if ($scope.mode == 'unread') s.remove = true;
+				if ($scope.opts.mode == 'unread') s.remove = true;
 				s.read = true;
 				ss.push({
 					Feed: s.feed.XmlUrl,
@@ -367,9 +368,10 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	};
 
 	$scope.setMode = function(mode) {
-		$scope.mode = mode;
+		$scope.opts.mode = mode;
 		$scope.updateStories();
 		$scope.applyGetFeed();
+		$scope.saveOpts();
 	};
 
 	$scope.updateStories = function() {
@@ -382,7 +384,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 				}
 			}
 		} else if ($scope.activeFeed) {
-			if ($scope.mode != 'unread') {
+			if ($scope.opts.mode != 'unread') {
 				angular.forEach($scope.readStories[$scope.activeFeed], function(s) {
 					if ($scope.unreadStories[s.guid]) {
 						s.read = false;
@@ -509,7 +511,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	};
 
 	$scope.applyGetFeed = function() {
-		if ($scope.mode == 'all') {
+		if ($scope.opts.mode == 'all') {
 			$scope.getFeed();
 		}
 		if ($scope.opts.expanded) {
