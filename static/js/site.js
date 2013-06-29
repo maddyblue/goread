@@ -367,12 +367,6 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.updateUnreadCurrent();
 	};
 
-	$scope.viewAllItems = function() {
-		previous_mode = $scope.mode;
-		$scope.setMode('all');
-		$scope.mode = previous_mode;
-	}
-
 	$scope.setMode = function(mode) {	
 		$scope.mode = mode;
 		$scope.updateStories();
