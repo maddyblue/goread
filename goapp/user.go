@@ -244,7 +244,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				}
 				if f.Link != opmlMap[f.Url].HtmlUrl {
 					updatedLinks = true
-					c.Debugf("fixing link %v, %v -> %v", f.Url, opmlMap[f.Url].HtmlUrl, f.Link)
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
 				lock.Lock()
