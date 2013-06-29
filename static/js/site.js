@@ -430,6 +430,19 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.uploadOpml();
 	};
 
+	$scope.deleteFolder = function(folder) {
+		if (!confirm('Delete ' + folder + ' and unsubscribe from all feeds in it?')) return;
+		for (var i = 0; i < $scope.feeds.length; i++) {
+			var f = $scope.feeds[i];
+			if (f.Outline && f.Title == folder) {
+				$scope.feeds.splice(i, 1);
+				break;
+			}
+		}
+		$scope.setActiveFeed();
+		$scope.uploadOpml();
+	};
+
 	$scope.unsubscribe = function(feed) {
 		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + '?')) return;
 		for (var i = 0; i < $scope.feeds.length; i++) {
