@@ -427,6 +427,10 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 						break;
 					}
 				}
+				if (!f.Outline.length) {
+					$scope.feeds.splice(i, 1);
+					break;
+				}
 			}
 			if (f.XmlUrl == feed) {
 				$scope.feeds.splice(i, 1);
