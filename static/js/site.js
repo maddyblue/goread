@@ -20,7 +20,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		folderClose: {},
 		nav: true,
 		expanded: false,
-		mode: 'unread'
+		mode: 'unread',
+		sort: 'newest'
 	};
 
 	$scope.importOpml = function() {
@@ -374,6 +375,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.saveOpts();
 	};
 
+	$scope.setSort = function(order) {
+		$scope.opts.sort = order;
+		$scope.updateStories();
+		$scope.saveOpts();
+	};
+
 	$scope.updateStories = function() {
 		$scope.dispStories = [];
 		if ($scope.activeFolder) {
@@ -403,7 +410,22 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 			$scope.dispStories = $scope.stories;
 		}
 
-		$scope.dispStories.sort(function(a, b) {
+		var swap = $scope.opts.sort == 'oldest'
+		if (swap) {
+			// turn off swap for all items mode on a feed
+			if ($scope.activeFeed && $scope.opts.mode == 'all')
+				swap = false;
+		}
+		$scope.dispStories.sort(function(_a, _b) {
+			var a, b;
+			if (!swap) {
+				a = _a;
+				b = _b;
+			} else {
+				a = _b;
+				b = _a;
+			}
+
 			var d = b.Date - a.Date;
 			if (!d)
 				return a.guid.localeCompare(b.guid);

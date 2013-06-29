@@ -23,6 +23,10 @@
 		li .btn-group + .btn-group {
 			margin-left: 0;
 		}
+		.nav li .btn-group .dropdown-toggle .caret {
+			border-top-color: #777;
+			border-bottom-color: #777;
+		}
 		.story {
 			border-bottom: 1px solid #ccc;
 			border-left: 1px solid #fff;
@@ -203,6 +207,22 @@
 							<div class="btn-group">
 								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="opts.expanded"><i class="icon-th-list"></i></button>
 								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="!opts.expanded"><i class="icon-align-justify"></i></button>
+							</div>
+							<div class="btn-group">
+								<a href="#" class="btn btn-small dropdown-toggle" data-toggle="dropdown">
+									view
+									<b class="caret"></b>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="#" ng-click="setSort('newest')">
+										sort by newest
+										<i class="icon-ok" ng-show="opts.sort != 'oldest'"></i>
+									</a></li>
+									<li><a href="#" ng-click="setSort('oldest')">
+										sort by oldest
+										<i class="icon-ok" ng-show="opts.sort == 'oldest'"></i>
+									</a></li>
+								</ul>
 							</div>
 						</li>
 						<li><a ng-show="loading" style="position: absolute">loading...</a></li>
