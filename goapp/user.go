@@ -373,6 +373,7 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		Feed  string
 		Story string
 	}
+	defer r.Body.Close()
 	b, _ := ioutil.ReadAll(r.Body)
 	if err := json.Unmarshal(b, &reqs); err != nil {
 		serveError(w, err)
