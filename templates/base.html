@@ -5,6 +5,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
 	<style>
+		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
+		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#feed-list::-webkit-scrollbar { width: 8px; }
+		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		.ng-cloak {
 			display: none;
 		}
@@ -43,6 +49,12 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
+		.feed-title, .folder-title {
+			padding: 2px;
+		}
+		.feed-title:hover, .folder-title:hover {
+			background-color: #eee;
+		}
 		.story-header.read {
 			background-color: #f5f5f5;
 		}
@@ -65,7 +77,8 @@
 			line-height: 24px;
 		}
 		.story-content {
-			margin-left: 4px;
+			margin: 0.5em;
+                        max-width: 650px;
 		}
 		.active-name {
 			font-weight: bold;
@@ -91,8 +104,11 @@
 			width: 220px;
 			top: 50px;
 			bottom: 0;
-			overflow-y: auto;
+			overflow: hidden;
 			left: 20px;
+		}
+		#feed-list:hover {
+			overflow-y: auto;
 		}
 		.feed-child {
 			margin-left: 20px;
@@ -169,7 +185,7 @@
 							<li ng-click="shown = 'feeds'" class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown" ng-init="mode = 'unread'">
 									<span ng-show="mode == 'unread'">{{`{{unread.current || 'no'}}`}} unread items</span>
-									<span ng-hide="mode == 'unread'">all items</span>
+									<span ng-hide="mode == 'unread'">All items</span>
 									<b class="caret"></b>
 								</a>
 								<ul class="dropdown-menu">
@@ -291,30 +307,30 @@
 						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<li>
 					<li class="all-subs hand" ng-click="setActiveFeed()">
-						all items ({{`{{unread.all || 0}}`}})
+						All items ({{`{{unread.all || 0}}`}})
 					</li>
 					<li ng-repeat="f in feeds">
-						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
-							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-							<span class="hand" ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
+						<div class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
+							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+							<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
 								({{`{{unread['feeds'][f.XmlUrl]}}`}})
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div ng-show="f.Outline" class="folder-title">
+							<div class="hand folder-title" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)">
 								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
 								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
-								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
+								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
 							</div>
 							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
 								<li ng-repeat="o in f.Outline">
-									<div class="feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
+									<div class="hand feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-										<span class="hand" ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
+										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
 											({{`{{unread['feeds'][o.XmlUrl]}}`}})
 										</span>
