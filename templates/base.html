@@ -20,6 +20,9 @@
 			right: 0;
 			left: auto;
 		}
+		li .btn-group + .btn-group {
+			margin-left: 0;
+		}
 		.story {
 			border-bottom: 1px solid #ccc;
 			border-left: 1px solid #fff;
@@ -180,27 +183,29 @@
 							</li>
 						</li>
 						<li>
-							<form class="navbar-form">
-								<button
-									id="mark-all-read"
-									class="btn btn-small"
-									ng-click="markAllRead()"
-									ng-disabled="stories.length == 0"
-									data-url="{{url "mark-all-read"}}"
-									data-url-read="{{url "mark-read"}}"
-									data-url-contents="{{url "get-contents"}}"
-									>mark all as read</button>
-								<button
-									id="refresh"
-									class="btn btn-small"
-									ng-click="refresh()"
-									data-url-feeds="{{url "list-feeds"}}"
-									><i class="icon-refresh"></i></button>
+							<button
+								id="mark-all-read"
+								class="btn btn-small"
+								ng-click="markAllRead()"
+								ng-disabled="stories.length == 0"
+								data-url="{{url "mark-all-read"}}"
+								data-url-read="{{url "mark-read"}}"
+								data-url-contents="{{url "get-contents"}}"
+								>mark all as read</button>
+							<button
+								id="refresh"
+								class="btn btn-small"
+								ng-click="refresh()"
+								data-url-feeds="{{url "list-feeds"}}"
+								><i class="icon-refresh"></i></button>
+							<div class="btn-group">
 								<button class="btn btn-small" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
 								<button class="btn btn-small" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
+							</div>
+							<div class="btn-group">
 								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="opts.expanded"><i class="icon-th-list"></i></button>
 								<button class="btn btn-small" ng-click="toggleExpanded()" ng-disabled="!opts.expanded"><i class="icon-align-justify"></i></button>
-							</form>
+							</div>
 						</li>
 						<li><a ng-show="loading" style="position: absolute">loading...</a></li>
 					{{end}}
