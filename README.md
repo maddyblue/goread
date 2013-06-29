@@ -4,8 +4,8 @@ a google reader clone built with go on app engine and angularjs
 
 ## setting up a local dev environment
 
-1. install [Python 2.7.3](http://www.python.org/download/releases/2.7.3/#id5) if you don't have it and make sure it is in your $ATH. Google App Engine doesn't yet work with 3.*.
-1. install [Mercurial](http://mercurial.selenic.com/wiki/Download) and make sure hg.exe is in your path.
+1. install [Python 2.7.3](http://www.python.org/download/releases/2.7.3/#id5) if you don't have it and make sure it is in your $PATH. Google App Engine doesn't yet work with 3.*.
+1. install [Mercurial](http://mercurial.selenic.com/wiki/Download) and make sure `hg` is in your path.
 1. checkout the code
 1. install the [go app engine SDK](https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Go)
 1. set your GOPATH (to something like `/home/user/mygo`), and make sure it's a directory that exists
