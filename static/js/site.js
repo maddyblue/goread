@@ -54,12 +54,15 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.http('POST', f.attr('data-url'), {
 			url: $scope.addFeedUrl
 		}).then(function() {
-			$scope.setActiveFeed($scope.addFeedUrl)
+			feedURL = $scope.addFeedUrl;
 			$scope.addFeedUrl = '';
 			// I think this is needed due to the datastore's eventual consistency.
 			// Without the delay we only get the feed data with no story data.
 			$timeout(function() {
-				$scope.refresh($scope.loaded);
+				$scope.refresh(function() {
+					$scope.loaded();
+					$scope.setActiveFeed(feedURL);
+				});
 			}, 250);
 		}, function(data) {
 			if (data.data) {
