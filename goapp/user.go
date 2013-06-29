@@ -247,7 +247,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					updatedLinks = true
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
-				if f.NextUpdate.Before(now) {
+				if f.Errors == 0 && f.NextUpdate.Before(now) {
 					t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 						"feed": {f.Url},
 					})
