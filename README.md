@@ -12,7 +12,7 @@ a google reader clone built with go on app engine and angularjs
 1. further commands that use `go`, `dev_appserver.py`, and `appcfg.py` all live in the `google_appengine` directory from the SDK. make sure it's in your `$PATH`.
 1. download dependencies by running: `go get -d github.com/mjibson/goread/goapp`. although you've already checked out the code for development use, this will automatically download all of goread's dependencies, and will stick them all in your GOPATH.
 1. in the `goapp` folder, copy `settings.go.dist` to `settings.go`
-1. from the `goread` directory, start the app with `dev_appserver.py .`
+1. from the `goread` directory, start the app with `dev_appserver.py app.yaml`
 
 ## how to host your own on production app engine servers
 
