@@ -355,6 +355,9 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		getStories[i] = &Story{Id: s.Id, Parent: fk}
 	}
 	err := gn.GetMulti(getStories)
+	if _, ok := err.(appengine.MultiError); !ok {
+		return err
+	}
 	var updateStories []*Story
 	for i, s := range getStories {
 		if goon.NotFound(err, i) {
