@@ -416,6 +416,20 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$scope.uploadOpml();
 	};
 
+	$scope.renameFolder = function(folder) {
+		var name = prompt('Rename to');
+		if (!name) return;
+		for (var i = 0; i < $scope.feeds.length; i++) {
+			var f = $scope.feeds[i];
+			if (f.Outline && f.Title == folder) {
+				f.Title = name;
+				$scope.activeFolder = name;
+				break;
+			}
+		}
+		$scope.uploadOpml();
+	};
+
 	$scope.unsubscribe = function(feed) {
 		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + '?')) return;
 		for (var i = 0; i < $scope.feeds.length; i++) {

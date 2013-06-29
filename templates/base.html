@@ -337,7 +337,19 @@
 				data-url-get-feed="{{url "get-feed"}}"
 			>
 				<div class="active-name story">
-					<span ng-hide="activeFeed" ng-bind="active()"></span>
+					<span ng-hide="activeFeed || activeFolder" ng-bind="active()"></span>
+					<div ng-show="activeFolder">
+						<span ng-bind="activeFolder"></span>
+						<div class="pull-right btn-group config">
+							<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+								<i class="icon-cog"></i>
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" ng-click="renameFolder(activeFolder)">rename</a></li>
+							</ul>
+						</div>
+					</div>
 					<div ng-show="activeFeed">
 						<a ng-href="{{`{{xmlurls[activeFeed].HtmlUrl || ''}}`}}" style="color: #333">
 							{{`{{active()}}`}} »
