@@ -402,9 +402,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("feed %v already updated", url)
 		return
 	}
-	if feed, stories := fetchFeed(c, url, url); feed != nil {
-		updateFeed(c, url, feed, stories)
-	} else {
+
+	feedError := func() {
 		f.Errors++
 		v := f.Errors + 1
 		const max = 24 * 7
@@ -416,5 +415,13 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
 		gn.Put(&f)
 		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
+	}
+
+	if feed, stories := fetchFeed(c, url, url); feed != nil {
+		if err := updateFeed(c, url, feed, stories); err != nil {
+			feedError()
+		}
+	} else {
+		feedError()
 	}
 }
