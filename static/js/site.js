@@ -216,9 +216,9 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 
 	$scope.isUpdatedFeed = function(feed) {
 		if (!feed.Outline) {
-			return !!$scope.unread['feeds'][feed.XmlUrl]
+			return ($scope.unread['feeds'][feed.XmlUrl] || 0) > 0
 		} else {
-			return !!$scope.unread['folders'][f.Title]
+			return ($scope.unread['folders'][feed.Title] || 0) > 0
 		}
 	}
 
