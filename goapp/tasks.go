@@ -230,11 +230,23 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		keys = append(keys, k)
 	}
-	for _, k := range keys {
-		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+	tasks := make([]*taskqueue.Task, len(keys))
+	for i, k := range keys {
+		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
 		})
-		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
+	}
+	var ts []*taskqueue.Task
+	const taskLimit = 100
+	for len(tasks) > 0 {
+		if len(tasks) > taskLimit {
+			ts = tasks[:taskLimit]
+			tasks = tasks[taskLimit:]
+		} else {
+			ts = tasks
+			tasks = tasks[0:0]
+		}
+		if _, err := taskqueue.AddMulti(c, ts, "update-feed"); err != nil {
 			c.Errorf("taskqueue error: %v", err.Error())
 		}
 	}
