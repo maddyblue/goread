@@ -21,7 +21,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		nav: true,
 		expanded: false,
 		mode: 'unread',
-		sort: 'newest'
+		sort: 'newest',
+		hideEmptyFeeds: false
 	};
 
 	$scope.importOpml = function() {
@@ -172,6 +173,11 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		if ($scope.currentStory > 0) {
 			$scope.setCurrent($scope.currentStory - 1);
 		}
+	};
+
+	$scope.toggleHideEmptyFeeds = function() {
+		$scope.opts.hideEmptyFeeds = !$scope.opts.hideEmptyFeeds;
+		$scope.saveOpts();
 	};
 
 	$scope.next = function() {

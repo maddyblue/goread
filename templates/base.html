@@ -253,6 +253,9 @@
 								<li><a href="{{url "import-reader"}}">import google reader</a></li>
 								<li><a href="#" ng-click="setAddSubscription()">add subscription</a></li>
 								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
+								<li><a href="#" ng-click="toggleHideEmptyFeeds()">
+									<i ng-show="opts.hideEmptyFeeds" class="icon-ok"></i> hide empty feeds</a>
+								</li>
 								<li class="divider"></li>
 								<li><a href="{{url "export-opml"}}">export opml</a></li>
 								<li><a href="{{url "logout"}}">logout</a></li>
@@ -317,7 +320,7 @@
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
 					</li>
-					<li ng-repeat="f in feeds">
+					<li ng-repeat="f in feeds" ng-hide="opts.hideEmptyFeeds && unread['feeds'][f.XmlUrl] == 0">
 						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
 							<span class="hand" ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
