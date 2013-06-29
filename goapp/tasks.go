@@ -217,7 +217,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
 	q = q.Filter("n <=", time.Now())
 
-	q = q.Limit(3000)
+	q = q.Limit(2500)
 	it := gn.Run(q)
 	var keys []*datastore.Key
 	for {
