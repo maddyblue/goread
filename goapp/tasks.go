@@ -216,10 +216,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
 	q = q.Filter("n <=", time.Now())
-	retry, _ := strconv.Atoi(r.FormValue("retry"))
-	c.Errorf("retry: %v", retry)
 
-	//* iterator delayed task add
 	q = q.Limit(3000)
 	it := gn.Run(q)
 	var keys []*datastore.Key
@@ -243,58 +240,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Infof("updating %d feeds", len(keys))
 	fmt.Fprintf(w, "updating %d feeds", len(keys))
-	//*/
-
-	/* iterator
-	it := gn.Run(q)
-	i := 0
-	done := false
-	for {
-		k, err := it.Next(nil)
-		if err == datastore.Done {
-			done = true
-			break
-		} else if err != nil {
-			c.Errorf("next error: %v", err.Error())
-			break
-		}
-		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
-			"feed": {k.StringID()},
-		})
-		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
-			c.Errorf("taskqueue error: %v", err.Error())
-		}
-		i++
-	}
-	c.Infof("updating %d feeds", i)
-	fmt.Fprintf(w, "updating %d feeds", i)
-	if !done {
-		time.Sleep(time.Second * time.Duration(i) / 50) // sleep about the time it'll take to process them
-		t := taskqueue.NewPOSTTask("/tasks/update-feeds", url.Values{
-			"retry": {strconv.Itoa(retry + 1)},
-		})
-		if _, err := taskqueue.Add(c, t, "update-feeds"); err != nil {
-			c.Errorf("taskqueue update feeds error: %v", err.Error())
-		}
-		c.Errorf("ran update again")
-		fmt.Fprintf(w, "\nran update again")
-	}
-	//*/
-
-	/* get all
-	q = q.Limit(1000)
-	keys, _ := gn.GetAll(q, nil)
-	for _, k := range keys {
-		t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
-			"feed": {k.StringID()},
-		})
-		if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
-			c.Errorf("taskqueue error: %v", err.Error())
-		}
-	}
-	c.Infof("updating %d feeds", len(keys))
-	fmt.Fprintf(w, "updating %d feeds", len(keys))
-	//*/
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
