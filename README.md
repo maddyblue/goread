@@ -2,15 +2,20 @@
 
 a google reader clone built with go on app engine and angularjs
 
-## how to host your own
+## setting up a local dev environment
 
 1. checkout the code
-1. create a new app engine application
-1. install the app engine SDK
-1. set your GOPATH (to something like `/home/user/mygo`
-1. run `go get -d github.com/mjibson/goread/goapp`
-1. in `app.yaml`, change the first line to contain the name of the application you just created
+1. install the [go app engine SDK](https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Go)
+1. set your GOPATH (to something like `/home/user/mygo`), and make sure it's a directory that exists
+1. further commands that use `go`, `dev_appserver.py`, and `appcfg.py` all live in the `google_appengine` directory from the SDK. make sure it's in your `$PATH`.
+1. download dependencies by running: `go get -d github.com/mjibson/goread/goapp`. although you've already checked out the code for development use, this will automatically download all of goread's dependencies, and will stick them all in your GOPATH.
 1. in the `goapp` folder, copy `settings.go.dist` to `settings.go`
+1. from the `goread` directory, start the app with `dev_appserver.py .`
+
+## how to host your own on production app engine servers
+
+1. create a new app engine application
+1. in `app.yaml`, change the first line to contain the name of the application you just created
 
 [optional steps if you want google reader import support]
 
@@ -20,4 +25,4 @@ a google reader clone built with go on app engine and angularjs
 
 [and finally, deploy]
 
-1. deploy with `appcfg.py`
+1. from the `goread` directory, deploy with `appcfg.py update .`
