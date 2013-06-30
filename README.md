@@ -13,6 +13,11 @@ a google reader clone built with go on app engine and angularjs
 1. download dependencies by running: `go get -d github.com/mjibson/goread/goapp`. although you've already checked out the code for development use, this will automatically download all of goread's dependencies, and will stick them all in your GOPATH.
 1. in the `goapp` folder, copy `settings.go.dist` to `settings.go`
 1. from the `goread` directory, start the app with `dev_appserver.py app.yaml`
+ 
+## developer notes
+
+1. press `alt+c` to show the miniprofiler window
+1. press `c` to clear all feeds and stories, remove all your subscriptions, and reset your unread date
 
 ## how to host your own on production app engine servers
 
