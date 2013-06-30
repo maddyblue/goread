@@ -212,41 +212,91 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly()
-	q = q.Filter("n <=", time.Now())
-
-	q = q.Limit(5000)
 	it := q.Run(c)
-	var keys []*datastore.Key
-	var del []*datastore.Key
+	dc := 0
+	up := 0
+	c.Errorf("BACKEND STARTING")
 	for {
-		k, err := it.Next(nil)
-		if err == datastore.Done {
-			break
-		} else if err != nil {
+		if k, err := it.Next(nil); err != nil {
 			c.Errorf("next error: %v", err.Error())
 			break
 		} else if len(k.StringID()) == 0 {
+			go func(k *datastore.Key) {
+				if err := datastore.Delete(c, k); err != nil {
+					c.Errorf("delete error: %v, %v", k, err.Error())
+				} else {
+					c.Infof("deleted: %v, %d", k, dc)
+					dc++
+				}
+			}(k)
+		} else {
+			go func(k *datastore.Key) {
+				t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+					"feed": {k.StringID()},
+				})
+				if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
+					c.Errorf("taskqueue error: %v, %v", k, err.Error())
+				} else {
+					c.Infof("updating: %v, %d", k, up)
+					up++
+				}
+			}(k)
+		}
+	}
+}
+
+func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	q := datastore.NewQuery("F").KeysOnly()
+	q = q.Filter("n <=", time.Now())
+	q = q.Limit(2000)
+	var keys []*datastore.Key
+	for i := 0; i < 5; i++ {
+		if _keys, err := q.GetAll(c, nil); err != nil {
+			c.Errorf("get all error: %v, retry %v", err.Error(), i)
+		} else {
+			c.Errorf("got %v keys", len(_keys))
+			keys = _keys
+			break
+		}
+	}
+	if len(keys) == 0 {
+		c.Errorf("giving up")
+		return
+	}
+	var update []*datastore.Key
+	var del []*datastore.Key
+	for _, k := range keys {
+		if len(k.StringID()) == 0 {
 			del = append(del, k)
 			continue
 		}
-		keys = append(keys, k)
-		if len(keys) > 3000 {
+		update = append(update, k)
+		if len(update) == 3000 {
 			break
 		}
 	}
 
-	for _, k := range del {
-		go func(k *datastore.Key) {
-			if err := datastore.Delete(c, k); err != nil {
-				c.Errorf("delete error: %v", err.Error())
-			}
-		}(k)
+	retry := 0
+	for i := 0; len(del) > 0 && retry < 10 && i < 30; i++ {
+		hi := 300
+		if len(del) < hi {
+			hi = len(del)
+		}
+		c.Errorf("i: %d, delete %d keys, len: %d", i, hi, len(del))
+		if err := datastore.DeleteMulti(c, del[:hi]); err != nil {
+			c.Errorf("delete multi error: %v, retry: %v", err.Error(), retry)
+			retry++
+		} else {
+			del = del[hi:]
+			c.Errorf("new del len: %v", len(del))
+		}
 	}
+	c.Errorf("done deleting keys")
 
-	tasks := make([]*taskqueue.Task, len(keys))
-	for i, k := range keys {
+	tasks := make([]*taskqueue.Task, len(update))
+	for i, k := range update {
 		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
 		})
@@ -265,7 +315,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("taskqueue error: %v", err.Error())
 		}
 	}
-	c.Infof("updating %d feeds", len(keys))
+	c.Infof("updating %d feeds", len(update))
 	c.Infof("deleted %d feeds", len(del))
 }
 
