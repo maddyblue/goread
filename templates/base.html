@@ -10,6 +10,7 @@
 		}
 		body {
 			padding-top: 40px;
+			overflow: hidden;
 		}
 		.hand {
 			cursor: hand;
@@ -66,7 +67,6 @@
 			background-color: #f5f5f5;
 		}
 		.story-feed {
-			width: 145px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			position: absolute;
@@ -107,17 +107,22 @@
 		#story-list .config {
 			margin-right: 20px;
 		}
-		#feed-list {
+		#sidebar {
 			position: absolute;
-			font-size: 13px;
 			width: 220px;
 			top: 40px;
 			bottom: 0;
 			overflow: hidden;
 			left: 20px;
+		}
+		#feed-list {
+			font-size: 13px;
 			padding-top: 10px;
+			overflow: hidden;
 		}
 		#feed-list:hover {
+			font-size: 13px;
+			padding-top: 10px;
 			overflow-y: auto;
 		}
 		.active {
@@ -125,6 +130,9 @@
 		}
 		.feed-child {
 			margin-left: 20px;
+		}
+		#feed-list-actions {
+			padding: 0.5em 0.5em 0 0.5em;
 		}
 		.feed-icon {
 			width: 16px;
@@ -167,7 +175,7 @@
 			.navbar-fixed-top {
 				margin-bottom: 0;
 			}
-			#feed-list {
+			#sidebar {
 				display: none;
 			}
 			#story-list {
@@ -378,54 +386,57 @@
 
 		{{if .User}}
 		<div class="row-fluid" ng-init="refresh()">
-			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
-				<ul class="unstyled">
-					<li>
-						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
-					<li>
-					<li class="all-subs hand" ng-click="setActiveFeed()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
-						all items ({{`{{unread.all || 0}}`}})
-					</li>
-					<li class="all-subs" ng-show="loading">loading...</li>
-				</ul>
-				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
-					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
-						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
-							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
-							<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
-							<span ng-show="unread['feeds'][f.XmlUrl]">
-								({{`{{unread['feeds'][f.XmlUrl]}}`}})
-							</span>
-						</div>
-						<div ng-show="f.Outline">
-							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)" title="{{`{{f.Title}}`}}">
-								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
-								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
-								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
-								<span ng-show="unread['folders'][f.Title]">
-									({{`{{unread['folders'][f.Title]}}`}})
+
+			<div id="sidebar" ng-show="opts.nav && !nothing() && shown == 'feeds'">
+				<div id="feed-list-actions" class="btn-toolbar">
+					<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
+				</div>
+				<div id="feed-list">
+					<ul class="unstyled">
+						<li class="all-subs hand" ng-click="setActiveFeed()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
+							all items ({{`{{unread.all || 0}}`}})
+						</li>
+						<li class="all-subs" ng-show="loading">loading...</li>
+					</ul>
+					<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
+						<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
+							<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
+								<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+								<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
+								<span ng-show="unread['feeds'][f.XmlUrl]">
+									({{`{{unread['feeds'][f.XmlUrl]}}`}})
 								</span>
 							</div>
-							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
-								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
-									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)" title="{{`{{o.Title}}`}}">
-										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
-										<span ng-show="unread['feeds'][o.XmlUrl]">
-											({{`{{unread['feeds'][o.XmlUrl]}}`}})
-										</span>
-									</div>
-								</li>
-							</ul>
-						</div>
-					</li>
-				</ul>
-				{{if .StripeKey}}
-				<ul class="unstyled" ng-hide="accountType">
-					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
-					<li>to keep Go Read alive</li>
-				</ul>
-				{{end}}
+							<div ng-show="f.Outline">
+								<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)" title="{{`{{f.Title}}`}}">
+									<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
+									<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
+									<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
+									<span ng-show="unread['folders'][f.Title]">
+										({{`{{unread['folders'][f.Title]}}`}})
+									</span>
+								</div>
+								<ul class="unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
+									<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
+										<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)" title="{{`{{o.Title}}`}}">
+											<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
+											<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
+											<span ng-show="unread['feeds'][o.XmlUrl]">
+												({{`{{unread['feeds'][o.XmlUrl]}}`}})
+											</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					{{if .StripeKey}}
+					<ul class="unstyled" ng-hide="accountType">
+						<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
+						<li>to keep Go Read alive</li>
+					</ul>
+					{{end}}
+				</div>
 			</div>
 
 			<div
