@@ -255,14 +255,16 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	c.Infof("updating %d feeds", len(keys))
-	fmt.Fprintf(w, "updating %d feeds", len(keys))
 
 	if len(del) > 0 {
 		c.Errorf("attempt to delete %v feeds", len(del))
 		if err := gn.DeleteMulti(del); err != nil {
 			c.Errorf("delete error: %v", err.Error())
 		}
+		fmt.Fprintf(w, `<html><head><meta http-equiv="refresh" content="0; url=/tasks/update-feeds"></head></html>`)
+		fmt.Fprintf(w, "attempt to delete %v feeds", len(del))
 	}
+	fmt.Fprintf(w, "updating %d feeds", len(keys))
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
