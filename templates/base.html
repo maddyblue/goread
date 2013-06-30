@@ -50,6 +50,12 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
+		.feed-title, .folder-title {
+			padding: 2px;
+		}
+		.feed-title:hover, .folder-title:hover {
+			background-color: #eee;
+		}
 		.story-header.read {
 			background-color: #f5f5f5;
 		}
@@ -72,7 +78,10 @@
 			line-height: 24px;
 		}
 		.story-content {
-			margin-left: 4px;
+			margin: 0.5em;
+		}
+		.story-content.short {
+			max-width: 650px;
 		}
 		.active-name {
 			font-weight: bold;
@@ -98,9 +107,12 @@
 			width: 220px;
 			top: 40px;
 			bottom: 0;
-			overflow-y: auto;
+			overflow: hidden;
 			left: 20px;
 			padding-top: 10px;
+		}
+		#feed-list:hover {
+			overflow-y: auto;
 		}
 		.feed-child {
 			margin-left: 20px;
@@ -108,7 +120,6 @@
 		.feed-icon {
 			width: 16px;
 			height: 16px;
-			vertical-align: text-top;
 		}
 		.all-subs {
 			font-weight: bold;
@@ -127,6 +138,12 @@
 		.bold {
 			font-weight: bold;
 		}
+		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
+		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#feed-list::-webkit-scrollbar { width: 8px; }
+		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		@media (max-width: 979px) {
 			body {
 				padding-top: 0;
@@ -322,27 +339,27 @@
 						all items ({{`{{unread.all || 0}}`}})
 					</li>
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
-						<div class="feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
-							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-							<span class="hand" ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
+						<div class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
+							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+							<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
 								({{`{{unread['feeds'][f.XmlUrl]}}`}})
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div ng-show="f.Outline" class="folder-title">
+							<div class="hand folder-title" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)">
 								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
 								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
-								<span class="hand" ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
+								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
 							</div>
 							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
-									<div class="feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
+									<div class="hand feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-										<span class="hand" ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
+										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
 											({{`{{unread['feeds'][o.XmlUrl]}}`}})
 										</span>
@@ -416,7 +433,7 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded">
+					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded" ng-class="{short: opts.nav}">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
@@ -497,6 +514,7 @@
 							<div class="caption">
 								<h3>recent updates</h3>
 								<ul>
+									<li>06/29: sort by oldest; width-restricted stories; UI tweaks</li>
 									<li>06/28: support for users with > 1000 feeds</li>
 								</ul>
 							</div>

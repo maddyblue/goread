@@ -124,14 +124,14 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 			}
 
 			/*
-			if _, err := r.Cookie("update-bug"); err != nil {
-				i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
-				http.SetCookie(w, &http.Cookie{
-					Name: "update-bug",
-					Value: "done",
-					Expires: time.Now().Add(time.Hour * 24 * 7),
-				})
-			}
+				if _, err := r.Cookie("update-bug"); err != nil {
+					i.Messages = append(i.Messages, "Go Read had some problems updating feeds. It may take a while for new stories to appear again. Sorry about that.")
+					http.SetCookie(w, &http.Cookie{
+						Name: "update-bug",
+						Value: "done",
+						Expires: time.Now().Add(time.Hour * 24 * 7),
+					})
+				}
 			*/
 		}
 	}
@@ -373,7 +373,7 @@ const UpdateTime = time.Hour * 4
 func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
-	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(60 * 30)))
+	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(60*30)))
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 

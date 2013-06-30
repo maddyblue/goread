@@ -213,13 +213,13 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
+	q := datastore.NewQuery("F").KeysOnly()
 	q = q.Filter("n <=", time.Now())
 
-	q = q.Limit(2500)
-	it := gn.Run(q)
+	q = q.Limit(5000)
+	it := q.Run(c)
 	var keys []*datastore.Key
+	var del []*datastore.Key
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
@@ -227,9 +227,24 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		} else if err != nil {
 			c.Errorf("next error: %v", err.Error())
 			break
+		} else if len(k.StringID()) == 0 {
+			del = append(del, k)
+			continue
 		}
 		keys = append(keys, k)
+		if len(keys) > 3000 {
+			break
+		}
 	}
+
+	for _, k := range del {
+		go func(k *datastore.Key) {
+			if err := datastore.Delete(c, k); err != nil {
+				c.Errorf("delete error: %v", err.Error())
+			}
+		}(k)
+	}
+
 	tasks := make([]*taskqueue.Task, len(keys))
 	for i, k := range keys {
 		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
@@ -251,15 +266,20 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	c.Infof("updating %d feeds", len(keys))
-	fmt.Fprintf(w, "updating %d feeds", len(keys))
+	c.Infof("deleted %d feeds", len(del))
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	u, err := url.Parse(fetchUrl)
+	_orig := origUrl
 	if err == nil && u.Scheme == "" {
 		u.Scheme = "http"
 		origUrl = u.String()
 		fetchUrl = origUrl
+		if origUrl == "" {
+			c.Criticalf("bad url: %v, %v, %v, %v", _orig, u, origUrl, fetchUrl)
+			return nil, nil
+		}
 	}
 
 	cl := &http.Client{

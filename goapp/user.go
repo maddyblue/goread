@@ -251,7 +251,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 						"feed": {f.Url},
 					})
-					if _, err := taskqueue.Add(c, t, "update-feed"); err != nil {
+					if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
 						c.Errorf("taskqueue error: %v", err.Error())
 					} else {
 						c.Warningf("manual feed update: %v", f.Url)
@@ -373,6 +373,7 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		Feed  string
 		Story string
 	}
+	defer r.Body.Close()
 	b, _ := ioutil.ReadAll(r.Body)
 	if err := json.Unmarshal(b, &reqs); err != nil {
 		serveError(w, err)
