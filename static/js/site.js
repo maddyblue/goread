@@ -181,9 +181,7 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 	};
 
 	$scope.shouldHideEmpty = function(f) {
-		if (!$scope.opts.hideEmpty ||
-		     $scope.opts.mode == 'all' ||
-			 $scope.unread['all'] == 0) return false;
+		if (!$scope.opts.hideEmpty) return false;
 		var cnt = f.Outline ? $scope.unread['folders'][f.Title] : $scope.unread['feeds'][f.XmlUrl];
 		return cnt == 0;
 	};
