@@ -77,6 +77,7 @@ func init() {
 	router.Handle("/admin/stats", mpg.NewHandler(AdminStats)).Name("admin-stats")
 	router.Handle("/admin/update-feed", mpg.NewHandler(AdminUpdateFeed)).Name("admin-update-feed")
 	router.Handle("/_ah/start", mpg.NewHandler(BackendStart))
+	router.Handle("/_ah/stop", mpg.NewHandler(BackendStop))
 
 	http.Handle("/", router)
 

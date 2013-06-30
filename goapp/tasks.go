@@ -252,6 +252,9 @@ func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	runtime.RunInBackground(c, f)
 }
+
+func BackendStop(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+}
 	dc := 0
 	up := 0
 	c.Errorf("BACKEND STARTING")
