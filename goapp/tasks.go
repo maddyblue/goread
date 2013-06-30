@@ -217,7 +217,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
 	q = q.Filter("n <=", time.Now())
 
-	q = q.Limit(500)
+	q = q.Limit(3000)
 	it := gn.Run(q)
 	var keys []*datastore.Key
 	var del []*datastore.Key
@@ -256,18 +256,12 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Infof("updating %d feeds", len(keys))
 
-	fmt.Fprintf(w, `<html><head><meta http-equiv="refresh" content="10"></head></html>`)
 	if len(del) > 0 {
 		c.Errorf("attempt to delete %v feeds", len(del))
 		if err := gn.DeleteMulti(del); err != nil {
 			c.Errorf("delete error: %v", err.Error())
 		}
-		fmt.Fprintf(w, "attempt to delete %v feeds", len(del))
-		for _, k := range del {
-			fmt.Fprintf(w, "\n<br>%v", k)
-		}
 	}
-	fmt.Fprintf(w, "updating %d feeds", len(keys))
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
