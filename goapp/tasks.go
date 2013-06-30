@@ -256,12 +256,12 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Infof("updating %d feeds", len(keys))
 
+	fmt.Fprintf(w, `<html><head><meta http-equiv="refresh" content="10"></head></html>`)
 	if len(del) > 0 {
 		c.Errorf("attempt to delete %v feeds", len(del))
 		if err := gn.DeleteMulti(del); err != nil {
 			c.Errorf("delete error: %v", err.Error())
 		}
-		fmt.Fprintf(w, `<html><head><meta http-equiv="refresh" content="10"></head></html>`)
 		fmt.Fprintf(w, "attempt to delete %v feeds", len(del))
 		for _, k := range del {
 			fmt.Fprintf(w, "\n<br>%v", k)
