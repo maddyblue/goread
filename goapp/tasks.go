@@ -229,9 +229,8 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("next error: %v", err.Error())
 			break
 		} else if len(k.StringID()) == 0 {
-			c.Infof("deleting: %v", k)
 			del = append(del, k)
-			break
+			continue
 		}
 		keys = append(keys, k)
 	}
