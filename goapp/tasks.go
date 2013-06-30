@@ -213,12 +213,11 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
+	q := datastore.NewQuery("F").KeysOnly()
 	q = q.Filter("n <=", time.Now())
 
 	q = q.Limit(5000)
-	it := gn.Run(q)
+	it := q.Run(c)
 	var keys []*datastore.Key
 	var del []*datastore.Key
 	for {
@@ -237,7 +236,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, k := range del {
 		go func(k *datastore.Key) {
-			if err := gn.Delete(k); err != nil {
+			if err := datastore.Delete(c, k); err != nil {
 				c.Errorf("delete error: %v", err.Error())
 			}
 		}(k)
