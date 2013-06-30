@@ -641,4 +641,10 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		$('#message-list').text(m);
 		$('#messages').modal('show');
 	};
+
+	$scope.setYesterday = function() {
+		var d = new Date();
+		d.setDate(d.getDate() - 1);
+		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: d.valueOf() });
+	};
 }
