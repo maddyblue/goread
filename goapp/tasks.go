@@ -31,6 +31,7 @@ import (
 
 	"appengine/blobstore"
 	"appengine/datastore"
+	"appengine/runtime"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
@@ -213,8 +214,44 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly()
-	it := q.Run(c)
+	const sz = 100
+	ic := 0
+	gn := goon.FromContext(c)
+	fk := gn.Key(&Feed{Url: "a"})
+	q := datastore.NewQuery("F").Filter("__key__ <", fk).Order("__key__").KeysOnly().Limit(1)
+	keys, _ := q.GetAll(c, nil)
+	if len(keys) == 0 {
+		return
+	}
+	c.Errorf("start: %v", keys[0])
+	startid := keys[0].IntID() / sz
+
+	var f func(appengine.Context)
+	f = func(c appengine.Context) {
+		c.Errorf("new request: %d", ic)
+		t1 := time.Now()
+		wg := sync.WaitGroup{}
+		wg.Add(sz)
+		var j int64
+		for j = 0; j < sz; j++ {
+			go func(j int64) {
+				k := datastore.NewKey(c, "F", "", startid*sz+j, nil)
+				c.Infof("del: %v", k)
+				if err := datastore.Delete(c, k); err != nil {
+					c.Errorf("delete err: %v", err.Error())
+				}
+				wg.Done()
+			}(j)
+		}
+		wg.Wait()
+		t2 := time.Now()
+		c.Infof("%v, %v, %v", t1, t2, t2.Sub(t1))
+		ic++
+		startid++
+		runtime.RunInBackground(c, f)
+	}
+	runtime.RunInBackground(c, f)
+}
 	dc := 0
 	up := 0
 	c.Errorf("BACKEND STARTING")
@@ -248,9 +285,11 @@ func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly()
+	gn := goon.FromContext(c)
+	fk := gn.Key(&Feed{Url: "a"})
+	q := datastore.NewQuery(fk.Kind()).KeysOnly().Filter("__key__ >", fk)
 	q = q.Filter("n <=", time.Now())
-	q = q.Limit(2000)
+	q = q.Limit(3000)
 	var keys []*datastore.Key
 	for i := 0; i < 5; i++ {
 		if _keys, err := q.GetAll(c, nil); err != nil {
