@@ -21,7 +21,8 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		nav: true,
 		expanded: false,
 		mode: 'unread',
-		sort: 'newest'
+		sort: 'newest',
+		hideEmpty: false
 	};
 
 	$scope.importOpml = function() {
@@ -172,6 +173,19 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		if ($scope.currentStory > 0) {
 			$scope.setCurrent($scope.currentStory - 1);
 		}
+	};
+
+	$scope.toggleHideEmpty = function() {
+		$scope.opts.hideEmpty = !$scope.opts.hideEmpty;
+		$scope.saveOpts();
+	};
+
+	$scope.shouldHideEmpty = function(f) {
+		if (!$scope.opts.hideEmpty ||
+		     $scope.opts.mode == 'all' ||
+			 $scope.unread['all'] == 0) return false;
+		var cnt = f.Outline ? $scope.unread['folders'][f.Title] : $scope.unread['feeds'][f.XmlUrl];
+		return cnt == 0;
 	};
 
 	$scope.next = function() {
