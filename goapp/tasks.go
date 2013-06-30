@@ -232,6 +232,9 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		keys = append(keys, k)
+		if len(keys) > 3000 {
+			break
+		}
 	}
 
 	for _, k := range del {
