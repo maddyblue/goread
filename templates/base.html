@@ -74,6 +74,9 @@
 		.story-content {
 			margin-left: 4px;
 		}
+		.story-content.short {
+			width: 650px;
+		}
 		.active-name {
 			font-weight: bold;
 			padding: 10px 0;
@@ -412,7 +415,7 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded">
+					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded" ng-class="{short: opts.nav}">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
