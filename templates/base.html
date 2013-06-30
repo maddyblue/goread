@@ -5,12 +5,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="{{.BootstrapCss}}" rel="stylesheet">
 	<style>
-		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
-		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
-		#feed-list::-webkit-scrollbar { width: 8px; }
-		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		.ng-cloak {
 			display: none;
 		}
@@ -85,10 +79,9 @@
 		}
 		.story-content {
 			margin: 0.5em;
-                        max-width: 650px;
 		}
 		.story-content.short {
-			width: 650px;
+			max-width: 650px;
 		}
 		.active-name {
 			font-weight: bold;
@@ -146,6 +139,12 @@
 		.bold {
 			font-weight: bold;
 		}
+		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
+		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#feed-list::-webkit-scrollbar { width: 8px; }
+		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 		@media (max-width: 979px) {
 			body {
 				padding-top: 0;
@@ -334,7 +333,7 @@
 						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<li>
 					<li class="all-subs hand" ng-click="setActiveFeed()">
-						All items ({{`{{unread.all || 0}}`}})
+						all items ({{`{{unread.all || 0}}`}})
 					</li>
 					<li ng-repeat="f in feeds">
 						<div class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
