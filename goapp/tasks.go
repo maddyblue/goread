@@ -260,7 +260,7 @@ func BackendStop(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly()
 	q = q.Filter("n <=", time.Now())
-	q = q.Limit(3000)
+	q = q.Limit(2500)
 	var keys []*datastore.Key
 	it := q.Run(c)
 	for {
