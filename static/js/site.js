@@ -507,8 +507,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				break;
 			}
 		}
+		$scope.stories = $scope.stories.filter(function(e) {
+			return e.feed.XmlUrl != feed;
+		});
 		$scope.setActiveFeed();
 		$scope.uploadOpml();
+		$scope.updateUnread();
 	};
 
 	$scope.moveFeed = function(url, folder) {
