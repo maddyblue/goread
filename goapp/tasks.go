@@ -262,13 +262,19 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q = q.Filter("n <=", time.Now())
 	q = q.Limit(3000)
 	var keys []*datastore.Key
-	for i := 0; i < 5; i++ {
-		if _keys, err := q.GetAll(c, nil); err != nil {
-			c.Errorf("get all error: %v, retry %v", err.Error(), i)
+	it := q.Run(c)
+	retry := 0
+	for {
+		k, err := it.Next(nil)
+		if err != nil {
+			c.Errorf("next error: %v, retry: %v", err.Error(), retry)
+			if retry == 5 {
+				break
+			}
+			retry++
+			it = q.Run(c)
 		} else {
-			c.Errorf("got %v keys", len(_keys))
-			keys = _keys
-			break
+			keys = append(keys, k)
 		}
 	}
 	if len(keys) == 0 {
@@ -278,6 +284,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	tasks := make([]*taskqueue.Task, len(keys))
 	for i, k := range keys {
+		c.Infof("task: %v, %v", i, k)
 		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
 		})
