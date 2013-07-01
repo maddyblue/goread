@@ -403,12 +403,12 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	return nil, nil
 }
 
-const UpdateTime = time.Hour
+const UpdateTime = time.Hour * 3
 
 func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
-	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(60*5)))
+	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(60*30)))
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 
