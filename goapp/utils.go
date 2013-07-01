@@ -98,7 +98,7 @@ func init() {
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jqueryui/%v/jquery-ui.min.js", jqueryui_ver)
-		Underscore = fmt.Sprintf("//cdnjs.cloudflare.com/ajax/libs/underscore.js/%v/underscore-min.js", underscore_ver)
+		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
 	}
 }
 
