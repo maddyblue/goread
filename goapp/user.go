@@ -187,6 +187,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	})
 	var feeds []*Feed
 	opmlMap := make(map[string]*OpmlOutline)
+	var merr error
 	c.Step("fetch feeds", func() {
 		for _, outline := range uf.Outline {
 			if outline.XmlUrl == "" {
@@ -199,7 +200,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				opmlMap[outline.XmlUrl] = outline
 			}
 		}
-		gn.GetMulti(feeds)
+		merr = gn.GetMulti(feeds)
 	})
 	lock := sync.Mutex{}
 	fl := make(map[string][]*Story)
@@ -271,8 +272,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < 20; i++ {
 			go feedProc()
 		}
-		wg.Add(len(feeds))
-		for _, f := range feeds {
+		for i, f := range feeds {
+			if goon.NotFound(merr, i) {
+				continue
+			}
+			wg.Add(1)
 			queue <- f
 		}
 		close(queue)
