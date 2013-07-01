@@ -263,28 +263,24 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q = q.Limit(3000)
 	var keys []*datastore.Key
 	it := q.Run(c)
-	retry := 0
 	for {
 		k, err := it.Next(nil)
-		if err != nil {
-			c.Errorf("next error: %v, retry: %v", err.Error(), retry)
-			if retry == 5 {
-				break
-			}
-			retry++
-			it = q.Run(c)
-		} else {
-			keys = append(keys, k)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			c.Errorf("next error: %v", err.Error())
+			return
 		}
+		keys = append(keys, k)
 	}
 	if len(keys) == 0 {
 		c.Errorf("giving up")
 		return
 	}
+	c.Infof("updating %d feeds", len(keys))
 
 	tasks := make([]*taskqueue.Task, len(keys))
 	for i, k := range keys {
-		c.Infof("task: %v, %v", i, k)
 		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
 		})
@@ -303,7 +299,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("taskqueue error: %v", err.Error())
 		}
 	}
-	c.Infof("updating %d feeds", len(keys))
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
