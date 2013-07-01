@@ -207,7 +207,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	hasStories := false
 	updatedLinks := false
 	icons := make(map[string]string)
-	now := time.Now().Add(-time.Hour)
+	now := time.Now()
 
 	c.Step("feed fetch + wait", func() {
 		queue := make(chan *Feed)
@@ -247,7 +247,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					updatedLinks = true
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
-				if f.Errors == 0 && now.Before(f.Checked) {
+				if f.Errors == 0 && f.NextUpdate.Before(now) {
 					t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 						"feed": {f.Url},
 					})
