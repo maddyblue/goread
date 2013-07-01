@@ -511,6 +511,55 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.uploadOpml();
 	};
 
+	$scope.moveFeed = function(url, folder) {
+		var feed;
+		var found = false;
+		for (var i = 0; i < $scope.feeds.length; i++) {
+			var f = $scope.feeds[i];
+			if (f.Outline) {
+				for (var j = 0; j < f.Outline.length; j++) {
+					var o = f.Outline[j];
+					if (o.XmlUrl == url) {
+						feed = f.Outline[j];
+						f.Outline.splice(j, 1);
+						if (!f.Outline.length)
+							$scope.feeds.splice(i, 1);
+						break;
+					}
+				}
+				if (f.Title == folder)
+					found = true;
+			} else if (f.XmlUrl == url) {
+				feed = f;
+				$scope.feeds.splice(i, 1)
+			}
+		}
+		if (!feed) return;
+		if (!folder) {
+			$scope.feeds.push(feed);
+		} else {
+			if (!found) {
+				$scope.feeds.push({
+					Outline: [],
+					Title: folder
+				});
+			}
+			for (var i = 0; i < $scope.feeds.length; i++) {
+				var f = $scope.feeds[i];
+				if (f.Outline && f.Title == folder) {
+					$scope.feeds[i].Outline.push(feed);
+				}
+			}
+		}
+		$scope.uploadOpml();
+	};
+
+	$scope.moveFeedNew = function(url) {
+		var folder = prompt('New folder name');
+		if (!folder) return;
+		$scope.moveFeed(url, folder);
+	};
+
 	$scope.uploadOpml = function() {
 		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
 			opml: JSON.stringify($scope.feeds)

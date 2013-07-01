@@ -412,6 +412,17 @@
 								{{if .IsAdmin}}
 									<li><a ng-href="{{url "admin-feed"}}?f={{`{{activeFeed}}`}}">admin</a></li>
 								{{end}}
+								<li class="divider"></li>
+								<li class="dropdown-submenu pull-left">
+									<a tabindex="-1" href="#">move to folder</a>
+									<ul class="dropdown-menu">
+										<li><a href="#" ng-click="moveFeed(activeFeed)">[root]</a></li>
+										<li ng-repeat="(f, _) in unread.folders">
+											<a href="#" ng-bind="f" ng-click="moveFeed(activeFeed, f)"></a>
+										</li>
+										<li><a href="#" ng-click="moveFeedNew(activeFeed)">[new folder]</a></li>
+									</ul>
+								</li>
 							</ul>
 						</div>
 					</div>
