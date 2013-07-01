@@ -434,7 +434,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		c.Criticalf("badurl6: %v", f)
 		return errors.New("badurl6")
 	}
-	gn.PutMultiComplete(puts)
+	gn.PutMulti(puts)
 
 	return nil
 }
