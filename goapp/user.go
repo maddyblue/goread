@@ -358,7 +358,7 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.GetMulti([]interface{}{u, ud})
 		if ilast, err := strconv.ParseInt(last, 10, 64); err == nil && ilast > 0 && false {
-			u.Read = time.Unix(ilast / 1000, 0)
+			u.Read = time.Unix(ilast/1000, 0)
 		} else {
 			u.Read = time.Now()
 		}
