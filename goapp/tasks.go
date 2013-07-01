@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -374,9 +375,13 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 		origUrl = u.String()
 		fetchUrl = origUrl
 		if origUrl == "" {
-			c.Criticalf("bad url: %v, %v, %v, %v", _orig, u, origUrl, fetchUrl)
+			c.Criticalf("badurl1: %v, %v, %v, %v", _orig, u, origUrl, fetchUrl)
 			return nil, nil
 		}
+	}
+	if strings.TrimSpace(origUrl) == "" {
+		c.Criticalf("badurl2: %v, %v", _orig, origUrl)
+		return nil, nil
 	}
 
 	cl := &http.Client{
@@ -432,7 +437,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	if hasUpdated && isFeedUpdated {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
-		gn.Put(&f)
+		if strings.TrimSpace(f.Url) == "" {
+			c.Criticalf("badurl5: %v, %v", url, f)
+			return errors.New("badurl5")
+		}
+		gn.PutComplete(&f)
 		return nil
 	}
 
@@ -487,7 +496,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 			f.Updated = f.Date
 		}
 	}
-	gn.PutMulti(puts)
+	if f.Url == "" {
+		c.Criticalf("badurl6: %v", f)
+		return errors.New("badurl6")
+	}
+	gn.PutMultiComplete(puts)
 
 	return nil
 }
@@ -503,6 +516,10 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("feed %v already updated", url)
 		return
 	}
+	if f.Url == "" {
+		c.Criticalf("badurl7: %v", url)
+		return
+	}
 
 	feedError := func() {
 		f.Errors++
@@ -514,7 +531,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			v = 0
 		}
 		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
-		gn.Put(&f)
+		gn.PutComplete(&f)
 		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
 	}
 
