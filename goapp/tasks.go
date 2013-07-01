@@ -444,6 +444,9 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		return
+	} else if err != nil {
+		c.Errorf("badurl7 error: %v", err.Error())
+		return
 	} else if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated", url)
 		return
@@ -467,8 +470,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
 	}
 
-	if feed, stories := fetchFeed(c, url, url); feed != nil {
-		if err := updateFeed(c, url, feed, stories); err != nil {
+	if feed, stories := fetchFeed(c, f.Url, f.Url); feed != nil {
+		if err := updateFeed(c, f.Url, feed, stories); err != nil {
 			feedError()
 		}
 	} else {
