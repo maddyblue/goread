@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en" ng-app="goReadApp">
 <head>
 	<title>go read</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -338,6 +338,8 @@
 					<li class="all-subs hand" ng-click="setActiveFeed()">
 						all items ({{`{{unread.all || 0}}`}})
 					</li>
+				</ul>
+				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
 						<div class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
@@ -355,7 +357,7 @@
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
 							</div>
-							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]">
+							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
 									<div class="hand feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
@@ -566,11 +568,13 @@
 	</div>
 
 	<script src="{{.Jquery}}"></script>
+	<script src="{{.JqueryUI}}"></script>
 	<script src="{{.Underscore}}"></script>
 	<script src="{{.BootstrapJs}}"></script>
 	<script src="/static/js/jquery.form.js"></script>
 	<script src="/static/js/mousetrap.min.js"></script>
 	<script src="{{.Angular}}"></script>
+	<script src="/static/js/sortable.js"></script>
 	<script src="/static/js/moment.min.js"></script>
 	<script src="/static/js/site.js"></script>
 

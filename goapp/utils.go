@@ -56,6 +56,7 @@ type Includes struct {
 	BootstrapCss        string
 	BootstrapJs         string
 	Jquery              string
+	JqueryUI            string
 	Underscore          string
 	MiniProfiler        template.HTML
 	User                *User
@@ -71,6 +72,7 @@ var (
 	BootstrapCss string
 	BootstrapJs  string
 	Jquery       string
+	JqueryUI     string
 	Underscore   string
 	isDevServer  bool
 )
@@ -79,6 +81,7 @@ func init() {
 	angular_ver := "1.0.5"
 	bootstrap_ver := "2.3.1"
 	jquery_ver := "1.9.1"
+	jqueryui_ver := "1.10.3"
 	underscore_ver := "1.4.4"
 	isDevServer = appengine.IsDevAppServer()
 
@@ -87,12 +90,14 @@ func init() {
 		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-%v.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap-%v.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
+		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.js", underscore_ver)
 	} else {
 		Angular = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular.min.js", angular_ver)
 		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.min.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
+		JqueryUI = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("//cdnjs.cloudflare.com/ajax/libs/underscore.js/%v/underscore-min.js", underscore_ver)
 	}
 }
@@ -103,6 +108,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		BootstrapCss:        BootstrapCss,
 		BootstrapJs:         BootstrapJs,
 		Jquery:              Jquery,
+		JqueryUI:            JqueryUI,
 		Underscore:          Underscore,
 		MiniProfiler:        c.Includes(r),
 		GoogleAnalyticsId:   GOOGLE_ANALYTICS_ID,

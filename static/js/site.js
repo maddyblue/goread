@@ -13,7 +13,8 @@ function countProperties(obj) {
 	return count;
 }
 
-function GoreadCtrl($scope, $http, $timeout, $window) {
+var goReadAppModule = angular.module('goReadApp', ['ui.sortable']);
+goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
 	$scope.contents = {};
 	$scope.opts = {
@@ -23,6 +24,12 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		mode: 'unread',
 		sort: 'newest',
 		hideEmpty: false
+	};
+
+	$scope.sortableOptions = {
+		stop: function() {
+			$scope.uploadOpml();
+		}
 	};
 
 	$scope.importOpml = function() {
@@ -647,4 +654,4 @@ function GoreadCtrl($scope, $http, $timeout, $window) {
 		d.setDate(d.getDate() - 1);
 		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: d.valueOf() });
 	};
-}
+});
