@@ -111,7 +111,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 				c.Criticalf("badurl4: %v, %v", o.XmlUrl, o)
 				return errors.New("badurl4")
 			}
-			gn.PutComplete(&f)
+			gn.Put(&f)
 			if err := updateFeed(c, f.Url, feed, stories); err != nil {
 				return err
 			}

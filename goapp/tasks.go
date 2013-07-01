@@ -380,7 +380,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 			c.Criticalf("badurl5: %v, %v", url, f)
 			return errors.New("badurl5")
 		}
-		gn.PutComplete(&f)
+		gn.Put(&f)
 		return nil
 	}
 
@@ -473,7 +473,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			v = 0
 		}
 		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
-		gn.PutComplete(&f)
+		gn.Put(&f)
 		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
 	}
 
