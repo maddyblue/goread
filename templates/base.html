@@ -274,7 +274,6 @@
 								<b class="caret"></b>
 							</a>
 							<ul class="dropdown-menu">
-								<li><a href="{{url "import-reader"}}">import google reader</a></li>
 								<li><a href="#" ng-click="setAddSubscription()">add subscription</a></li>
 								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
 								<li class="divider"></li>
@@ -472,8 +471,7 @@
 		<div ng-show="nothing()" class="row-fluid top-margin">
 			<div class="offset2 span8">
 				<p>You don't have any feeds.</p>
-				<p>You should probably add some.</p>
-				<p><a href="{{url "import-reader"}}" class="btn btn-primary">Import from Google Reader</a></p>
+				<p>To import from Google Reader, <a href="https://www.google.com/takeout/?pli=1#custom:reader">download your OPML here</a>, then upload the <code>subscriptions.xml</code> file in the <code>Upload OPML file</code> section below.</p>
 			</div>
 		</div>
 
