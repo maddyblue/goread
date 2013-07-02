@@ -235,8 +235,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.updateUnreadCurrent = function() {
-		if ($scope.activeFeed) $scope.unread.current = $scope.unread.feeds[$scope.activeFeed];
-		else if ($scope.activeFolder) $scope.unread.current = $scope.unread.folders[$scope.activeFolder];
+		if ($scope.activeFeed) $scope.unread.current = $scope.unread.feeds[$scope.activeFeed.XmlUrl];
+		else if ($scope.activeFolder) $scope.unread.current = $scope.unread.folders[$scope.activeFolder.Title];
 		else $scope.unread.current = $scope.unread.all;
 	};
 
@@ -277,8 +277,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.active = function() {
-		if ($scope.activeFolder) return $scope.activeFolder;
-		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed].Title;
+		if ($scope.activeFolder) return $scope.activeFolder.Title;
+		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed.XmlUrl].Title;
 		return 'all items';
 	};
 
@@ -369,9 +369,19 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
+	$scope.unactiveCurrentFeed = function() {
+		if($scope.activeFolder)
+			$scope.activeFolder.active = false;
+		if($scope.activeFeed)
+			$scope.activeFeed.active = false;
+	}
+
 	$scope.setActiveFeed = function(feed) {
+		$scope.unactiveCurrentFeed();
 		delete $scope.activeFolder;
 		$scope.activeFeed = feed;
+		if ($scope.activeFeed)
+			$scope.activeFeed.active = true;
 		delete $scope.currentStory;
 		$scope.updateStories();
 		$scope.applyGetFeed();
@@ -379,8 +389,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.setActiveFolder = function(folder) {
+		$scope.unactiveCurrentFeed();
+		delete $scope.activeFolder;
 		delete $scope.activeFeed;
 		$scope.activeFolder = folder;
+		if ($scope.activeFolder)
+			$scope.activeFolder.active = true;
 		delete $scope.currentStory;
 		$scope.updateStories();
 		$scope.applyGetFeed();
@@ -405,13 +419,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($scope.activeFolder) {
 			for (var i = 0; i < $scope.stories.length; i++) {
 				var s = $scope.stories[i];
-				if ($scope.xmlurls[s.feed.XmlUrl].folder == $scope.activeFolder) {
+				if ($scope.xmlurls[s.feed.XmlUrl].folder == $scope.activeFolder.Title) {
 					$scope.dispStories.push(s);
 				}
 			}
 		} else if ($scope.activeFeed) {
-			if ($scope.opts.mode != 'unread') {
-				angular.forEach($scope.readStories[$scope.activeFeed], function(s) {
+			if ($scope.opts.mode != 'unread') {;
+				angular.forEach($scope.readStories[$scope.activeFeed.XmlUrl], function(s) {
 					if ($scope.unreadStories[s.guid]) {
 						s.read = false;
 					}
@@ -420,7 +434,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			} else {
 				for (var i = 0; i < $scope.stories.length; i++) {
 					var s = $scope.stories[i];
-					if (s.feed.XmlUrl == $scope.activeFeed) {
+					if (s.feed.XmlUrl == $scope.activeFeed.XmlUrl) {
 						$scope.dispStories.push(s);
 					}
 				}
@@ -466,7 +480,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			var f = $scope.feeds[i];
 			if (f.Outline && f.Title == folder) {
 				f.Title = name;
-				$scope.activeFolder = name;
+				$scope.activeFolder.Title = name;
 				break;
 			}
 		}
@@ -575,7 +589,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.cursors = {};
 	$scope.fetching = {};
 	$scope.getFeed = function() {
-		var f = $scope.activeFeed;
+		if (!$scope.activeFeed) return;
+		var f = $scope.activeFeed.XmlUrl;
 		if (!f || $scope.fetching[f]) return;
 		if ($scope.dispStories.length != 0) {
 			var sh = sl[0].scrollHeight;
@@ -591,7 +606,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		})).success(function (data) {
 			if (!data || !data.Stories) return
 			delete $scope.fetching[f]
-			$scope.cursors[$scope.activeFeed] = data.Cursor;
+			$scope.cursors[$scope.activeFeed.XmlUrl] = data.Cursor;
 			if (!$scope.readStories[f])
 				$scope.readStories[f] = [];
 			for (var i = 0; i < data.Stories.length; i++) {
