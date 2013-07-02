@@ -40,7 +40,28 @@ func Sanitize(s string) (string, string) {
 			}
 		}
 		t := z.Token()
-		if t.DataAtom == atom.Script {
+		if t.Type == html.StartTagToken && t.Data == "a" {
+			anchor := &bytes.Buffer{}
+			anchor.WriteString("<a ")
+			hasTarget := false
+			for _, attr := range(t.Attr) {
+				if attr.Key == "href" {
+					//TODO  adds the feed's domain to any relative links or images
+				} else if attr.Key == "target" {
+					hasTarget = true
+					attr.Val = "_blank"
+				}
+				anchor.WriteString(attr.Key)
+				anchor.WriteString("=\"")
+				anchor.WriteString(attr.Val)
+				anchor.WriteString("\" ")
+			}
+			if !hasTarget {
+				anchor.WriteString(" target=\"_blank\"")
+			}
+			anchor.WriteString(">")
+			buf.WriteString(anchor.String())
+		} else if t.DataAtom == atom.Script {
 			if t.Type == html.StartTagToken {
 				scripts++
 			} else if t.Type == html.EndTagToken {

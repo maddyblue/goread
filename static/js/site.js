@@ -363,8 +363,16 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if ($scope.dispStories[$scope.currentStory]) {
 					current = $scope.dispStories[$scope.currentStory].guid;
 				}
+				var parseTarget = /target\s*=\s*"_blank"/
+				var parseAnchor = /<a[^>]*/g
 				for (var i = 0; i < data.length; i++) {
-					$scope.contents[tofetch[i].guid] = data[i];
+					$scope.contents[tofetch[i].guid] = data[i].replace(parseAnchor, function(match) {
+						if (parseTarget.test(match)) {
+							return match;
+						} else {
+							return match + " target=_blank";
+						}
+					});
 				}
 			});
 	};
