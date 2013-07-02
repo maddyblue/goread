@@ -120,6 +120,10 @@ func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
+	if cu == nil {
+		serveError(w, errors.New("Not logged in"))
+		return
+	}
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
 	if err := gn.Get(&u); err != nil {
