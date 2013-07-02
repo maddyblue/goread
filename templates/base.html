@@ -352,10 +352,10 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div class="hand folder-title" ng-show="f.Outline">
-								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
-								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
-								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
+							<div class="hand folder-title" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)">
+								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
+								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
+								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
