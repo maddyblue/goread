@@ -589,6 +589,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.cursors = {};
 	$scope.fetching = {};
 	$scope.getFeed = function() {
+		if (!$scope.activeFeed) return;
 		var f = $scope.activeFeed.XmlUrl;
 		if (!f || $scope.fetching[f]) return;
 		if ($scope.dispStories.length != 0) {
