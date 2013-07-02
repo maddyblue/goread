@@ -20,6 +20,7 @@ import (
 	"appengine"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
