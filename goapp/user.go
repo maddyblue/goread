@@ -154,7 +154,10 @@ func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		"key":  {string(bk)},
 		"user": {cu.ID},
 	})
-	taskqueue.Add(c, task, "import-reader")
+	if _, err := taskqueue.Add(c, task, "import-reader"); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
