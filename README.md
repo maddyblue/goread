@@ -32,4 +32,6 @@ a google reader clone built with go on app engine and angularjs
 
 [and finally, deploy]
 
-1. from the `goread` directory, deploy with `appcfg.py update .`
+1. from the `goread` directory, deploy `cron.yaml` with `appcfg.py --oauth2 update_cron .`
+1. then deploy `queue.yaml` with `appcfg.py --oauth2 update_queues .`
+1. finally deploy with `appcfg.py --oauth2 update .`
