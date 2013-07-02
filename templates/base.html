@@ -53,6 +53,9 @@
 		.feed-title, .folder-title {
 			padding: 2px;
 		}
+		.feed-title.active, .folder-title.active {
+			color: #bf0303;
+		}
 		.feed-title:hover, .folder-title:hover {
 			background-color: #eee;
 		}
@@ -342,7 +345,7 @@
 				</ul>
 				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
-						<div class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
+						<div ng-class="{active: f.active}" class="hand feed-title" ng-hide="f.Outline" ng-click="setActiveFeed(f)">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
 							<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
@@ -350,17 +353,17 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div class="hand folder-title" ng-show="f.Outline">
-								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts()"></i>
-								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts()"></i>
-								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title" ng-click="setActiveFolder(f.Title)"></span>
+							<div ng-class="{active: f.active}" class="hand folder-title" ng-show="f.Outline"  ng-click="setActiveFolder(f)">
+								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
+								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
+								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
 								<span ng-show="unread['folders'][f.Title]">
 									({{`{{unread['folders'][f.Title]}}`}})
 								</span>
 							</div>
 							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
-									<div class="hand feed-title feed-child" ng-click="setActiveFeed(o.XmlUrl)">
+									<div ng-class="{active: o.active}" class="hand feed-title feed-child" ng-click="setActiveFeed(o)">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
 										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
@@ -386,15 +389,15 @@
 				<div class="active-name story">
 					<span ng-hide="activeFeed || activeFolder" ng-bind="active()"></span>
 					<div ng-show="activeFolder">
-						<span ng-bind="activeFolder"></span>
+						<span ng-bind="activeFolder.Title"></span>
 						<div class="pull-right btn-group config">
 							<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
 								<i class="icon-cog"></i>
 								<span class="caret"></span>
 							</a>
 							<ul class="dropdown-menu">
-								<li><a href="#" ng-click="renameFolder(activeFolder)">rename</a></li>
-								<li><a href="#" ng-click="deleteFolder(activeFolder)">delete</a></li>
+								<li><a href="#" ng-click="renameFolder(activeFolder.Title)">rename</a></li>
+								<li><a href="#" ng-click="deleteFolder(activeFolder.Title)">delete</a></li>
 							</ul>
 						</div>
 					</div>
@@ -408,8 +411,8 @@
 								<span class="caret"></span>
 							</a>
 							<ul class="dropdown-menu">
-								<li><a href="#" ng-click="rename(activeFeed)">rename</a></li>
-								<li><a href="#" ng-click="unsubscribe(activeFeed)">unsubscribe</a></li>
+								<li><a href="#" ng-click="rename(activeFeed.XmlUrl)">rename</a></li>
+								<li><a href="#" ng-click="unsubscribe(activeFeed.XmlUrl)">unsubscribe</a></li>
 								{{if .IsAdmin}}
 									<li><a ng-href="{{url "admin-feed"}}?f={{`{{activeFeed}}`}}">admin</a></li>
 								{{end}}
