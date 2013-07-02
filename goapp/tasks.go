@@ -460,6 +460,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		feed.Updated = f.Updated
 	}
 	feed.Date = f.Date
+	feed.Average = f.Average
 	f = *feed
 
 	if hasUpdated && isFeedUpdated {
@@ -515,11 +516,16 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	c.Debugf("putting %v entities", len(puts))
 	if len(puts) > 1 {
+		updateAverage(&f, f.Date, len(puts)-1)
 		f.Date = time.Now()
 		if !hasUpdated {
 			f.Updated = f.Date
 		}
 	}
+	scheduleNextUpdate(&f)
+	delay := f.NextUpdate.Sub(time.Now())
+	c.Infof("next update scheduled for %v from now", delay-delay%time.Second)
+
 	gn.PutMulti(puts)
 
 	return nil
