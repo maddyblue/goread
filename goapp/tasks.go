@@ -217,6 +217,7 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	return
 	const sz = 100
 	ic := 0
 	var f func(appengine.Context)
@@ -325,7 +326,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now()).Limit(100)
+	q := datastore.NewQuery("F").KeysOnly().Limit(100)
 	cs := r.FormValue("c")
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
@@ -368,7 +369,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	tasks := make([]*taskqueue.Task, len(keys))
 	for i, k := range keys {
-		tasks[i] = taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+		tasks[i] = taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
 			"feed": {k.StringID()},
 		})
 	}
