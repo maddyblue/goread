@@ -258,24 +258,44 @@ func BackendStop(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly()
-	q = q.Filter("n <=", time.Now())
-	q = q.Limit(2500)
+	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now()).Limit(1)
+	cs := r.FormValue("c")
+	if len(cs) > 0 {
+		if cur, err := datastore.DecodeCursor(cs); err == nil {
+			q = q.Start(cur)
+			c.Errorf("starting at %v", cur)
+		} else {
+			c.Errorf("cursor error %v", err.Error())
+		}
+	}
 	var keys []*datastore.Key
 	it := q.Run(c)
 	for {
 		k, err := it.Next(nil)
+		c.Infof("n: %v, %v", k, err)
 		if err == datastore.Done {
 			break
 		} else if err != nil {
 			c.Errorf("next error: %v", err.Error())
-			return
+			break
 		}
 		keys = append(keys, k)
 	}
+
 	if len(keys) == 0 {
 		c.Errorf("giving up")
 		return
+	} else {
+		cur, err := it.Cursor()
+		if err != nil {
+			c.Errorf("to cur error %v", err.Error())
+		} else {
+			c.Errorf("add with cur %v", cur)
+			t := taskqueue.NewPOSTTask(routeUrl("update-feeds"), url.Values{
+				"c": {cur.String()},
+			})
+			taskqueue.Add(c, t, "update-feed")
+		}
 	}
 	c.Infof("updating %d feeds", len(keys))
 
@@ -451,7 +471,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Errorf("badurl7 error: %v", err.Error())
 		return
 	} else if time.Now().Before(f.NextUpdate) {
-		c.Infof("feed %v already updated", url)
+		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
 		return
 	}
 	if f.Url == "" {
