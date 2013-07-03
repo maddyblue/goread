@@ -518,12 +518,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.moveFeed = function(url, folder) {
 		var feed;
 		var found = false;
-		for (var i = 0; i < $scope.feeds.length; i++) {
+		for (var i = $scope.feeds.length - 1; i >= 0; i--) {
 			var f = $scope.feeds[i];
 			if (f.Outline) {
 				for (var j = 0; j < f.Outline.length; j++) {
 					var o = f.Outline[j];
 					if (o.XmlUrl == url) {
+						if (f.Title == folder)
+							return;
 						feed = f.Outline[j];
 						f.Outline.splice(j, 1);
 						if (!f.Outline.length)
@@ -534,6 +536,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (f.Title == folder)
 					found = true;
 			} else if (f.XmlUrl == url) {
+				if (!folder)
+					return;
 				feed = f;
 				$scope.feeds.splice(i, 1)
 			}
