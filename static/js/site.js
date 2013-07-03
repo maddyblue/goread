@@ -150,8 +150,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
-	$scope.setCurrent = function(i, noClose, isClick) {
-		if (!noClose && i == $scope.currentStory) {
+	$scope.setCurrent = function(i, noClose, isClick, $event) {
+		var middleClick = $event && ($event.button == 1 || $event.which == 2);
+		if ($event && !middleClick) {
+			$event.preventDefault();
+		}
+		if (!middleClick && !noClose && i == $scope.currentStory) {
 			delete $scope.currentStory;
 			return;
 		}
@@ -172,7 +176,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				}
 			});
 		}
-		$scope.currentStory = i;
+		if (!middleClick) {
+			$scope.currentStory = i;
+		}
 		$scope.markAllRead(story);
 	};
 

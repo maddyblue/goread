@@ -53,6 +53,9 @@
 		.story-header.read .story-title strong {
 			font-weight: normal !important;
 		}
+		.story-link {
+			color: #333;
+		}
 		.feed-title, .folder-title {
 			padding: 2px;
 		}
@@ -440,9 +443,9 @@
 				>
 					<div class="story-header hand" ng-class="{read: s.read}">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index, false, true)" ng-bind="s.feed.Title"></div>
-						<div class="story-title" ng-click="setCurrent($index, false, true)">
-							<strong ng-bind="s.Title"></strong>
-							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
+						<div class="story-title">
+							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, false, true, $event)" class="story-link"><strong ng-bind="s.Title"></strong></a>
+							<span class="story-summary muted" ng-click="setCurrent($index, false, true)" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="story-date muted visible-desktop">
 							<span ng-bind="s.dispdate" ng-click="setCurrent($index, false, true)"></span>
