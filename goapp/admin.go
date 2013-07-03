@@ -67,7 +67,7 @@ func AllFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	f := Feed{Url: r.URL.Query().Get("f")}
+	f := Feed{Url: r.FormValue("f")}
 	gn.Get(&f)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).KeysOnly()
 	fk := gn.Key(&f)
