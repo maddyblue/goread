@@ -367,11 +367,13 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Infof("updating %d feeds", len(keys))
 
-	tasks := make([]*taskqueue.Task, len(keys))
-	for i, k := range keys {
-		tasks[i] = taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
+	var tasks []*taskqueue.Task
+	for _, k := range keys {
+		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
 			"feed": {k.StringID()},
-		})
+		}), taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+			"feed": {k.StringID()},
+		}))
 	}
 	var ts []*taskqueue.Task
 	const taskLimit = 100
