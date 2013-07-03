@@ -296,7 +296,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				break
 			}
 		}
-
+		feedUrl, _ := getFeedUrl(&f)
 		for _, i := range a.Entry {
 			st := Story{
 				Id:    i.ID,
@@ -315,9 +315,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				st.Author = i.Author.Name
 			}
 			if i.Content != nil {
-				st.content, st.Summary = Sanitize(i.Content.Body)
+				st.content, st.Summary = Sanitize(i.Content.Body, *feedUrl)
 			} else if i.Summary != nil {
-				st.content, st.Summary = Sanitize(i.Summary.Body)
+				st.content, st.Summary = Sanitize(i.Summary.Body, *feedUrl)
 			}
 			s = append(s, &st)
 		}
@@ -337,6 +337,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 		} else {
 			c.Warningf("no rss feed date: %v", f.Link)
 		}
+		feedUrl, _ := getFeedUrl(&f)
 
 		for _, i := range r.Items {
 			st := Story{
@@ -349,9 +350,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				i.Title = i.Description
 			}
 			if i.Content != "" {
-				st.content, st.Summary = Sanitize(i.Content)
+				st.content, st.Summary = Sanitize(i.Content, *feedUrl)
 			} else if i.Title != "" && i.Description != "" {
-				st.content, st.Summary = Sanitize(i.Description)
+				st.content, st.Summary = Sanitize(i.Description, *feedUrl)
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
@@ -379,6 +380,8 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 			}
 		}
 
+		feedUrl, _ := getFeedUrl(&f)
+
 		for _, i := range rdf.Item {
 			st := Story{
 				Id:     i.About,
@@ -386,7 +389,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				Link:   i.Link,
 				Author: i.Creator,
 			}
-			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description))
+			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description), *feedUrl)
 			if t, err := parseDate(c, &f, i.Date); err == nil {
 				st.Published = t
 				st.Updated = t
@@ -451,15 +454,21 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	return f, ss
 }
 
-func loadImage(c appengine.Context, f *Feed) string {
+func getFeedUrl(f *Feed) (feedUrl *url.URL, err error) {
 	s := f.Link
 	if s == "" {
 		s = f.Url
 	}
-	u, err := url.Parse(s)
+	feedUrl, err = url.Parse(s)
+	return
+}
+
+func loadImage(c appengine.Context, f *Feed) string {
+	u, err := getFeedUrl(f)
 	if err != nil {
 		return ""
 	}
+
 	u.Path = "/favicon.ico"
 	u.RawQuery = ""
 	u.Fragment = ""
