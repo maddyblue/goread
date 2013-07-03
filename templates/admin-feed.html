@@ -14,8 +14,10 @@
 	<li>date: {{.Feed.Date}}</li>
 	<li>checked: {{.Feed.Checked}}</li>
 	<li>next: {{.Feed.NextUpdate}}</li>
+	<li>subscribed: {{.Feed.Subscribed}}</li>
 	<li>link: {{.Feed.Link}}</li>
 	<li>errors: {{.Feed.Errors}}</li>
+	<li><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></li>
 </ul>
 
 stories:

@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"encoding/base64"
 	"time"
 
 	"appengine"
@@ -58,6 +59,19 @@ type Feed struct {
 	Link       string    `datastore:"l,noindex"`
 	Errors     int       `datastore:"e,noindex"`
 	Image      string    `datastore:"i,noindex"`
+	Subscribed time.Time `datastore:"s,noindex"`
+}
+
+func (f Feed) IsSubscribed() bool {
+	return time.Now().Before(f.Subscribed)
+}
+
+func (f Feed) PubSubURL() string {
+	b := base64.URLEncoding.EncodeToString([]byte(f.Url))
+	ru, _ := router.Get("subscribe-callback").URL("feed", b)
+	ru.Scheme = "http"
+	ru.Host = "www.goread.io"
+	return ru.String()
 }
 
 // parent: Feed, key: story ID

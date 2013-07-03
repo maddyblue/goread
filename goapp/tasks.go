@@ -18,6 +18,7 @@ package goapp
 
 import (
 	"appengine"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -36,6 +37,7 @@ import (
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/gorilla/mux"
 	"github.com/mjibson/goon"
 )
 
@@ -255,6 +257,60 @@ func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func BackendStop(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	vars := mux.Vars(r)
+	b, _ := base64.URLEncoding.DecodeString(vars["feed"])
+	f := Feed{Url: string(b)}
+	if err := gn.Get(&f); err != nil {
+		http.Error(w, "", http.StatusNotFound)
+		return
+	}
+	if r.Method == "GET" {
+		if r.FormValue("hub.mode") != "subscribe" || r.FormValue("hub.topic") != f.Url {
+			http.Error(w, "", http.StatusNotFound)
+			return
+		}
+		w.Write([]byte(r.FormValue("hub.challenge")))
+		i, _ := strconv.Atoi(r.FormValue("hub.lease_seconds"))
+		f.Subscribed = time.Now().Add(time.Second * time.Duration(i))
+		gn.Put(&f)
+		c.Debugf("subscribed: %v - %v", f.Url, f.Subscribed)
+		return
+	} else {
+		c.Infof("push: %v", f.Url)
+		defer r.Body.Close()
+		b, _ := ioutil.ReadAll(r.Body)
+		nf, ss := ParseFeed(c, f.Url, b)
+		err := updateFeed(c, f.Url, nf, ss)
+		if err != nil {
+			c.Errorf("push error: %v", err)
+		}
+	}
+}
+
+func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	u := url.Values{}
+	f := r.FormValue("feed")
+	if len(f) == 0 {
+		return
+	}
+	u.Add("hub.callback", Feed{Url: f}.PubSubURL())
+	u.Add("hub.mode", "subscribe")
+	u.Add("hub.verify", "sync")
+	u.Add("hub.topic", f)
+	req, err := http.NewRequest("POST", "http://pubsubhubbub.appspot.com", strings.NewReader(u.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	cl := urlfetch.Client(c)
+	resp, err := cl.Do(req)
+	if err != nil {
+		c.Errorf("req error: %v", err)
+	} else if resp.StatusCode != 204 {
+		c.Errorf("resp: %v - %v", f, resp.Status)
+		c.Errorf("%s", resp.Body)
+	}
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
