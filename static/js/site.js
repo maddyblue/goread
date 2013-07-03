@@ -151,7 +151,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.setCurrent = function(i, noClose, isClick, $event) {
-		var middleClick = $event && ($event.button == 1 || $event.which == 2);
+		var middleClick = $event && $event.which == 2;
 		if ($event && !middleClick) {
 			$event.preventDefault();
 		}
