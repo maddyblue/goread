@@ -21,10 +21,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
-	"appengine/taskqueue"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 )
@@ -85,17 +83,7 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	gn.GetMulti(stories)
-
-	if !f.IsSubscribed() {
-		t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
-			"feed": {f.Url},
-		})
-		if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
-			c.Errorf("taskqueue error: %v", err.Error())
-		} else {
-			c.Warningf("subscribe feed: %v", f.Url)
-		}
-	}
+	f.Subscribe(c)
 
 	templates.ExecuteTemplate(w, "admin-feed.html", struct {
 		Feed    *Feed

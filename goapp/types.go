@@ -18,10 +18,12 @@ package goapp
 
 import (
 	"encoding/base64"
+	"net/url"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/taskqueue"
 )
 
 type User struct {
@@ -60,6 +62,19 @@ type Feed struct {
 	Errors     int       `datastore:"e,noindex"`
 	Image      string    `datastore:"i,noindex"`
 	Subscribed time.Time `datastore:"s,noindex"`
+}
+
+func (f Feed) Subscribe(c appengine.Context) {
+	if !f.IsSubscribed() {
+		t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
+			"feed": {f.Url},
+		})
+		if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
+			c.Errorf("taskqueue error: %v", err.Error())
+		} else {
+			c.Warningf("subscribe feed: %v", f.Url)
+		}
+	}
 }
 
 func (f Feed) IsSubscribed() bool {

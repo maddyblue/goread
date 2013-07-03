@@ -263,16 +263,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						c.Warningf("manual feed update: %v", f.Url)
 					}
 				}
-				if !f.IsSubscribed() {
-					t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
-						"feed": {f.Url},
-					})
-					if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
-						c.Errorf("taskqueue error: %v", err.Error())
-					} else {
-						c.Warningf("subscribe feed: %v", f.Url)
-					}
-				}
+				f.Subscribe(c)
 				lock.Lock()
 				fl[f.Url] = newStories
 				if len(newStories) > 0 {

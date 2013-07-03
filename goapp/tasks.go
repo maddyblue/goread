@@ -219,38 +219,45 @@ func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	const sz = 100
 	ic := 0
-	gn := goon.FromContext(c)
-	fk := gn.Key(&Feed{Url: "a"})
-	q := datastore.NewQuery("F").Filter("__key__ <", fk).Order("__key__").KeysOnly().Limit(1)
-	keys, _ := q.GetAll(c, nil)
-	if len(keys) == 0 {
-		return
-	}
-	c.Errorf("start: %v", keys[0])
-	startid := keys[0].IntID() / sz
-
 	var f func(appengine.Context)
+	var cs string
 	f = func(c appengine.Context) {
-		c.Errorf("new request: %d", ic)
-		t1 := time.Now()
+		gn := goon.FromContext(c)
+		c.Errorf("ic: %d", ic)
 		wg := sync.WaitGroup{}
 		wg.Add(sz)
 		var j int64
+		q := datastore.NewQuery("F").KeysOnly()
+		if cs != "" {
+			if cur, err := datastore.DecodeCursor(cs); err == nil {
+				q = q.Start(cur)
+				c.Errorf("cur start: %v", cur)
+			}
+		}
+		it := q.Run(c)
 		for j = 0; j < sz; j++ {
-			go func(j int64) {
-				k := datastore.NewKey(c, "F", "", startid*sz+j, nil)
-				c.Infof("del: %v", k)
-				if err := datastore.Delete(c, k); err != nil {
-					c.Errorf("delete err: %v", err.Error())
+			k, err := it.Next(nil)
+			c.Errorf("%v: %v, %v", j, k, err)
+			if err != nil {
+				c.Criticalf("err: %v", err)
+				return
+			}
+
+			go func(k *datastore.Key) {
+				f := Feed{Url: k.StringID()}
+				if err := gn.Get(&f); err == nil {
+					f.Subscribe(c)
 				}
+
 				wg.Done()
-			}(j)
+			}(k)
+		}
+		cur, err := it.Cursor()
+		if err == nil {
+			cs = cur.String()
 		}
 		wg.Wait()
-		t2 := time.Now()
-		c.Infof("%v, %v, %v", t1, t2, t2.Sub(t1))
 		ic++
-		startid++
 		runtime.RunInBackground(c, f)
 	}
 	runtime.RunInBackground(c, f)
@@ -292,15 +299,19 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	u := url.Values{}
-	f := r.FormValue("feed")
-	if len(f) == 0 {
+	gn := goon.FromContext(c)
+	f := Feed{Url: r.FormValue("feed")}
+	if err := gn.Get(&f); err != nil {
+		serveError(w, err)
+		return
+	} else if f.IsSubscribed() {
 		return
 	}
-	u.Add("hub.callback", Feed{Url: f}.PubSubURL())
+	u := url.Values{}
+	u.Add("hub.callback", f.PubSubURL())
 	u.Add("hub.mode", "subscribe")
 	u.Add("hub.verify", "sync")
-	u.Add("hub.topic", f)
+	u.Add("hub.topic", f.Url)
 	req, err := http.NewRequest("POST", "http://pubsubhubbub.appspot.com", strings.NewReader(u.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	cl := urlfetch.Client(c)
@@ -308,13 +319,13 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Errorf("req error: %v", err)
 	} else if resp.StatusCode != 204 {
-		c.Errorf("resp: %v - %v", f, resp.Status)
+		c.Errorf("resp: %v - %v", f.Url, resp.Status)
 		c.Errorf("%s", resp.Body)
 	}
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now()).Limit(1)
+	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now()).Limit(100)
 	cs := r.FormValue("c")
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
