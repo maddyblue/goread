@@ -63,6 +63,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	var proc func(label string, outlines []*OpmlOutline)
 	proc = func(label string, outlines []*OpmlOutline) {
 		for _, o := range outlines {
+			if o.Title == "" {
+				o.Title = o.Text
+			}
 			if o.XmlUrl != "" {
 				if remaining > 0 {
 					remaining--
