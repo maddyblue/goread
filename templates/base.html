@@ -344,9 +344,10 @@
 					<li>
 						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<li>
-					<li class="all-subs hand" ng-click="setActiveFeed()" ng-class="{active: !activeFeed && !activeFolder}">
+					<li class="all-subs hand" ng-click="setActiveFeed()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
 						all items ({{`{{unread.all || 0}}`}})
 					</li>
+					<li class="all-subs" ng-show="loading">loading...</li>
 				</ul>
 				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
