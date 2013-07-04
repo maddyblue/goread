@@ -36,6 +36,8 @@ import (
 	"appengine/runtime"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/goon"
@@ -46,10 +48,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	userid := r.FormValue("user")
 	bk := r.FormValue("key")
 	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
-	data, err := ioutil.ReadAll(fr)
-	if err != nil {
-		return
-	}
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -84,7 +82,10 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opml := Opml{}
-	if err := xml.Unmarshal(data, &opml); err != nil {
+	d := xml.NewDecoder(fr)
+	d.CharsetReader = charset.NewReader
+	d.Strict = false
+	if err := d.Decode(&opml); err != nil {
 		c.Errorf("opml error: %v", err.Error())
 		return
 	}
