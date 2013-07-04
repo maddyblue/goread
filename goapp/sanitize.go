@@ -23,14 +23,17 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"net/url"
 )
 
-func Sanitize(s string) (string, string) {
+func Sanitize(s string, feedUrl url.URL) (string, string) {
 	r := bytes.NewReader([]byte(s))
 	z := html.NewTokenizer(r)
 	buf := &bytes.Buffer{}
 	snip := &bytes.Buffer{}
 	scripts := 0
+	feedUrl.RawQuery = ""
+	feedUrl.Fragment = ""
 	for {
 		if z.Next() == html.ErrorToken {
 			if err := z.Err(); err == io.EOF {
@@ -40,7 +43,34 @@ func Sanitize(s string) (string, string) {
 			}
 		}
 		t := z.Token()
-		if t.DataAtom == atom.Script {
+		if t.Type == html.StartTagToken && (t.Data == "a" || t.Data == "img") {
+			anchor := &bytes.Buffer{}
+			anchor.WriteString("<"+t.Data+" ")
+			hasTarget := false
+			for _, attr := range(t.Attr) {
+				if attr.Key == "href" || attr.Key == "src" {
+					urlInfo, _ := url.Parse(strings.Trim(attr.Val, " "))
+					if urlInfo.Host == "" {
+						if urlInfo.Scheme == "" {
+							urlInfo.Path = strings.TrimLeft(urlInfo.Path, feedUrl.Host)
+							newUrl := feedUrl.ResolveReference(urlInfo)
+							attr.Val = newUrl.String()
+						} else if urlInfo.Scheme == "javascript" {
+							attr.Val = "#"
+						}
+					}
+				} else if attr.Key == "target" {
+					hasTarget = true
+					attr.Val = "_blank"
+				}
+				anchor.WriteString(attr.Key+"=\""+attr.Val+"\" ")
+			}
+			if t.Data == "a" && !hasTarget {
+				anchor.WriteString(" target=\"_blank\"")
+			}
+			anchor.WriteString(">")
+			buf.WriteString(anchor.String())
+		} else if t.DataAtom == atom.Script {
 			if t.Type == html.StartTagToken {
 				scripts++
 			} else if t.Type == html.EndTagToken {
