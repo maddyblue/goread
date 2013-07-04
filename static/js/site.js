@@ -673,6 +673,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.update();
 	};
 
+	$scope.deleteAccount = function() {
+		if (!confirm('Delete your account?')) return;
+		window.location.href = $('#delete-account').attr('data-url');
+	};
+
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		shortcuts.modal('toggle');

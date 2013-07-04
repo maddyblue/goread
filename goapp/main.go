@@ -62,6 +62,7 @@ func init() {
 	router.Handle("/push/{feed}", mpg.NewHandler(SubscribeCallback)).Name("subscribe-callback")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
 	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
+	router.Handle("/user/delete-account", mpg.NewHandler(DeleteAccount)).Name("delete-account")
 	router.Handle("/user/export-opml", mpg.NewHandler(ExportOpml)).Name("export-opml")
 	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	router.Handle("/user/get-feed", mpg.NewHandler(GetFeed)).Name("get-feed")
