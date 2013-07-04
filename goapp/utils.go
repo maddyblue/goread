@@ -159,6 +159,7 @@ var dateFormats = []string{
 	"1/2/2006 15:04:05 MST",
 	"1/2/2006 3:04:05 PM",
 	"2 Jan 2006 15:04:05 MST",
+	"2 January 2006 15:04:05 -0700",
 	"2 Jan 2006",
 	"2 January 2006",
 	"2006 January 02",
