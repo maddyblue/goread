@@ -78,14 +78,14 @@ func (f Feed) Subscribe(c appengine.Context) {
 }
 
 func (f Feed) IsSubscribed() bool {
-	return time.Now().Before(f.Subscribed)
+	return !ENABLE_PUBSUBHUBBUB || time.Now().Before(f.Subscribed)
 }
 
 func (f Feed) PubSubURL() string {
 	b := base64.URLEncoding.EncodeToString([]byte(f.Url))
 	ru, _ := router.Get("subscribe-callback").URL("feed", b)
 	ru.Scheme = "http"
-	ru.Host = "www.goread.io"
+	ru.Host = PUBSUBHUBBUB_HOST
 	return ru.String()
 }
 

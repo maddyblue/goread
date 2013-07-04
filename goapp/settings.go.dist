@@ -10,11 +10,14 @@ var (
 	GOOGLE_CLIENT_SECRET string
 	GOOGLE_REDIRECT      string
 	oauth_conf           *oauth.Config
+	ENABLE_PUBSUBHUBBUB bool = !appengine.IsDevAppServer()
 )
 
 const (
 	GOOGLE_ANALYTICS_ID   = ""
 	GOOGLE_ANALYTICS_HOST = ""
+	PUBSUBHUBBUB_HUB = "http://pubsubhubbub.appspot.com"
+	PUBSUBHUBBUB_HOST = "" // e.g., "www.goread.io"
 )
 
 func init() {
