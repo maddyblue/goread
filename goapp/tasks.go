@@ -400,6 +400,10 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	u, err := url.Parse(fetchUrl)
 	_orig := origUrl
+	if u.Host == "" {
+		u.Host = u.Path
+		u.Path = ""
+	}
 	if err == nil && u.Scheme == "" {
 		u.Scheme = "http"
 		origUrl = u.String()
