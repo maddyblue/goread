@@ -51,7 +51,8 @@ func Autodiscover(b []byte) (string, error) {
 				for _, a := range t.Attr {
 					attrs[a.Key] = a.Val
 				}
-				if attrs["rel"] == "alternate" && attrs["type"] == "application/rss+xml" && attrs["href"] != "" {
+				if attrs["rel"] == "alternate" && attrs["href"] != "" &&
+					(attrs["type"] == "application/rss+xml" || attrs["type"] == "application/atom+xml") {
 					return attrs["href"], nil
 				}
 			}
