@@ -50,7 +50,7 @@ func Sanitize(s, su string) (string, string) {
 			} else if t.Type == html.EndTagToken {
 				scripts--
 			}
-		} else if t.DataAtom == atom.A || t.DataAtom == atom.Img {
+		} else if t.Type != html.EndTagToken && (t.DataAtom == atom.A || t.DataAtom == atom.Img) {
 			hasTarget := false
 			var attrs []html.Attribute
 			for _, a := range t.Attr {
