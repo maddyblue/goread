@@ -658,25 +658,31 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	var shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		shortcuts.modal('toggle');
+		return false;
 	});
 	Mousetrap.bind('esc', function() {
 		shortcuts.modal('hide');
+		return false;
 	});
 	Mousetrap.bind('r', function() {
 		if ($scope.nouser) {
 			return;
 		}
 		$scope.$apply($scope.refresh());
+		return false;
 	});
 	Mousetrap.bind(['j', 'n', 'space'], function() {
 		$scope.$apply('next()');
+		return false;
 	});
 	Mousetrap.bind(['k', 'p', 'shift+space'], function() {
 		$scope.$apply('prev()');
+		return false;
 	});
 	Mousetrap.bind('v', function() {
 		if ($scope.dispStories[$scope.currentStory]) {
 			window.open($scope.dispStories[$scope.currentStory].Link);
+			return false;
 		}
 	});
 	Mousetrap.bind('shift+a', function() {
@@ -684,27 +690,33 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			return;
 		}
 		$scope.$apply($scope.markAllRead());
+		return false;
 	});
 	Mousetrap.bind('a', function() {
 		if ($scope.nouser) {
 			return;
 		}
 		$scope.$apply("setAddSubscription()");
+		return false;
 	});
 	Mousetrap.bind('g a', function() {
 		if ($scope.nouser) {
 			return;
 		}
 		$scope.$apply("shown = 'feeds'; setActiveFeed();");
+		return false;
 	});
 	Mousetrap.bind('u', function() {
 		$scope.$apply("toggleNav()");
+		return false;
 	});
 	Mousetrap.bind('1', function() {
 		$scope.$apply("setExpanded(true)");
+		return false;
 	});
 	Mousetrap.bind('2', function() {
 		$scope.$apply("setExpanded(false)");
+		return false;
 	});
 
 	$scope.showMessage = function(m) {
