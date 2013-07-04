@@ -377,7 +377,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					current = $scope.dispStories[$scope.currentStory].guid;
 				}
 				for (var i = 0; i < data.length; i++) {
-					var d = $($.trim(data[i]));
+					var d = $('<div>' + data[i] + '</div>');
 					$('a', d).attr('target', '_blank');
 					$scope.contents[tofetch[i].guid] = d;
 				}
