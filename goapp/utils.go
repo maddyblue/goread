@@ -17,11 +17,11 @@
 package goapp
 
 import (
-	"goapp/atom"
 	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"goapp/atom"
 	"html"
 	"html/template"
 	"image"
@@ -403,11 +403,14 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 }
 
 func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
-	getScore := func (l atom.Link) int {
+	getScore := func(l atom.Link) int {
 		switch {
-		case l.Type == "text/html": return 3
-		case l.Rel != "self": return 2
-		default: return 1
+		case l.Type == "text/html":
+			return 3
+		case l.Rel != "self":
+			return 2
+		default:
+			return 1
 		}
 	}
 
