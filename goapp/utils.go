@@ -432,6 +432,11 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 
+	base, err := url.Parse(f.Link)
+	if err != nil {
+		c.Warningf("unable to parse link: %v", f.Link)
+	}
+
 	for _, s := range ss {
 		s.Parent = fk
 		s.Created = f.Checked
@@ -454,6 +459,14 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 			} else {
 				c.Errorf("story has no id: %v", s)
 				return nil, nil
+			}
+		}
+		if base != nil && s.Link != "" {
+			link, err := base.Parse(s.Link)
+			if err == nil {
+				s.Link = link.String()
+			} else {
+				c.Warningf("unable to resolve link: %v", s.Link)
 			}
 		}
 		const keySize = 499
