@@ -431,7 +431,9 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 				}
 				autoUrl = autoU.String()
 			}
-			return fetchFeed(c, origUrl, autoUrl)
+			if autoUrl != fetchUrl {
+				return fetchFeed(c, origUrl, autoUrl)
+			}
 		}
 		return ParseFeed(c, origUrl, b)
 	} else if err != nil {
