@@ -581,9 +581,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.moveFeed(url, folder);
 	};
 
+	var prevOpml;
 	$scope.uploadOpml = function() {
+		var opml = JSON.stringify($scope.feeds);
+		if (opml == prevOpml) return;
+		prevOpml = opml;
 		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
-			opml: JSON.stringify($scope.feeds)
+			opml: opml
 		});
 	};
 
