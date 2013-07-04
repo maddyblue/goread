@@ -275,10 +275,6 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 }
 
 func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
-	if strings.TrimSpace(u) == "" {
-		c.Criticalf("badurl3: %v", u)
-		return nil, nil
-	}
 	f := Feed{Url: u}
 	var s []*Story
 

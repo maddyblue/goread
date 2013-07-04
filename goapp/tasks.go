@@ -399,7 +399,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	u, err := url.Parse(fetchUrl)
-	_orig := origUrl
 	if u.Host == "" {
 		u.Host = u.Path
 		u.Path = ""
@@ -409,13 +408,8 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 		origUrl = u.String()
 		fetchUrl = origUrl
 		if origUrl == "" {
-			c.Criticalf("badurl1: %v, %v, %v, %v", _orig, u, origUrl, fetchUrl)
 			return nil, nil
 		}
-	}
-	if strings.TrimSpace(origUrl) == "" {
-		c.Criticalf("badurl2: %v, %v", _orig, origUrl)
-		return nil, nil
 	}
 
 	cl := &http.Client{
@@ -471,10 +465,6 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	if hasUpdated && isFeedUpdated {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
-		if strings.TrimSpace(f.Url) == "" {
-			c.Criticalf("badurl5: %v, %v", url, f)
-			return errors.New("badurl5")
-		}
 		gn.Put(&f)
 		return nil
 	}
@@ -530,10 +520,6 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 			f.Updated = f.Date
 		}
 	}
-	if f.Url == "" {
-		c.Criticalf("badurl6: %v", f)
-		return errors.New("badurl6")
-	}
 	gn.PutMulti(puts)
 
 	return nil
@@ -548,14 +534,9 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Errorf("no such entity")
 		return
 	} else if err != nil {
-		c.Errorf("badurl7 error: %v", err.Error())
 		return
 	} else if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
-		return
-	}
-	if f.Url == "" {
-		c.Criticalf("badurl7: %v", url)
 		return
 	}
 
