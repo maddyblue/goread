@@ -467,7 +467,12 @@
 				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="top-margin">
 					<div class="offset2 span8">
 						<div class="hero-unit">
-							<p class="text-center">No unread items.</p>
+							<p class="text-center" ng-show="!activeFeed && !activeFolder">Your reading list has no unread items.</p>
+							<p class="text-center" ng-show="activeFolder">You have no unread &quot;{{`{{activeFolder}}`}}&quot; items.</p>
+							<div ng-show="activeFeed">
+								<p class="text-center">&quot;{{`{{xmlurls[activeFeed].Title}}`}}&quot; has no unread iems.</p>
+								<p class="text-center"><a href="#" ng-click="setMode('all')"><small>View all items</small></a></p>
+							</div>
 						</div>
 					</div>
 				</div>
