@@ -97,7 +97,7 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	url := r.URL.Query().Get("f")
+	url := r.FormValue("f")
 	if feed, stories := fetchFeed(c, url, url); feed != nil {
 		updateFeed(c, url, feed, stories)
 		fmt.Fprintf(w, "updated: %v", url)

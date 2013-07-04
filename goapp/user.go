@@ -540,11 +540,11 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	f := Feed{Url: r.URL.Query().Get("f")}
+	f := Feed{Url: r.FormValue("f")}
 	fk := gn.Key(&f)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
 	q = q.Order("-p")
-	if c := r.URL.Query().Get("c"); c != "" {
+	if c := r.FormValue("c"); c != "" {
 		if dc, err := datastore.DecodeCursor(c); err == nil {
 			q = q.Start(dc)
 		}
