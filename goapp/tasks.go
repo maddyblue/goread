@@ -110,7 +110,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		gn.Get(&ud)
-		mergeUserOpml(&ud, opml.Outline...)
+		mergeUserOpml(&ud, userOpml...)
 		_, err := gn.Put(&ud)
 		return err
 	}, nil); err != nil {
