@@ -126,6 +126,8 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
 		})
 		taskqueue.Add(c, task, "import-reader")
+	} else {
+		c.Infof("opml import done: %v", userid)
 	}
 }
 
