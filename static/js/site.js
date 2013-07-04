@@ -90,18 +90,29 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		story.dispdate = moment(d).format(d.toDateString() == today ? "h:mm a" : "MMM D, YYYY");
 	};
 
+	$scope.clear = function() {
+		$scope.feeds = [];
+		$scope.numfeeds = 0;
+		$scope.stories = [];
+		$scope.unreadStories = {};
+		$scope.last = 0;
+		$scope.xmlurls = {};
+	};
+
+	$scope.update = function() {
+		$scope.updateUnread();
+		$scope.updateStories();
+		$scope.updateTitle();
+	};
+
 	$scope.refresh = function(cb) {
 		$scope.loading++;
 		$scope.shown = 'feeds';
 		delete $scope.currentStory;
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
-				$scope.feeds = data.Opml || [];
-				$scope.numfeeds = 0;
-				$scope.stories = [];
-				$scope.unreadStories = {};
-				$scope.last = 0;
-				$scope.xmlurls = {};
+				$scope.clear();
+				$scope.feeds = data.Opml || $scope.feeds;
 				$scope.icons = data.Icons;
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 
@@ -134,9 +145,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
-				$scope.updateUnread();
-				$scope.updateStories();
-				$scope.updateTitle();
+				$scope.update();
 				setTimeout($scope.applyGetFeed);
 			})
 			.error(function() {
@@ -274,9 +283,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			}
 		}
 
-		$scope.updateUnread();
-		$scope.updateStories();
-		$scope.updateTitle();
+		$scope.update();
 
 		if (!unread)
 			$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
@@ -653,6 +660,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		setTimeout(function() {
 			$('#add-subscription-form input').focus();
 		});
+	};
+
+	$scope.clearFeeds = function() {
+		if (!confirm('Remove all folders and subscriptions?')) return;
+		$scope.clear();
+		$scope.uploadOpml();
+		$scope.update();
 	};
 
 	var shortcuts = $('#shortcuts');

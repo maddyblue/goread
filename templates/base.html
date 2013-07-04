@@ -286,10 +286,8 @@
 								<li><a href="https://go-read.appspot.com/">goread over HTTPS</a></li>
 								<li><a href="{{url "export-opml"}}">export opml</a></li>
 								<li><a href="{{url "logout"}}">logout</a></li>
-								{{if .IsDev}}
-									<li class="divider"></li>
-									<li><a href="{{url "clear-feeds"}}">clear feeds</a></li>
-								{{end}}
+								<li class="divider"></li>
+								<li><a href="#" ng-click="clearFeeds()">clear feeds</a></li>
 							</ul>
 						</li>
 					{{else}}
