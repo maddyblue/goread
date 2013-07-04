@@ -475,14 +475,22 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.renameFolder = function(folder) {
 		var name = prompt('Rename to');
 		if (!name) return;
+		var src, dst;
 		for (var i = 0; i < $scope.feeds.length; i++) {
 			var f = $scope.feeds[i];
-			if (f.Outline && f.Title == folder) {
-				f.Title = name;
-				$scope.activeFolder = name;
-				break;
+			if (f.Outline) {
+				if (f.Title == folder) src = f;
+				else if (f.Title == name) dst = f;
 			}
 		}
+		if (!dst) {
+			src.Title = name;
+		} else {
+			dst.Outline.push.apply(dst.Outline, src.Outline);
+			var i = $scope.feeds.indexOf(src);
+			$scope.feeds.splice(i, 1);
+		}
+		$scope.activeFolder = name;
 		$scope.uploadOpml();
 	};
 
