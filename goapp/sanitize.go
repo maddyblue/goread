@@ -54,7 +54,7 @@ func Sanitize(s, su string) (string, string) {
 			hasTarget := false
 			var attrs []html.Attribute
 			for _, a := range t.Attr {
-				if a.Key == "onload" || a.Key == "onerror" {
+				if strings.HasPrefix(a.Key, "on") {
 					continue
 				}
 				if a.Key == "href" || a.Key == "src" {
