@@ -401,6 +401,8 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
 	getScore := func(l atom.Link) int {
 		switch {
+		case l.Rel == "hub":
+			return 0
 		case l.Type == "text/html":
 			return 3
 		case l.Rel != "self":
@@ -432,6 +434,11 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 
+	if u, err := url.Parse(f.Url); err == nil {
+		if ul, err := u.Parse(f.Link); err == nil {
+			f.Link = ul.String()
+		}
+	}
 	base, err := url.Parse(f.Link)
 	if err != nil {
 		c.Warningf("unable to parse link: %v", f.Link)
