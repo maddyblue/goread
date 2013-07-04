@@ -310,9 +310,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				st.Author = i.Author.Name
 			}
 			if i.Content != nil {
-				st.content, st.Summary = Sanitize(i.Content.Body)
+				st.content = i.Content.Body
 			} else if i.Summary != nil {
-				st.content, st.Summary = Sanitize(i.Summary.Body)
+				st.content = i.Summary.Body
 			}
 			s = append(s, &st)
 		}
@@ -344,9 +344,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				i.Title = i.Description
 			}
 			if i.Content != "" {
-				st.content, st.Summary = Sanitize(i.Content)
+				st.content = i.Content
 			} else if i.Title != "" && i.Description != "" {
-				st.content, st.Summary = Sanitize(i.Description)
+				st.content = i.Description
 			}
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
@@ -381,7 +381,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				Link:   i.Link,
 				Author: i.Creator,
 			}
-			st.content, st.Summary = Sanitize(html.UnescapeString(i.Description))
+			st.content = html.UnescapeString(i.Description)
 			if t, err := parseDate(c, &f, i.Date); err == nil {
 				st.Published = t
 				st.Updated = t
@@ -476,6 +476,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				c.Warningf("unable to resolve link: %v", s.Link)
 			}
 		}
+		s.content, s.Summary = Sanitize(s.content, s.Link)
 		const keySize = 499
 		if len(s.Id) > keySize { // datastore limits keys to 500 chars
 			s.Id = s.Id[:keySize]
