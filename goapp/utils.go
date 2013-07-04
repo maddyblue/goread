@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"goapp/atom"
 	"bytes"
 	"encoding/xml"
 	"errors"
@@ -41,7 +42,6 @@ import (
 	"appengine/user"
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
-	"code.google.com/p/rsc/blog/atom"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 	"github.com/mjibson/rssgo"
@@ -291,11 +291,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 		if t, err := parseDate(c, &f, string(a.Updated)); err == nil {
 			f.Updated = t
 		}
-		for _, l := range a.Link {
-			if l.Rel != "self" {
-				f.Link = l.Href
-				break
-			}
+
+		if len(a.Link) > 0 {
+			f.Link = findBestAtomLink(c, a.Link).Href
 		}
 
 		for _, i := range a.Entry {
@@ -310,7 +308,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				st.Published = t
 			}
 			if len(i.Link) > 0 {
-				st.Link = i.Link[0].Href
+				st.Link = findBestAtomLink(c, i.Link).Href
 			}
 			if i.Author != nil {
 				st.Author = i.Author.Name
@@ -402,6 +400,28 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	c.Warningf("xml parse error: %s", rsserr.Error())
 	c.Warningf("rdf parse error: %s", rdferr.Error())
 	return nil, nil
+}
+
+func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
+	getScore := func (l atom.Link) int {
+		switch {
+		case l.Type == "text/html": return 3
+		case l.Rel != "self": return 2
+		default: return 1
+		}
+	}
+
+	var bestlink atom.Link
+	bestscore := -1
+	for _, l := range links {
+		score := getScore(l)
+		if score > bestscore {
+			bestlink = l
+			bestscore = score
+		}
+	}
+
+	return bestlink
 }
 
 const UpdateTime = time.Hour * 3
