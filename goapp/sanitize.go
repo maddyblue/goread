@@ -72,5 +72,5 @@ func snipper(s string) string {
 	if i != -1 {
 		return s[:i]
 	}
-	return s
+	return cleanNonUTF8(s)
 }
