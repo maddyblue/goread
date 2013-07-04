@@ -18,6 +18,7 @@ package goapp
 
 import (
 	"appengine"
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -28,6 +29,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"appengine/blobstore"
 	"appengine/datastore"
@@ -307,7 +309,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Put(ud)
 	}
 	c.Step("json marshal", func() {
-		b, _ := json.Marshal(struct {
+		o := struct {
 			Opml    []*OpmlOutline
 			Stories map[string][]*Story
 			Icons   map[string]string
@@ -317,9 +319,36 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Stories: fl,
 			Icons:   icons,
 			Options: u.Options,
-		})
+		}
+		b, err := json.Marshal(o)
+		if err != nil {
+			c.Errorf("cleaning")
+			for _, v := range fl {
+				for _, s := range v {
+					n := cleanNonUTF8(s.Summary)
+					if n != s.Summary {
+						s.Summary = n
+						c.Errorf("cleaned %v", s.Id)
+						gn.Put(s)
+					}
+				}
+			}
+			b, _ = json.Marshal(o)
+		}
 		w.Write(b)
 	})
+	_ = utf8.RuneError
+}
+
+func cleanNonUTF8(s string) string {
+	b := &bytes.Buffer{}
+	for i := 0; i < len(s); i++ {
+		c, size := utf8.DecodeRuneInString(s[i:])
+		if c != utf8.RuneError || size != 1 {
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
 }
 
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
