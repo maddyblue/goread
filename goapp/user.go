@@ -115,6 +115,9 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.Get(&ud)
 	mergeUserOpml(&ud, o)
 	gn.Put(&ud)
+	if r.Method == "GET" {
+		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
+	}
 }
 
 func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
