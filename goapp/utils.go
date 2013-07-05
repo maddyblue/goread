@@ -505,9 +505,11 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				c.Warningf("unable to resolve link: %v", s.Link)
 			}
 		}
-		const keySize = 499
-		if len(s.Id) > keySize { // datastore limits keys to 500 chars
-			s.Id = s.Id[:keySize]
+		const keySize = 500
+		sk := g.Key(s)
+		if kl := len(sk.Encode()); kl > keySize {
+			c.Errorf("key too long: %v, %v, %v", kl, f.Url, s.Id)
+			return nil, nil
 		}
 		su, serr := url.Parse(s.Link)
 		if serr != nil {
