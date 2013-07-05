@@ -334,7 +334,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(3000)
+	q = q.Limit(1000)
 	cs := r.FormValue("c")
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
@@ -360,7 +360,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if len(keys) == 0 {
 		c.Errorf("no results")
 		return
-	} else if false {
+	} else {
 		cur, err := it.Cursor()
 		if err != nil {
 			c.Errorf("to cur error %v", err.Error())
