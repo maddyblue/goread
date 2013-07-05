@@ -345,7 +345,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var keys []*datastore.Key
-	it := q.Run(c)
+	it := q.Run(Timeout(c, time.Second*15))
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
