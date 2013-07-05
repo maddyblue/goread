@@ -159,7 +159,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
-	$scope.setCurrent = function(i, noClose, isClick, $event) {
+	$scope.setCurrent = function(i, noClose, isClick, $event, noOpen) {
 		var middleClick = $event && $event.which == 2;
 		if ($event && !middleClick) {
 			$event.preventDefault();
@@ -185,7 +185,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				}
 			});
 		}
-		if (!middleClick) {
+		if (!middleClick && !noOpen) {
 			$scope.currentStory = i;
 		}
 		$scope.markAllRead(story);

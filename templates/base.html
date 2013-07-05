@@ -452,7 +452,7 @@
 						</div>
 						<div class="story-date muted visible-desktop">
 							<span ng-bind="s.dispdate" ng-click="setCurrent($index, false, true)"></span>
-							<a ng-href="{{`{{s.Link}}`}}" target="_blank"><i class="icon-share-alt"></i></a>
+							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, false, true, null, true)"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
 					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || opts.expanded" ng-class="{short: opts.nav}">
