@@ -339,7 +339,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
 			q = q.Start(cur)
-			c.Errorf("starting at %v", cur)
+			c.Infof("starting at %v", cur)
 		} else {
 			c.Errorf("cursor error %v", err.Error())
 		}
@@ -365,7 +365,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			c.Errorf("to cur error %v", err.Error())
 		} else {
-			c.Errorf("add with cur %v", cur)
+			c.Infof("add with cur %v", cur)
 			t := taskqueue.NewPOSTTask(routeUrl("update-feeds"), url.Values{
 				"c": {cur.String()},
 			})
