@@ -26,13 +26,12 @@ import (
 	"strings"
 )
 
-func Sanitize(s, su string) (string, string) {
+func Sanitize(s string, u *url.URL) (string, string) {
 	r := bytes.NewReader([]byte(s))
 	z := html.NewTokenizer(r)
 	buf := &bytes.Buffer{}
 	snip := &bytes.Buffer{}
 	scripts := 0
-	u, _ := url.Parse(su)
 	u.RawQuery = ""
 	u.Fragment = ""
 	for {

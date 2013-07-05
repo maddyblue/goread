@@ -491,6 +491,12 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				return nil, nil
 			}
 		}
+		// if a story doesn't have a link, see if its id is a URL
+		if s.Link == "" {
+			if u, err := url.Parse(s.Id); err == nil {
+				s.Link = u.String()
+			}
+		}
 		if base != nil && s.Link != "" {
 			link, err := base.Parse(s.Link)
 			if err == nil {
@@ -499,17 +505,16 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				c.Warningf("unable to resolve link: %v", s.Link)
 			}
 		}
-		s.content, s.Summary = Sanitize(s.content, s.Link)
 		const keySize = 499
 		if len(s.Id) > keySize { // datastore limits keys to 500 chars
 			s.Id = s.Id[:keySize]
 		}
-		// if a story doesn't have a link, see if its id is a URL
-		if s.Link == "" {
-			if u, err := url.Parse(s.Id); err == nil {
-				s.Link = u.String()
-			}
+		su, serr := url.Parse(s.Link)
+		if serr != nil {
+			su = &url.URL{}
+			s.Link = ""
 		}
+		s.content, s.Summary = Sanitize(s.content, su)
 	}
 
 	return f, ss
