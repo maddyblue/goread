@@ -14,6 +14,7 @@ a google reader clone built with go on app engine and angularjs
 1. `git checkout master` (bug in `go get`)
 1. in the `goapp` folder, copy `settings.go.dist` to `settings.go`
 1. from the `goread` directory, start the app with `dev_appserver.py app.yaml`
+1. view at [localhost:8080](http://localhost:8080), admin console at [localhost:8000](http://localhost:8000)
  
 ## developer notes
 
