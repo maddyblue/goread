@@ -308,6 +308,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	f := Feed{Url: r.FormValue("feed")}
 	if err := gn.Get(&f); err != nil {
+		c.Errorf("%v: %v", err, f.Url)
 		serveError(w, err)
 		return
 	} else if f.IsSubscribed() {
