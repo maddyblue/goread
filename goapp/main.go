@@ -22,6 +22,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"appengine/datastore"
@@ -98,6 +99,12 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	gn := goon.FromContext(c)
 	o := outline.Outline[0]
 	c.Infof("adding feed %v to user %s", o.XmlUrl, userid)
+	fu, ferr := url.Parse(o.XmlUrl)
+	if ferr != nil {
+		return ferr
+	}
+	fu.Fragment = ""
+	o.XmlUrl = fu.String()
 
 	f := Feed{Url: o.XmlUrl}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
