@@ -310,7 +310,11 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 				st.Author = i.Author.Name
 			}
 			if i.Content != nil {
-				st.content = i.Content.Body
+				if len(strings.TrimSpace(i.Content.Body)) != 0 {
+					st.content = i.Content.Body
+				} else if len(i.Content.InnerXML) != 0 {
+					st.content = i.Content.InnerXML
+				}
 			} else if i.Summary != nil {
 				st.content = i.Summary.Body
 			}

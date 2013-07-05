@@ -47,8 +47,9 @@ type Person struct {
 }
 
 type Text struct {
-	Type string `xml:"type,attr"`
-	Body string `xml:",chardata"`
+	Type     string `xml:"type,attr"`
+	Body     string `xml:",chardata"`
+	InnerXML string `xml:",innerxml"`
 }
 
 type TimeStr string
