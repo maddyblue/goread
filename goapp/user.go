@@ -18,6 +18,7 @@ package goapp
 
 import (
 	"appengine"
+	"archive/zip"
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
@@ -27,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -82,6 +84,21 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	if file, _, err := r.FormFile("file"); err == nil {
 		if fdata, err := ioutil.ReadAll(file); err == nil {
+			buf := bytes.NewReader(fdata)
+			// attempt to extract from google reader takeout zip
+			if zb, zerr := zip.NewReader(buf, int64(len(fdata))); zerr == nil {
+				for _, f := range zb.File {
+					if strings.HasSuffix(f.FileHeader.Name, "Reader/subscriptions.xml") {
+						if rc, rerr := f.Open(); rerr == nil {
+							if fb, ferr := ioutil.ReadAll(rc); ferr == nil {
+								fdata = fb
+								break
+							}
+						}
+					}
+				}
+			}
+
 			bk, err := saveFile(c, fdata)
 			if err != nil {
 				serveError(w, err)
