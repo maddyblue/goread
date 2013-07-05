@@ -317,7 +317,9 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u.Add("hub.callback", f.PubSubURL())
 	u.Add("hub.mode", "subscribe")
 	u.Add("hub.verify", "sync")
-	u.Add("hub.topic", f.Url)
+	fu, _ := url.Parse(f.Url)
+	fu.Fragment = ""
+	u.Add("hub.topic", fu.String())
 	req, err := http.NewRequest("POST", PUBSUBHUBBUB_HUB, strings.NewReader(u.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	cl := urlfetch.Client(c)
