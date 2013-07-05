@@ -331,7 +331,8 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly().Limit(100)
+	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
+	q = q.Limit(3000)
 	cs := r.FormValue("c")
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
@@ -345,7 +346,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	it := q.Run(c)
 	for {
 		k, err := it.Next(nil)
-		c.Infof("n: %v, %v", k, err)
 		if err == datastore.Done {
 			break
 		} else if err != nil {
@@ -356,9 +356,9 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(keys) == 0 {
-		c.Errorf("giving up")
+		c.Errorf("no results")
 		return
-	} else {
+	} else if false {
 		cur, err := it.Cursor()
 		if err != nil {
 			c.Errorf("to cur error %v", err.Error())
@@ -374,9 +374,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	var tasks []*taskqueue.Task
 	for _, k := range keys {
-		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
-			"feed": {k.StringID()},
-		}), taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
 		}))
 	}
