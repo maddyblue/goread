@@ -58,11 +58,14 @@ func Sanitize(s, su string) (string, string) {
 					continue
 				}
 				if a.Key == "href" || a.Key == "src" {
-					au, _ := u.Parse(a.Val)
-					if au.Scheme == "javascript" {
-						a.Val = "#"
+					if au, auerr := u.Parse(a.Val); auerr == nil {
+						if au.Scheme == "javascript" {
+							a.Val = "#"
+						} else {
+							a.Val = au.String()
+						}
 					} else {
-						a.Val = au.String()
+						a.Val = "#"
 					}
 				} else if a.Key == "target" {
 					hasTarget = true
