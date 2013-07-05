@@ -18,7 +18,6 @@ package goapp
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -103,7 +102,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	f := Feed{Url: o.XmlUrl}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		if feed, stories := fetchFeed(c, o.XmlUrl, o.XmlUrl); feed == nil {
-			return errors.New(fmt.Sprintf("could not add feed %s", o.XmlUrl))
+			return fmt.Errorf("could not add feed %s", o.XmlUrl)
 		} else {
 			f = *feed
 			f.Updated = time.Time{}

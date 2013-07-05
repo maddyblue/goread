@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -448,7 +447,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	gn := goon.FromContext(c)
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err != nil {
-		return errors.New(fmt.Sprintf("feed not found: %s", url))
+		return fmt.Errorf("feed not found: %s", url)
 	}
 
 	// Compare the feed's listed update to the story's update.

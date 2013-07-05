@@ -19,7 +19,6 @@ package goapp
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"goapp/atom"
 	"html"
@@ -290,7 +289,7 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 			Parent: gn.Key(feed),
 		})
 	}
-	err = errors.New(fmt.Sprintf("could not parse date: %v", strings.Join(ds, ", ")))
+	err = fmt.Errorf("could not parse date: %v", strings.Join(ds, ", "))
 	return
 }
 
