@@ -208,10 +208,25 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return cnt == 0;
 	};
 
-	$scope.next = function() {
+	$scope.next = function(page) {
 		if ($scope.dispStories && typeof $scope.currentStory === 'undefined') {
 			$scope.setCurrent(0);
-		} else if ($scope.dispStories && $scope.currentStory < $scope.dispStories.length - 1) {
+			return;
+		}
+		if (page) {
+			var sl = $('#story-list');
+			var sd = $('#storydiv' + $scope.currentStory);
+			var sh = sd.height();
+			var st = sd.position().top;
+			var sb = st + sh;
+			var slh = sl.height();
+			var slt = sl.scrollTop();
+			if (sb > slt + slh) {
+				sl.scrollTop(slt + slh - 20);
+				return;
+			}
+		}
+		if ($scope.dispStories && $scope.currentStory < $scope.dispStories.length - 1) {
 			$scope.setCurrent($scope.currentStory + 1);
 		}
 	};
@@ -704,8 +719,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.$apply($scope.refresh());
 		return false;
 	});
-	Mousetrap.bind(['j', 'n', 'space'], function() {
+	Mousetrap.bind(['j', 'n'], function() {
 		$scope.$apply('next()');
+		return false;
+	});
+	Mousetrap.bind('space', function() {
+		$scope.$apply('next(true)');
 		return false;
 	});
 	Mousetrap.bind(['k', 'p', 'shift+space'], function() {
