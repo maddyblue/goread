@@ -25,7 +25,9 @@ import (
 	"net/url"
 	"time"
 
+	"appengine"
 	"appengine/datastore"
+	"appengine_internal"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/gorilla/mux"
@@ -197,7 +199,7 @@ func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
 // Below is from David Symonds; will be in next app engine release
 
 // Timeout returns a replacement context that uses d as the default API RPC timeout.
-func Timeout(c appengine.Context, d time.Duration) Context {
+func Timeout(c appengine.Context, d time.Duration) appengine.Context {
 	return &timeoutContext{
 		Context: c,
 		d:       d,
