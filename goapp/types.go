@@ -97,7 +97,7 @@ type Story struct {
 	Title     string         `datastore:"t,noindex"`
 	Link      string         `datastore:"l,noindex"`
 	Created   time.Time      `datastore:"c" json:"-"`
-	Published time.Time      `datastore:"p,noindex" json:"-"`
+	Published time.Time      `datastore:"p" json:"-"`
 	Updated   time.Time      `datastore:"u,noindex" json:"-"`
 	Date      int64          `datastore:"e,noindex"`
 	Author    string         `datastore:"a,noindex"`
@@ -105,7 +105,8 @@ type Story struct {
 
 	content string
 }
-const IDX_COL = "c"
+
+const IDX_COL = "p"
 
 // parent: Story, key: 1
 type StoryContent struct {
