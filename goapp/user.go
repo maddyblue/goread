@@ -574,7 +574,9 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				Id:     k.StringID(),
 				Parent: k.Parent(),
 			})
-		} else if err != datastore.Done {
+		} else if err == datastore.Done {
+			break
+		} else {
 			serveError(w, err)
 			return
 		}
