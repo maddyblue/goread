@@ -1,5 +1,5 @@
 application: go-read
-version: 1
+version: c
 runtime: go
 api_version: go1
 
