@@ -72,8 +72,8 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).KeysOnly()
 	fk := gn.Key(&f)
 	q = q.Ancestor(fk)
-	q = q.Filter("p >", time.Now().Add(time.Hour*-48))
-	q = q.Order("-p")
+	q = q.Filter(IDX_COL + " >", time.Now().Add(time.Hour*-48))
+	q = q.Order("-" + IDX_COL)
 	keys, _ := gn.GetAll(q, nil)
 	stories := make([]*Story, len(keys))
 	for j, key := range keys {

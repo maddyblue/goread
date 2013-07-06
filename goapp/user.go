@@ -248,7 +248,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				if u.Read.Before(f.Date) {
 					c.Debugf("query for %v", f.Url)
 					fk := gn.Key(f)
-					sq := q.Ancestor(fk).Filter("p >", u.Read).KeysOnly().Order("-p")
+					sq := q.Ancestor(fk).Filter(IDX_COL + " >", u.Read).KeysOnly().Order("-" + IDX_COL)
 					keys, _ := gn.GetAll(sq, nil)
 					stories := make([]*Story, len(keys))
 					for j, key := range keys {
@@ -560,7 +560,7 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f := Feed{Url: r.FormValue("f")}
 	fk := gn.Key(&f)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
-	q = q.Order("-p")
+	q = q.Order("-" + IDX_COL)
 	if c := r.FormValue("c"); c != "" {
 		if dc, err := datastore.DecodeCursor(c); err == nil {
 			q = q.Start(dc)

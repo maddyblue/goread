@@ -13,5 +13,11 @@ indexes:
 - kind: S
   ancestor: yes
   properties:
+  - name: c
+    direction: desc
+
+- kind: S
+  ancestor: yes
+  properties:
   - name: p
     direction: desc
