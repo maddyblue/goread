@@ -388,6 +388,25 @@ var acceptableAttributes = map[string]bool{
 	"value": true,
 	"width": true,
 	// "wrap":            true,
+
+	// other allowed attributes
+	"align":        true,
+	"alink":        true,
+	"background":   true,
+	"cellpadding":  true,
+	"cellspacing":  true,
+	"char":         true,
+	"clear":        true,
+	"compact":      true,
+	"frameborder":  true,
+	"frame":        true,
+	"hspace":       true,
+	"marginheight": true,
+	"noshade":      true,
+	"nowrap":       true,
+	"rules":        true,
+	"scrolling":    true,
+	"valign":       true,
 }
 
 // Based on list from Wikipedia's URI scheme
