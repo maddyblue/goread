@@ -739,13 +739,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		window.location.href = $('#delete-account').attr('data-url');
 	};
 
-	var shortcuts = $('#shortcuts');
+	$scope.shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
-		shortcuts.modal('toggle');
+		$scope.shortcuts.modal('toggle');
 		return false;
 	});
 	Mousetrap.bind('esc', function() {
-		shortcuts.modal('hide');
+		$scope.shortcuts.modal('hide');
 		return false;
 	});
 	Mousetrap.bind('r', function() {
