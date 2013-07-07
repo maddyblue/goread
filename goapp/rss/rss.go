@@ -120,6 +120,14 @@ type Item struct {
 	// Alternate dates
 	Date      string `xml:"date,omitempty"`
 	Published string `xml:"published,omitempty"`
+
+	Media *MediaContent `xml:"content"`
+}
+
+type MediaContent struct {
+	XMLBase string `xml:"http://search.yahoo.com/mrss/ content"`
+	URL     string `xml:"url,attr"`
+	Type    string `xml:"type,attr"`
 }
 
 // The RSS channel the item came from.

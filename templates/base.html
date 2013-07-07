@@ -465,6 +465,10 @@
 							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 						</small></p>
 						<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
+						<div ng-show="s.MediaContent">
+							<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
+							<a {{htmlattr `ng-href="{{s.MediaContent}}"`}} target="_blank">Original audio source</a>
+						</div>
 					</div>
 				</div>
 				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="top-margin">

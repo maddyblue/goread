@@ -388,6 +388,9 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 			if i.Guid != nil {
 				st.Id = i.Guid.Guid
 			}
+			if i.Media != nil {
+				st.MediaContent = i.Media.URL
+			}
 			if t, err := parseDate(c, &f, i.PubDate, i.Date, i.Published); err == nil {
 				st.Published = t
 				st.Updated = t

@@ -91,17 +91,18 @@ func (f Feed) PubSubURL() string {
 
 // parent: Feed, key: story ID
 type Story struct {
-	_kind     string         `goon:"kind,S"`
-	Id        string         `datastore:"-" goon:"id"`
-	Parent    *datastore.Key `datastore:"-" goon:"parent" json:"-"`
-	Title     string         `datastore:"t,noindex"`
-	Link      string         `datastore:"l,noindex"`
-	Created   time.Time      `datastore:"c" json:"-"`
-	Published time.Time      `datastore:"p" json:"-"`
-	Updated   time.Time      `datastore:"u,noindex" json:"-"`
-	Date      int64          `datastore:"e,noindex"`
-	Author    string         `datastore:"a,noindex" json:",omitempty"`
-	Summary   string         `datastore:"s,noindex"`
+	_kind        string         `goon:"kind,S"`
+	Id           string         `datastore:"-" goon:"id"`
+	Parent       *datastore.Key `datastore:"-" goon:"parent" json:"-"`
+	Title        string         `datastore:"t,noindex"`
+	Link         string         `datastore:"l,noindex"`
+	Created      time.Time      `datastore:"c" json:"-"`
+	Published    time.Time      `datastore:"p" json:"-"`
+	Updated      time.Time      `datastore:"u,noindex" json:"-"`
+	Date         int64          `datastore:"e,noindex"`
+	Author       string         `datastore:"a,noindex" json:",omitempty"`
+	Summary      string         `datastore:"s,noindex"`
+	MediaContent string         `datastore:"m,noindex" json:",omitempty"`
 
 	content string
 }
