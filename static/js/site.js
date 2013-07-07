@@ -355,11 +355,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return $scope.opts.nav ? {} : {'margin-left': '0'};
 	};
 
-	$scope.saveOpts = function() {
+	$scope.saveOpts = _.debounce(function() {
 		$scope.http('POST', $('#story-list').attr('data-url-options'), {
 			options: JSON.stringify($scope.opts)
 		});
-	};
+	}, 1000);
 
 	$scope.overContents = function(s) {
 		if (typeof $scope.contents[s.guid] !== 'undefined') {
@@ -623,14 +623,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	var prevOpml;
-	$scope.uploadOpml = function() {
+	$scope.uploadOpml = _.debounce(function() {
 		var opml = JSON.stringify($scope.feeds);
 		if (opml == prevOpml) return;
 		prevOpml = opml;
 		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
 			opml: opml
 		});
-	};
+	}, 1000);
 
 	var sl = $('#story-list');
 	$scope.readStories = {};
