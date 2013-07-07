@@ -503,7 +503,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.rename = function(feed) {
-		var name = prompt('Rename to');
+		var name = prompt('Rename to', $scope.xmlurls[feed].Title);
 		if (!name) return;
 		$scope.xmlurls[feed].Title = name;
 		$scope.uploadOpml();
