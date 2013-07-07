@@ -37,9 +37,8 @@ func sanitizeLink(u *url.URL, v string) string {
 	return p.String()
 }
 
-func sanitizeStyle(u *url.URL, v string) string {
-	// TODO sanitize style
-	return ""
+func sanitizeStyle(v string) string {
+	return v
 }
 
 func sanitizeAttributes(u *url.URL, t *html.Token) {
@@ -48,8 +47,8 @@ func sanitizeAttributes(u *url.URL, t *html.Token) {
 	for _, a := range t.Attr {
 		if a.Key == "target" {
 		} else if a.Key == "style" {
-			a.Val = sanitizeStyle(u, a.Val)
-			// attrs = append(attrs, a)
+			a.Val = sanitizeStyle(a.Val)
+			attrs = append(attrs, a)
 		} else if acceptableAttributes[a.Key] {
 			if a.Key == "href" || a.Key == "src" {
 				a.Val = sanitizeLink(u, a.Val)
