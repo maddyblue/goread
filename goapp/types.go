@@ -100,7 +100,7 @@ type Story struct {
 	Published time.Time      `datastore:"p" json:"-"`
 	Updated   time.Time      `datastore:"u,noindex" json:"-"`
 	Date      int64          `datastore:"e,noindex"`
-	Author    string         `datastore:"a,noindex"`
+	Author    string         `datastore:"a,noindex" json:",omitempty"`
 	Summary   string         `datastore:"s,noindex"`
 
 	content string
