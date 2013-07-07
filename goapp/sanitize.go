@@ -391,7 +391,6 @@ var acceptableAttributes = map[string]bool{
 
 	// Older HTML attributes
 	// http://www.w3.org/TR/html5-diff/#obsolete-attributes
-	"align":        true,
 	"alink":        true,
 	"background":   true,
 	"cellpadding":  true,
