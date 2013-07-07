@@ -226,12 +226,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if (page) {
 			var sl = $('#story-list');
 			var sd = $('#storydiv' + $scope.currentStory);
-			var sh = sd.height();
-			var st = sd.position().top;
-			var sb = st + sh;
+			var sdh = sd.height();
+			var sdt = sd.position().top;
 			var slh = sl.height();
-			var slt = sl.scrollTop();
-			if (sb > slt + slh) {
+			if (sdt + sdh > slh) {
+				var slt = sl.scrollTop();
 				sl.scrollTop(slt + slh - 20);
 				return;
 			}
