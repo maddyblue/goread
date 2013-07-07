@@ -24,7 +24,6 @@ type RDF struct {
 	XMLName xml.Name `xml:"RDF"`
 	Channel *Channel `xml:"channel"`
 	Item    []*Item  `xml:"item"`
-	XMLBase string   `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
 }
 
 type Channel struct {
@@ -43,5 +42,4 @@ type Item struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
-	XMLBase     string `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
 }

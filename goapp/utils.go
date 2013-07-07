@@ -402,32 +402,20 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = charset.NewReader
 	if rdferr = d.Decode(&rdf); rdferr == nil {
-		if fb, err = url.Parse(rdf.XMLBase); err != nil {
-			fb, _ = url.Parse("")
-		}
 		if rdf.Channel != nil {
 			f.Title = rdf.Channel.Title
 			f.Link = rdf.Channel.Link
-			if l, err := fb.Parse(f.Link); err == nil {
-				f.Link = l.String()
-			}
 			if t, err := parseDate(c, &f, rdf.Channel.Date); err == nil {
 				f.Updated = t
 			}
 		}
 
 		for _, i := range rdf.Item {
-			if eb, err = fb.Parse(i.XMLBase); err != nil {
-				eb = fb
-			}
 			st := Story{
 				Id:     i.About,
 				Title:  i.Title,
 				Link:   i.Link,
 				Author: i.Creator,
-			}
-			if l, err := eb.Parse(st.Link); err == nil {
-				st.Link = l.String()
 			}
 			st.content = html.UnescapeString(i.Description)
 			if t, err := parseDate(c, &f, i.Date); err == nil {
