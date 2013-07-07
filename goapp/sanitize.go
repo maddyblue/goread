@@ -69,7 +69,6 @@ func sanitizeAttributes(u *url.URL, t *html.Token) {
 }
 
 func Sanitize(s string, u *url.URL) (string, string) {
-	r := bytes.NewReader([]byte(s))
 	r := bytes.NewReader([]byte(strings.TrimSpace(s)))
 	z := html.NewTokenizer(r)
 	buf := &bytes.Buffer{}
