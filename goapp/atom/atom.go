@@ -20,6 +20,7 @@ type Feed struct {
 	Updated TimeStr  `xml:"updated"`
 	Author  *Person  `xml:"author"`
 	Entry   []*Entry `xml:"entry"`
+	XMLBase string   `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
 }
 
 type Entry struct {
@@ -31,6 +32,7 @@ type Entry struct {
 	Author    *Person `xml:"author"`
 	Summary   *Text   `xml:"summary"`
 	Content   *Text   `xml:"content"`
+	XMLBase   string  `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
 }
 
 type Link struct {
