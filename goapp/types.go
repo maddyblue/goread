@@ -111,10 +111,11 @@ const IDX_COL = "p"
 
 // parent: Story, key: 1
 type StoryContent struct {
-	_kind   string         `goon:"kind,SC"`
-	Id      int64          `datastore:"-" goon:"id"`
-	Parent  *datastore.Key `datastore:"-" goon:"parent"`
-	Content string         `datastore:"c,noindex"`
+	_kind      string         `goon:"kind,SC"`
+	Id         int64          `datastore:"-" goon:"id"`
+	Parent     *datastore.Key `datastore:"-" goon:"parent"`
+	Content    string         `datastore:"c,noindex"`
+	Compressed []byte         `datastore:"z,noindex"`
 }
 
 type OpmlOutline struct {

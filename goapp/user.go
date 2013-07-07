@@ -20,6 +20,7 @@ import (
 	"appengine"
 	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -448,7 +449,24 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.GetMulti(scs)
 	ret := make([]string, len(reqs))
 	for i, sc := range scs {
-		ret[i] = sc.Content
+		if len(sc.Compressed) > 0 {
+			buf := bytes.NewReader(sc.Compressed)
+			if gz, err := gzip.NewReader(buf); err == nil {
+				if b, err = ioutil.ReadAll(gz); err == nil {
+					ret[i] = string(b)
+					c.Errorf("GZIP: %s", ret[i])
+				} else {
+					c.Errorf("e2: %v", err)
+				}
+				gz.Close()
+			} else {
+				c.Errorf("e: %v", err)
+			}
+		}
+		if len(ret[i]) == 0 {
+			c.Errorf("setting content")
+			ret[i] = sc.Content
+		}
 	}
 	b, _ = json.Marshal(&ret)
 	w.Write(b)

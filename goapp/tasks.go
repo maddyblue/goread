@@ -18,6 +18,8 @@ package goapp
 
 import (
 	"appengine"
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
@@ -510,11 +512,20 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 
 	for _, s := range updateStories {
 		puts = append(puts, s)
-		gn.Put(&StoryContent{
-			Id:      1,
-			Parent:  gn.Key(s),
-			Content: s.content,
-		})
+		sc := StoryContent{
+			Id:     1,
+			Parent: gn.Key(s),
+		}
+		buf := &bytes.Buffer{}
+		if gz, err := gzip.NewWriterLevel(buf, gzip.BestCompression); err == nil {
+			gz.Write([]byte(s.content))
+			gz.Close()
+			sc.Compressed = buf.Bytes()
+		}
+		if len(sc.Compressed) == 0 {
+			sc.Content = s.content
+		}
+		gn.Put(&sc)
 	}
 
 	c.Debugf("putting %v entities", len(puts))
