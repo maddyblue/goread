@@ -355,9 +355,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return $scope.opts.nav ? {} : {'margin-left': '0'};
 	};
 
+	var prevOpts;
 	$scope.saveOpts = _.debounce(function() {
+		var opts = JSON.stringify($scope.opts);
+		if (opts == prevOpts) return;
+		prevOpts = opts;
 		$scope.http('POST', $('#story-list').attr('data-url-options'), {
-			options: JSON.stringify($scope.opts)
+			options: opts
 		});
 	}, 1000);
 
