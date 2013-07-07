@@ -55,16 +55,19 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		});
 	};
 
-	$scope.addSubscription = function() {
+	$scope.addSubscription = function(e) {
 		if (!$scope.addFeedUrl) {
 			return false;
 		}
+		var btn = $(e.target);
+		btn.button('loading')
 		$scope.loading++;
 		var f = $('#add-subscription-form');
 		$scope.http('POST', f.attr('data-url'), {
 			url: $scope.addFeedUrl
 		}).then(function() {
 			$scope.addFeedUrl = '';
+			btn.button('reset')
 			// I think this is needed due to the datastore's eventual consistency.
 			// Without the delay we only get the feed data with no story data.
 			$timeout(function() {
@@ -75,6 +78,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				alert(data.data);
 			}
 			$scope.loading--;
+			btn.button('reset')
 		});
 	};
 

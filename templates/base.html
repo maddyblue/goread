@@ -492,7 +492,7 @@
 					<fieldset>
 						<legend>Feed URL</legend>
 						<input type="text" class="span12" ng-model="addFeedUrl">
-						<p><button ng-click="addSubscription()" class="btn">import</button></p>
+						<p><button ng-click="addSubscription($event)" data-loading-text="importing.." class="btn">import</button></p>
 					</fieldset>
 				</form>
 			</div>
