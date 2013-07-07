@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"goapp/atom"
 	"html"
 	"html/template"
 	"image"
@@ -43,7 +42,9 @@ import (
 	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
-	"github.com/mjibson/rssgo"
+	"goapp/atom"
+	"goapp/rdf"
+	"goapp/rss"
 )
 
 func serveError(w http.ResponseWriter, err error) {
@@ -356,7 +357,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 		return parseFix(c, &f, s)
 	}
 
-	r := rssgo.Rss{}
+	r := rss.Rss{}
 	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = charset.NewReader
 	d.DefaultSpace = "DefaultSpace"
@@ -398,19 +399,19 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 		return parseFix(c, &f, s)
 	}
 
-	rdf := RDF{}
+	rd := rdf.RDF{}
 	d = xml.NewDecoder(bytes.NewReader(b))
 	d.CharsetReader = charset.NewReader
-	if rdferr = d.Decode(&rdf); rdferr == nil {
-		if rdf.Channel != nil {
-			f.Title = rdf.Channel.Title
-			f.Link = rdf.Channel.Link
-			if t, err := parseDate(c, &f, rdf.Channel.Date); err == nil {
+	if rdferr = d.Decode(&rd); rdferr == nil {
+		if rd.Channel != nil {
+			f.Title = rd.Channel.Title
+			f.Link = rd.Channel.Link
+			if t, err := parseDate(c, &f, rd.Channel.Date); err == nil {
 				f.Updated = t
 			}
 		}
 
-		for _, i := range rdf.Item {
+		for _, i := range rd.Item {
 			st := Story{
 				Id:     i.About,
 				Title:  i.Title,
