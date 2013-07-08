@@ -326,7 +326,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.nothing = function() {
-		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about';
+		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about' && $scope.shown != 'account';
 	};
 
 	$scope.toggleNav = function() {
@@ -737,6 +737,87 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.deleteAccount = function() {
 		if (!confirm('Delete your account?')) return;
 		window.location.href = $('#delete-account').attr('data-url');
+	};
+
+	$scope.accountTypes = {
+		0: 'free',
+		1: 'dev',
+		2: 'paid'
+	};
+	var checkoutLoaded = false;
+	$scope.getAccount = function() {
+		$scope.loadCheckout();
+		$scope.shown = 'account';
+		if ($scope.account) return;
+		$http.get($('#account').attr('data-url-account'))
+			.success(function(data) {
+				$scope.account = data;
+			});
+	};
+
+	$scope.loadCheckout = function(cb) {
+		if (!checkoutLoaded) {
+			$.getScript("https://checkout.stripe.com/v2/checkout.js", function() {
+				checkoutLoaded = true;
+				if (cb) cb();
+			});
+		} else {
+			if (cb) cb();
+		}
+	};
+
+	$scope.date = function(d) {
+		var m = moment(d);
+		if (!m.isValid()) return d;
+		return m.format('D MMMM YYYY');
+	};
+
+	$scope.checkout = function() {
+		var button = $('#checkoutButton');
+		button.button('loading');
+		$scope.loadCheckout(function() {
+			var token = function(res){
+				var $input = $('<input type=hidden name=stripeToken />').val(res.id);
+				$scope.http('POST', $('#account').attr('data-url-charge'), { stripeToken: res.id })
+					.success(function(data) {
+						button.button('reset');
+						$scope.accountType = 2;
+						$scope.account = data;
+					})
+					.error(function(data) {
+						button.button('reset');
+						console.log(data);
+						alert('Error');
+					});
+			};
+			StripeCheckout.open({
+				key: $('#account').attr('data-stripe-key'),
+				amount: 300,
+				currency: 'usd',
+				name: 'Go Read',
+				description: 'Monthly subscription',
+				panelLabel: 'Subscribe',
+				token: token
+			});
+		});
+	};
+
+	$scope.unCheckout = function() {
+		if (!confirm('Sure you want to unsubscribe?')) return;
+		var button = $('#uncheckoutButton');
+		button.button('loading');
+		$http.post($('#account').attr('data-url-uncheckout'))
+			.success(function() {
+				delete $scope.account;
+				$scope.accountType = 0;
+				button.button('reset');
+				alert('Unsubscribed');
+			})
+			.error(function() {
+				button.button('reset');
+				console.log(data);
+				alert('Error');
+			});
 	};
 
 	$scope.shortcuts = $('#shortcuts');

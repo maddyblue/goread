@@ -65,6 +65,7 @@ type Includes struct {
 	GoogleAnalyticsHost string
 	IsDev               bool
 	IsAdmin             bool
+	StripeKey           string
 }
 
 var (
@@ -114,6 +115,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		GoogleAnalyticsId:   GOOGLE_ANALYTICS_ID,
 		GoogleAnalyticsHost: GOOGLE_ANALYTICS_HOST,
 		IsDev:               isDevServer,
+		StripeKey:           STRIPE_KEY,
 	}
 
 	if cu := user.Current(c); cu != nil {

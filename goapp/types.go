@@ -33,7 +33,14 @@ type User struct {
 	Messages []string  `datastore:"m,noindex"`
 	Read     time.Time `datastore:"r,noindex"`
 	Options  string    `datastore:"o,noindex"`
+	Account  int       `datastore:"a,noindex"`
 }
+
+const (
+	AFree = iota
+	ADev
+	APaid
+)
 
 func (u *User) String() string {
 	return u.Email

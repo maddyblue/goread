@@ -283,6 +283,9 @@
 								<b class="caret"></b>
 							</a>
 							<ul class="dropdown-menu">
+								{{if .StripeKey}}
+								<li><a href="#" ng-click="getAccount()">account</a></li>
+								{{end}}
 								<li><a href="#" ng-click="setAddSubscription()">add subscription</a></li>
 								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
 								<li class="divider"></li>
@@ -303,6 +306,41 @@
 		</div>
 	</div>
 	<div class="container-fluid">
+		{{if and .User .StripeKey}}
+		<div
+			class="row-fluid top-margin"
+			ng-show="shown == 'account'"
+			id="account"
+			data-url-charge="{{url "charge"}}"
+			data-url-account="{{url "account"}}"
+			data-url-uncheckout="{{url "uncheckout"}}"
+			data-stripe-key="{{.StripeKey}}"
+			ng-init="accountType = {{.User.Account}}"
+			>
+			<div class="offset3 span6">
+				<h1>Account</h1>
+				<p>Go Read is supported by monthly subscriptions. Without them, we cannot pay for our servers.</p>
+				<div ng-hide="accountType">
+					<button
+						class="btn btn-primary btn-large"
+						ng-click="checkout()"
+						id="checkoutButton"
+						data-loading-text="Working..."
+						>Subscribe for $3/month</button>
+					<h3>Reasons to subscribe</h3>
+					<ul>
+						<li>pay for Go Read servers</li>
+						<li>fund development of future features</li>
+						<li>to not let Go Read die like Google Reader</li>
+					</ul>
+				</div>
+				<div ng-show="accountType">
+					<h3>Subscribed on <span ng-bind="date(account.Created)"></span></h3>
+					<button class="btn" ng-click="unCheckout()" data-loading-text="Working..." id="uncheckoutButton">Unsubscribe</button>
+				</div>
+			</div>
+		</div>
+		{{end}}
 		<div class="row-fluid top-margin" ng-show="shown == 'about'">
 			<div class="offset3 span6">
 				<h1>About</h1>

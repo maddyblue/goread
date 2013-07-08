@@ -18,6 +18,9 @@ const (
 	GOOGLE_ANALYTICS_HOST = ""
 	PUBSUBHUBBUB_HUB      = "http://pubsubhubbub.appspot.com"
 	PUBSUBHUBBUB_HOST     = "" // e.g., "www.goread.io"
+	STRIPE_KEY            = ""
+	STRIPE_SECRET         = ""
+	STRIPE_PLAN           = ""
 )
 
 func init() {
