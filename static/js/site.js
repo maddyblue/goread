@@ -777,7 +777,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		button.button('loading');
 		$scope.loadCheckout(function() {
 			var token = function(res){
-				var $input = $('<input type=hidden name=stripeToken />').val(res.id);
 				$scope.http('POST', $('#account').attr('data-url-charge'), { stripeToken: res.id })
 					.success(function(data) {
 						button.button('reset');
