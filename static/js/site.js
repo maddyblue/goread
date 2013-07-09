@@ -688,13 +688,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.scrollRead = function() {
 		if (!$scope.opts.scrollRead) return;
+		var slh = $('#story-list').height();
 		for (var i = 0; i < $scope.dispStories.length; i++) {
 			var s = $scope.dispStories[i];
 			if (!$scope.unreadStories[s.guid]) continue;
 			var sd = $('#storydiv' + i);
+			var sth = $('.story-title', sd).height();
 			var sdt = sd.position().top;
-			var sdb = sdt + sd.height();
-			if (sdb < 0) {
+			var sdb = sdt + sth;
+			if (sdb < slh) {
 				$scope.markAllRead(s);
 			}
 		}
