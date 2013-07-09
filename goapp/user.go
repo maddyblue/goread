@@ -459,7 +459,6 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if len(ret[i]) == 0 {
-			c.Errorf("setting content")
 			ret[i] = sc.Content
 		}
 	}
