@@ -425,6 +425,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.updateStories();
 		$scope.applyGetFeed();
 		$scope.updateUnreadCurrent();
+		$scope.resetScroll();
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -434,6 +435,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.updateStories();
 		$scope.applyGetFeed();
 		$scope.updateUnreadCurrent();
+		$scope.resetScroll();
+	};
+
+	$scope.resetScroll = function() {
+		$('#story-list').scrollTop(0);
 	};
 
 	$scope.setMode = function(mode) {
