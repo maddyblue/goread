@@ -105,9 +105,22 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.update = function() {
+		$scope.updateFolders();
 		$scope.updateUnread();
 		$scope.updateStories();
 		$scope.updateTitle();
+	};
+
+	$scope.updateFolders = function() {
+		_.each($scope.feeds, function(f, i) {
+			if (f.Outline) {
+				_.each(f.Outline, function(s) {
+					s.folder = f.Title;
+				});
+			} else {
+				delete f.folder;
+			}
+		});
 	};
 
 	$scope.refresh = function(cb) {
@@ -534,6 +547,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 		$scope.activeFolder = name;
 		$scope.uploadOpml();
+		$scope.update();
 	};
 
 	$scope.deleteFolder = function(folder) {
@@ -547,6 +561,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 		$scope.setActiveFeed();
 		$scope.uploadOpml();
+		$scope.update();
 	};
 
 	$scope.unsubscribe = function(feed) {
@@ -575,7 +590,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		});
 		$scope.setActiveFeed();
 		$scope.uploadOpml();
-		$scope.updateUnread();
+		$scope.update();
 	};
 
 	$scope.moveFeed = function(url, folder) {
@@ -623,6 +638,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			}
 		}
 		$scope.uploadOpml();
+		$scope.update();
 	};
 
 	$scope.moveFeedNew = function(url) {
