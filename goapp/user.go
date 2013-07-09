@@ -452,15 +452,10 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if len(sc.Compressed) > 0 {
 			buf := bytes.NewReader(sc.Compressed)
 			if gz, err := gzip.NewReader(buf); err == nil {
-				if b, err = ioutil.ReadAll(gz); err == nil {
+				if b, _ = ioutil.ReadAll(gz); err == nil {
 					ret[i] = string(b)
-					c.Errorf("GZIP: %s", ret[i])
-				} else {
-					c.Errorf("e2: %v", err)
 				}
 				gz.Close()
-			} else {
-				c.Errorf("e: %v", err)
 			}
 		}
 		if len(ret[i]) == 0 {
