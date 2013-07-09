@@ -420,10 +420,12 @@
 						</div>
 					</li>
 				</ul>
+				{{if .StripeKey}}
 				<ul class="unstyled" ng-hide="accountType">
 					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
 					<li>to keep Go Read alive</li>
 				</ul>
+				{{end}}
 			</div>
 
 			<div
