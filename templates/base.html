@@ -390,7 +390,7 @@
 				</ul>
 				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
-						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)">
+						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
 							<span ng-class="{bold: unread['feeds'][f.XmlUrl]}" ng-bind="f.Title"></span>
 							<span ng-show="unread['feeds'][f.XmlUrl]">
@@ -398,7 +398,7 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)">
+							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)" title="{{`{{f.Title}}`}}">
 								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
 								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
 								<span ng-class="{bold: unread['folders'][f.Title]}" ng-bind="f.Title"></span>
@@ -408,7 +408,7 @@
 							</div>
 							<ul class="unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
-									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)">
+									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)" title="{{`{{o.Title}}`}}">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
 										<span ng-class="{bold: unread['feeds'][o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread['feeds'][o.XmlUrl]">
@@ -492,9 +492,9 @@
 				>
 					<div class="story-header hand" ng-class="{read: s.read}">
 						<div class="story-feed muted visible-desktop" ng-click="setCurrent($index, false, true)" ng-bind="s.feed.Title"></div>
-						<div class="story-title">
-							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, false, true, $event)" class="story-link"><strong ng-bind="s.Title"></strong></a>
-							<span class="story-summary muted" ng-click="setCurrent($index, false, true)" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
+						<div class="story-title" ng-click="setCurrent($index, false, true)" title="{{`{{s.Title}}`}}">
+							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, false, true, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>
+							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="story-date muted visible-desktop">
 							<span ng-bind="s.dispdate" ng-click="setCurrent($index, false, true)"></span>
