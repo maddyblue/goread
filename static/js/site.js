@@ -33,6 +33,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 	};
 
+	$scope.resizeContainers = function() {
+		var bodyHeigth = $(window).outerHeight(true)-41
+		$('#story-list').css({'height': bodyHeigth})
+		$('#feed-list').css({'height': bodyHeigth-$("#feed-list-actions").outerHeight(true)})
+	}
+
+	var lazyLayout = _.debounce($scope.resizeContainers, 250);
+	$(window).resize(lazyLayout);
+
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';
 		$scope.loading++;
@@ -105,6 +114,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.update = function() {
+		$scope.resizeContainers();
 		$scope.updateFolders();
 		$scope.updateUnread();
 		$scope.updateStories();
