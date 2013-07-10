@@ -3,6 +3,7 @@ package goapp
 import (
 	"appengine"
 	"code.google.com/p/goauth2/oauth"
+	"time"
 )
 
 var (
@@ -21,6 +22,16 @@ const (
 	STRIPE_KEY            = ""
 	STRIPE_SECRET         = ""
 	STRIPE_PLAN           = ""
+)
+
+const (
+	UpdateMin         = time.Minute * 20
+	UpdateMax         = time.Hour * 12
+	UpdateDefault     = time.Hour * 3
+	UpdateFraction    = 0.5
+	UpdateJitter      = time.Minute * 3
+	UpdateLongFactor  = 20
+	NewIntervalWeight = 0.2
 )
 
 func init() {
