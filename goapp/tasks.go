@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -133,95 +132,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 const IMPORT_LIMIT = 10
-
-func ImportReaderTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	gn := goon.FromContext(c)
-	userid := r.FormValue("user")
-	bk := r.FormValue("key")
-	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
-	data, err := ioutil.ReadAll(fr)
-	if err != nil {
-		return
-	}
-
-	var skip int
-	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
-		skip = s
-	}
-
-	v := struct {
-		Subscriptions []struct {
-			Id         string `json:"id"`
-			Title      string `json:"title"`
-			HtmlUrl    string `json:"htmlUrl"`
-			Categories []struct {
-				Id    string `json:"id"`
-				Label string `json:"label"`
-			} `json:"categories"`
-		} `json:"subscriptions"`
-	}{}
-	json.Unmarshal(data, &v)
-	c.Debugf("reader import for %v, skip %v, len %v", userid, skip, len(v.Subscriptions))
-
-	end := skip + IMPORT_LIMIT
-	if end > len(v.Subscriptions) {
-		end = len(v.Subscriptions)
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(end - skip)
-	userOpml := make([]*OpmlOutline, end-skip)
-
-	for i := range v.Subscriptions[skip:end] {
-		go func(i int) {
-			sub := v.Subscriptions[skip+i]
-			var label string
-			if len(sub.Categories) > 0 {
-				label = sub.Categories[0].Label
-			}
-			outline := &OpmlOutline{
-				Title: label,
-				Outline: []*OpmlOutline{
-					&OpmlOutline{
-						XmlUrl: sub.Id[5:],
-						Title:  sub.Title,
-					},
-				},
-			}
-			userOpml[i] = outline
-			if err := addFeed(c, userid, outline); err != nil {
-				c.Warningf("reader import error: %v", err.Error())
-				// todo: do something here?
-			}
-			c.Debugf("reader import: %s, %s", sub.Title, sub.Id)
-			wg.Done()
-		}(i)
-	}
-	wg.Wait()
-
-	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: userid})}
-	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
-		gn.Get(&ud)
-		mergeUserOpml(&ud, userOpml...)
-		_, err := gn.Put(&ud)
-		return err
-	}, nil); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		c.Errorf("ude update error: %v", err.Error())
-		return
-	}
-
-	if end < len(v.Subscriptions) {
-		task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
-			"key":  {bk},
-			"user": {userid},
-			"skip": {strconv.Itoa(skip + IMPORT_LIMIT)},
-		})
-		taskqueue.Add(c, task, "import-reader")
-	} else {
-		blobstore.Delete(c, appengine.BlobKey(bk))
-	}
-}
 
 func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	return

@@ -23,7 +23,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -37,9 +36,7 @@ import (
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
-	"appengine/urlfetch"
 	"appengine/user"
-	"code.google.com/p/goauth2/oauth"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 )
@@ -136,54 +133,6 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
-}
-
-func ImportReader(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, oauth_conf.AuthCodeURL(""), http.StatusFound)
-}
-
-func Oauth2Callback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	cu := user.Current(c)
-	if cu == nil {
-		serveError(w, errors.New("Not logged in"))
-		return
-	}
-	gn := goon.FromContext(c)
-	u := User{Id: cu.ID}
-	if err := gn.Get(&u); err != nil {
-		serveError(w, err)
-		return
-	}
-	u.Messages = append(u.Messages,
-		"Reader import is happening. It can take a minute. Don't reorganize your feeds until it's completed importing.",
-		"Refresh to see its progress.",
-	)
-	gn.Put(&u)
-
-	t := &oauth.Transport{
-		Config:    oauth_conf,
-		Transport: &urlfetch.Transport{Context: c},
-	}
-	t.Exchange(r.FormValue("code"))
-	cl := t.Client()
-	resp, err := cl.Get("https://www.google.com/reader/api/0/subscription/list?output=json")
-	if err != nil {
-		serveError(w, err)
-		return
-	}
-	defer resp.Body.Close()
-	b, _ := ioutil.ReadAll(resp.Body)
-	bk, err := saveFile(c, b)
-	if err != nil {
-		serveError(w, err)
-		return
-	}
-	task := taskqueue.NewPOSTTask(routeUrl("import-reader-task"), url.Values{
-		"key":  {string(bk)},
-		"user": {cu.ID},
-	})
-	taskqueue.Add(c, task, "import-reader")
-	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
 func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
