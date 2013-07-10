@@ -714,6 +714,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		for (var i = 0; i < $scope.dispStories.length; i++) {
 			var s = $scope.dispStories[i];
 			if (!$scope.unreadStories[s.guid]) continue;
+			if (!$scope.contents[s.guid]) continue;
 			var sd = $('#storydiv' + i);
 			var sth = $('.story-title', sd).height();
 			var sdt = sd.position().top;
