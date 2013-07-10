@@ -467,12 +467,9 @@ func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
 	return bestlink
 }
 
-const UpdateTime = time.Hour * 3
-
 func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
-	f.NextUpdate = f.Checked.Add(UpdateTime - time.Second*time.Duration(rand.Int63n(60*30)))
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 
@@ -594,4 +591,61 @@ func loadImage(c appengine.Context, f *Feed) string {
 	i.Url = su.String()
 	g.Put(i)
 	return i.Url
+}
+
+func updateAverage(f *Feed, previousUpdate time.Time, updateCount int) {
+	if previousUpdate.IsZero() || updateCount < 1 {
+		return
+	}
+
+	// if multiple updates occurred, assume they were evenly spaced
+	interval := time.Since(previousUpdate) / time.Duration(updateCount)
+
+	// rather than calculate a strict mean, we weight
+	// each new interval, gradually decaying the influence
+	// of older intervals
+	old := float64(f.Average) * (1.0 - NewIntervalWeight)
+	cur := float64(interval) * NewIntervalWeight
+	f.Average = time.Duration(old + cur)
+}
+
+func scheduleNextUpdate(f *Feed) {
+	now := time.Now()
+	if f.Date.IsZero() {
+		f.NextUpdate = now.Add(UpdateDefault)
+		return
+	}
+
+	// calculate the delay until next check based on average time between updates
+	pause := time.Duration(float64(f.Average) * UpdateFraction)
+
+	// if we have never found an update, start with a default wait time
+	if pause == 0 {
+		pause = UpdateDefault
+	}
+
+	// if it has been much longer than expected since the last update,
+	// gradually reduce the frequency of checks
+	since := time.Since(f.Date)
+	if since > pause*UpdateLongFactor {
+		pause = time.Duration(float64(since) / UpdateLongFactor)
+	}
+
+	// enforce some limits
+	if pause < UpdateMin {
+		pause = UpdateMin
+	}
+	if pause > UpdateMax {
+		pause = UpdateMax
+	}
+
+	// introduce a little random jitter to break up
+	// convoys of updates
+	jitter := time.Duration(rand.Int63n(int64(UpdateJitter)))
+	if rand.Intn(2) == 0 {
+		pause += jitter
+	} else {
+		pause -= jitter
+	}
+	f.NextUpdate = time.Now().Add(pause)
 }

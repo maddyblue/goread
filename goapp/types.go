@@ -58,17 +58,18 @@ type UserData struct {
 type Read map[string][]string
 
 type Feed struct {
-	_kind      string    `goon:"kind,F"`
-	Url        string    `datastore:"-" goon:"id"`
-	Title      string    `datastore:"t,noindex"`
-	Updated    time.Time `datastore:"u,noindex"`
-	Date       time.Time `datastore:"d,noindex"`
-	Checked    time.Time `datastore:"c,noindex"`
-	NextUpdate time.Time `datastore:"n"`
-	Link       string    `datastore:"l,noindex"`
-	Errors     int       `datastore:"e,noindex"`
-	Image      string    `datastore:"i,noindex"`
-	Subscribed time.Time `datastore:"s,noindex"`
+	_kind      string        `goon:"kind,F"`
+	Url        string        `datastore:"-" goon:"id"`
+	Title      string        `datastore:"t,noindex"`
+	Updated    time.Time     `datastore:"u,noindex"`
+	Date       time.Time     `datastore:"d,noindex"`
+	Checked    time.Time     `datastore:"c,noindex"`
+	NextUpdate time.Time     `datastore:"n"`
+	Link       string        `datastore:"l,noindex"`
+	Errors     int           `datastore:"e,noindex"`
+	Image      string        `datastore:"i,noindex"`
+	Subscribed time.Time     `datastore:"s,noindex"`
+	Average    time.Duration `datastore:"a,noindex"`
 }
 
 func (f Feed) Subscribe(c appengine.Context) {
