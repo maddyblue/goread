@@ -535,7 +535,7 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, false, true, null, true)"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-click="setCurrent($index, true, true, $event)" ng-show="$index == currentStory || (opts.expanded && !collapsed)" ng-class="{short: opts.nav}">
+					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || (opts.expanded && !collapsed)" ng-class="{short: opts.nav}">
 						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 						<p><small>
 							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
