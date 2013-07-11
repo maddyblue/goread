@@ -703,6 +703,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.onScroll = _.debounce(function() {
 		$scope.applyGetFeed();
 		$scope.scrollRead();
+		$scope.$apply(function() {
+			$scope.collapsed = $(window).width() <= 979;
+		});
 	}, 300);
 	sl.on('scroll', $scope.onScroll);
 	$window.onscroll = $scope.onScroll;
