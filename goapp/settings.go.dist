@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ENABLE_PUBSUBHUBBUB  bool = !appengine.IsDevAppServer()
+	ENABLE_PUBSUBHUBBUB bool = !appengine.IsDevAppServer()
 )
 
 const (
