@@ -83,6 +83,7 @@ func init() {
 	router.Handle("/tasks/cfixer", mpg.NewHandler(CFixer))
 	router.Handle("/tasks/cfix", mpg.NewHandler(CFix))
 	router.Handle("/user/charge", mpg.NewHandler(Charge)).Name("charge")
+	router.Handle("/user/donate", mpg.NewHandler(Donate)).Name("donate")
 	router.Handle("/user/account", mpg.NewHandler(Account)).Name("account")
 	router.Handle("/user/uncheckout", mpg.NewHandler(Uncheckout)).Name("uncheckout")
 

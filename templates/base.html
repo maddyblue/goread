@@ -312,6 +312,7 @@
 			ng-show="shown == 'account'"
 			id="account"
 			data-url-charge="{{url "charge"}}"
+			data-url-donate="{{url "donate"}}"
 			data-url-account="{{url "account"}}"
 			data-url-uncheckout="{{url "uncheckout"}}"
 			data-stripe-key="{{.StripeKey}}"
@@ -339,6 +340,24 @@
 				<div ng-show="accountType">
 					<h3>Subscribed on <span ng-bind="date(account.Created)"></span></h3>
 					<button class="btn" ng-click="unCheckout()" data-loading-text="Working..." id="uncheckoutButton">Unsubscribe</button>
+				</div>
+				<div>
+					<h3>Donation</h3>
+					<p>Want to spend more than $3?</p>
+						<form class="form-inline">
+						<div class="input-prepend input-append">
+							<span class="add-on">$</span>
+							<input type="number" class="input-small" ng-model="donateAmount" min="2" ng-init="donateAmount = 5">
+						</div>
+						<button
+							class="btn btn-success"
+							ng-click="donate()"
+							id="donateButton"
+							data-loading-text="Working..."
+							>Donate
+						</button>
+						</form>
+					<p>Some features have unavoidable costs, and won't be implemented until they are sustainable. For example, HTTPS requires purchase of certificates and other costs. Donations help fund these features faster. Donations do not mark your account as a subscriber - they are just a way to donate.</p>
 				</div>
 			</div>
 		</div>

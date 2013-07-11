@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -179,4 +180,33 @@ func stripe(c mpg.Context, method, urlStr, body string) (*http.Response, error) 
 	}
 	req.SetBasicAuth(STRIPE_SECRET, "")
 	return cl.Do(req)
+}
+
+func Donate(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	if err := gn.Get(&u); err != nil {
+		serveError(w, err)
+		return
+	}
+	amount, err := strconv.Atoi(r.FormValue("amount"))
+	if err != nil || amount < 200 {
+		serveError(w, fmt.Errorf("bad amount: %v", r.FormValue("amount")))
+		return
+	}
+	resp, err := stripe(c, "POST", "charges", url.Values{
+		"amount":      {r.FormValue("amount")},
+		"description": {fmt.Sprintf("%v - %v", u.Id, u.Email)},
+		"card":        {r.FormValue("stripeToken")},
+		"currency":    {"usd"},
+	}.Encode())
+	if err != nil {
+		serveError(w, err)
+		return
+	} else if resp.StatusCode != http.StatusOK {
+		c.Errorf("%s", resp.Body)
+		serveError(w, fmt.Errorf("Error"))
+		return
+	}
 }
