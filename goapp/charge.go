@@ -83,6 +83,7 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	} else if resp.StatusCode != http.StatusOK {
+		c.Errorf("%s", resp.Body)
 		serveError(w, fmt.Errorf("Error"))
 		return
 	}
