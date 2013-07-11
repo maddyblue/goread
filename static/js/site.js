@@ -850,7 +850,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			};
 			StripeCheckout.open({
 				key: $('#account').attr('data-stripe-key'),
-				amount: $scope.donateAmount,
+				amount: $scope.donateAmount * 100,
 				currency: 'usd',
 				name: 'Go Read',
 				description: 'Donation',
