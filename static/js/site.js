@@ -198,7 +198,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			setTimeout(function() {
 				se = $('#storydiv' + i);
 				var eTop = se.offset().top;
-				if (!isClick || eTop < 0 || eTop > $('#story-list').height()) {
+				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
 					se[0].scrollIntoView();
 				}
 			});
