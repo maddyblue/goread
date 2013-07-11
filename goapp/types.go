@@ -115,7 +115,7 @@ type Story struct {
 	content string
 }
 
-const IDX_COL = "p"
+const IDX_COL = "c"
 
 // parent: Story, key: 1
 type StoryContent struct {
