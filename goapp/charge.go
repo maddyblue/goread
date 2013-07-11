@@ -147,8 +147,8 @@ func Uncheckout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	} else if resp.StatusCode != http.StatusOK {
-		serveError(w, fmt.Errorf("Error"))
-		return
+		c.Errorf("%s", resp.Body)
+		c.Errorf("stripe delete error, but proceeding")
 	}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		if err := gn.Get(&u); err != nil && err != datastore.ErrNoSuchEntity {
