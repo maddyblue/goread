@@ -386,22 +386,13 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 		return nil
 	}
 
-	c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v", hasUpdated, isFeedUpdated, storyDate)
-
-	var newStories []*Story
-	for _, s := range stories {
-		if s.Updated.IsZero() || !s.Updated.Before(storyDate) {
-			newStories = append(newStories, s)
-		}
-	}
-	c.Debugf("%v possible stories to update", len(newStories))
-
+	c.Debugf("hasUpdate: %v, isFeedUpdated: %v, storyDate: %v, stories: %v", hasUpdated, isFeedUpdated, storyDate, len(stories))
 	puts := []interface{}{&f}
 
 	// find non existant stories
 	fk := gn.Key(&f)
-	getStories := make([]*Story, len(newStories))
-	for i, s := range newStories {
+	getStories := make([]*Story, len(stories))
+	for i, s := range stories {
 		getStories[i] = &Story{Id: s.Id, Parent: fk}
 	}
 	err := gn.GetMulti(getStories)
@@ -412,11 +403,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	var updateStories []*Story
 	for i, s := range getStories {
 		if goon.NotFound(err, i) {
-			updateStories = append(updateStories, newStories[i])
-		} else if !newStories[i].Updated.IsZero() && !newStories[i].Updated.Equal(s.Updated) {
-			newStories[i].Created = s.Created
-			newStories[i].Published = s.Published
-			updateStories = append(updateStories, newStories[i])
+			updateStories = append(updateStories, stories[i])
+		} else if !stories[i].Updated.IsZero() && !stories[i].Updated.Equal(s.Updated) {
+			stories[i].Created = s.Created
+			stories[i].Published = s.Published
+			updateStories = append(updateStories, stories[i])
 		}
 	}
 	c.Debugf("%v update stories", len(updateStories))
