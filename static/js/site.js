@@ -878,6 +878,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
+	$scope.encode = function(v) {
+		return encodeURIComponent(v);
+	};
+
 	$scope.shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
 		$scope.shortcuts.modal('toggle');
