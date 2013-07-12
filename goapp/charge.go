@@ -154,7 +154,7 @@ func Account(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := User{Id: cu.ID}
 	uc := &UserCharge{Id: 1, Parent: gn.Key(&u)}
 	if err := gn.Get(uc); err == nil {
-		if time.Now().Before(uc.Next) {
+		if uc.Next.Before(time.Now()) {
 			if resp, err := stripe(c, "GET", "customers/"+uc.Customer, ""); err == nil {
 				if nuc, err := setCharge(c, resp); err == nil {
 					uc = nuc
