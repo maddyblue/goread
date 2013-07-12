@@ -329,14 +329,19 @@
 			>
 			<div class="offset3 span6">
 				<h1>Account</h1>
-				<p>Go Read is supported by monthly subscriptions. Without them, we cannot pay for our servers.</p>
+				<p>Go Read is supported by user subscriptions. Without them, we cannot pay for our servers.</p>
 				<div ng-hide="accountType">
-					<button
-						class="btn btn-primary btn-large"
-						ng-click="checkout()"
-						id="checkoutButton"
-						data-loading-text="Working..."
-						>Subscribe for $3/month</button>
+					<div>
+						{{range .StripePlans}}
+						<button
+							class="btn btn-primary btn-large"
+							ng-click="checkout('{{.Id}}', '{{.Desc}}', {{.Amount}})"
+							data-loading-text="Working..."
+							id="button{{.Id}}"
+							>Subscribe for {{.Name}}</button>
+						{{end}}
+					</div>
+					<br>
 					<a href="https://stripe.com" target="_blank"><img src="/static/img/stripe.png"></a>
 					<h3>Reasons to subscribe</h3>
 					<ul>
@@ -355,6 +360,11 @@
 				</div>
 				<div ng-show="accountType">
 					<h3>Subscribed on <span ng-bind="date(account.Created)"></span></h3>
+					<h5>Next payment:
+						<span ng-show="account">
+							${{`{{account.Amount/100}}`}} on {{`{{date(account.Next)}}`}}, recurring each {{`{{account.Interval}}`}}
+						</span>
+					</h5>
 					<button class="btn" ng-click="unCheckout()" data-loading-text="Working..." id="uncheckoutButton">Unsubscribe</button>
 				</div>
 				<div>

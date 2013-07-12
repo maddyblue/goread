@@ -7,6 +7,7 @@ import (
 
 var (
 	ENABLE_PUBSUBHUBBUB bool = !appengine.IsDevAppServer()
+	STRIPE_PLANS             = []Plan{}
 )
 
 const (

@@ -33,6 +33,11 @@ import (
 	"github.com/mjibson/goon"
 )
 
+type Plan struct {
+	Id, Name, Desc string
+	Amount         int
+}
+
 // parent: User, key: 1
 type UserCharge struct {
 	_kind  string         `goon:"kind,UC"`
@@ -42,23 +47,33 @@ type UserCharge struct {
 	Customer string    `datastore:"c,noindex json:"-"`
 	Created  time.Time `datastore:"r,noindex"`
 	Last4    string    `datastore:"l,noindex" json:"-"`
+	Next     time.Time `datastore:"n,noindex"`
+	Amount   int       `datastore:"a,noindex"`
+	Interval string    `datastore:"i,noindex"`
+	Plan     string    `datastore:"p,noindex"`
 }
 
 type StripeCustomer struct {
-	Id      string      `json:"id"`
-	Created int64       `json:"created"`
-	Card    *StripeCard `json:"active_card"`
-}
-
-type StripeCard struct {
-	Last4 string `json:"last4"`
+	Id      string `json:"id"`
+	Created int64  `json:"created"`
+	Card    struct {
+		Last4 string `json:"last4"`
+	} `json:"active_card"`
+	Subscription struct {
+		Plan struct {
+			Interval string `json:"interval"`
+			Id       string `json:"id"`
+			Amount   int    `json:"amount"`
+		} `json:"plan"`
+		End int64 `json:"current_period_end"`
+	} `json:"subscription"`
 }
 
 func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
-	uc := UserCharge{Id: 1, Parent: gn.Key(&u)}
+	uc := &UserCharge{Id: 1, Parent: gn.Key(&u)}
 	if err := gn.Get(&u); err != nil {
 		serveError(w, err)
 		return
@@ -66,7 +81,7 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, fmt.Errorf("You're already subscribed."))
 		return
 	}
-	if err := gn.Get(&uc); err == nil && len(uc.Customer) > 0 {
+	if err := gn.Get(uc); err == nil && len(uc.Customer) > 0 {
 		serveError(w, fmt.Errorf("You're already subscribed."))
 		return
 	} else if err != datastore.ErrNoSuchEntity {
@@ -76,8 +91,8 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	resp, err := stripe(c, "POST", "customers", url.Values{
 		"email":       {u.Email},
 		"description": {u.Id},
-		"card":        {r.FormValue("stripeToken")},
-		"plan":        {STRIPE_PLAN},
+		"card":        {r.FormValue("token")},
+		"plan":        {r.FormValue("plan")},
 	}.Encode())
 	if err != nil {
 		serveError(w, err)
@@ -87,13 +102,29 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, fmt.Errorf("Error"))
 		return
 	}
-	defer resp.Body.Close()
-	b, _ := ioutil.ReadAll(resp.Body)
-	var sc StripeCustomer
-	if err := json.Unmarshal(b, &sc); err != nil {
+	uc, err = setCharge(c, resp)
+	if err != nil {
 		serveError(w, err)
 		return
 	}
+	b, _ := json.Marshal(&uc)
+	w.Write(b)
+}
+
+func setCharge(c mpg.Context, r *http.Response) (*UserCharge, error) {
+	var sc StripeCustomer
+	defer r.Body.Close()
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(b, &sc); err != nil {
+		return nil, err
+	}
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	uc := UserCharge{Id: 1, Parent: gn.Key(&u)}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		if err := gn.Get(&u); err != nil && err != datastore.ErrNoSuchEntity {
 			return err
@@ -105,22 +136,32 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		uc.Customer = sc.Id
 		uc.Last4 = sc.Card.Last4
 		uc.Created = time.Unix(sc.Created, 0)
+		uc.Next = time.Unix(sc.Subscription.End, 0)
+		uc.Amount = sc.Subscription.Plan.Amount
+		uc.Interval = sc.Subscription.Plan.Interval
+		uc.Plan = sc.Subscription.Plan.Id
 		_, err := gn.PutMany(&u, &uc)
 		return err
 	}, nil); err != nil {
-		serveError(w, err)
-		return
+		return nil, err
 	}
-	b, _ = json.Marshal(&uc)
-	w.Write(b)
+	return &uc, nil
 }
 
 func Account(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
-	uc := UserCharge{Id: 1, Parent: gn.Key(&u)}
-	if err := gn.Get(&uc); err == nil {
+	uc := &UserCharge{Id: 1, Parent: gn.Key(&u)}
+	if err := gn.Get(uc); err == nil {
+		if time.Now().Before(uc.Next) {
+			if resp, err := stripe(c, "GET", "customers/"+uc.Customer, ""); err == nil {
+				if nuc, err := setCharge(c, resp); err == nil {
+					uc = nuc
+					c.Infof("updated user charge %v", cu.ID)
+				}
+			}
+		}
 		b, _ := json.Marshal(&uc)
 		w.Write(b)
 	} else if err != datastore.ErrNoSuchEntity {

@@ -767,11 +767,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		window.location.href = $('#delete-account').attr('data-url');
 	};
 
-	$scope.accountTypes = {
-		0: 'free',
-		1: 'dev',
-		2: 'paid'
-	};
 	var checkoutLoaded = false;
 	$scope.getAccount = function() {
 		$scope.loadCheckout();
@@ -800,12 +795,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return m.format('D MMMM YYYY');
 	};
 
-	$scope.checkout = function() {
+	$scope.checkout = function(plan, desc, amount) {
 		$scope.loadCheckout(function() {
 			var token = function(res){
-				var button = $('#checkoutButton');
+				var button = $('#button' + plan);
 				button.button('loading');
-				$scope.http('POST', $('#account').attr('data-url-charge'), { stripeToken: res.id })
+				$scope.http('POST', $('#account').attr('data-url-charge'), {
+					token: res.id,
+					plan: plan
+				})
 					.success(function(data) {
 						button.button('reset');
 						$scope.accountType = 2;
@@ -819,11 +817,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			};
 			StripeCheckout.open({
 				key: $('#account').attr('data-stripe-key'),
-				amount: 300,
+				amount: amount,
 				currency: 'usd',
 				name: 'Go Read',
-				description: 'Monthly subscription',
-				panelLabel: 'Subscribe',
+				description: desc,
+				panelLabel: 'Subscribe for',
 				token: token
 			});
 		});
