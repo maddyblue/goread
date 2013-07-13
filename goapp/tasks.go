@@ -441,9 +441,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	scheduleNextUpdate(&f)
 	delay := f.NextUpdate.Sub(time.Now())
 	c.Infof("next update scheduled for %v from now", delay-delay%time.Second)
-
 	gn.PutMulti(puts)
-
 	return nil
 }
 
