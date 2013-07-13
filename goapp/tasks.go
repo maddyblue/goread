@@ -251,12 +251,21 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
 	q = q.Limit(1000)
 	cs := r.FormValue("c")
+	hasCursor := false
 	if len(cs) > 0 {
 		if cur, err := datastore.DecodeCursor(cs); err == nil {
 			q = q.Start(cur)
+			hasCursor = true
 			c.Infof("starting at %v", cur)
 		} else {
 			c.Errorf("cursor error %v", err.Error())
+		}
+	}
+	if !hasCursor {
+		qs, err := taskqueue.QueueStats(c, []string{"update-feed"}, 0)
+		if err != nil || !qs[0].OldestETA.IsZero() {
+			c.Errorf("already %v (%v) tasks", qs[0].Tasks, qs[0].Executed1Minute)
+			return
 		}
 	}
 	var keys []*datastore.Key
