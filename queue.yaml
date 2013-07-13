@@ -13,6 +13,3 @@ queue:
   bucket_size: 20
   retry_parameters:
     task_retry_limit: 0
-- name: cfixer
-  rate: 50/s
-  bucket_size: 20
