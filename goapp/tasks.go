@@ -552,9 +552,6 @@ func CFixer(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fixCreatedDate(c mpg.Context, f *Feed) {
-}
-
 func CFix(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	url := r.FormValue("feed")
