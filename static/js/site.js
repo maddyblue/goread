@@ -324,6 +324,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 	};
 
+	$scope.markUnread = function(story) {
+		$scope.http('POST', $('#mark-all-read').attr('data-url'), {
+			feed: story.feed.XmlUrl,
+			story: story.Id
+		});
+		$scope.unreadStories[s.guid] = true;
+		$scope.stories.
+	};
+
 	$scope.sendReadStories = _.debounce(function() {
 		var ss = $scope.markReadStories;
 		$scope.markReadStories = [];

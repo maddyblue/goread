@@ -358,6 +358,43 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}, nil)
 }
 
+func MarkUnread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	read := make(Read)
+
+	type readStory struct {
+		Feed, Story string
+	}
+	var stories []readStory
+	if r.FormValue("stories") != "" {
+		json.Unmarshal([]byte(r.FormValue("stories")), &stories)
+	}
+	if r.FormValue("feed") != "" {
+		stories = append(stories, readStory{
+			Feed:  r.FormValue("feed"),
+			Story: r.FormValue("story"),
+		})
+	}
+
+	gn.RunInTransaction(func(gn *goon.Goon) error {
+		u := &User{Id: cu.ID}
+		ud := &UserData{
+			Id:     "data",
+			Parent: gn.Key(u),
+		}
+		gn.Get(ud)
+		json.Unmarshal(ud.Read, &read)
+		for _, s := range stories {
+			read[s.Feed] = append(read[s.Feed], s.Story)
+		}
+		b, _ := json.Marshal(&read)
+		ud.Read = b
+		_, err := gn.Put(ud)
+		return err
+	}, nil)
+}
+
 func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
