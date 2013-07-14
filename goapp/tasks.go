@@ -249,7 +249,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(1000)
+	q = q.Limit(100)
 	cs := r.FormValue("c")
 	hasCursor := false
 	if len(cs) > 0 {
@@ -269,7 +269,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var keys []*datastore.Key
-	it := q.Run(Timeout(c, time.Second*15))
+	it := q.Run(Timeout(c, time.Second*60))
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
