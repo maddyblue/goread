@@ -986,6 +986,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return false;
 	});
 
+	$scope.registerHandler = function() {
+		if (navigator && navigator.registerContentHandler) {
+			navigator.registerContentHandler("application/vnd.mozilla.maybe.feed", "http://" + window.location.host + "/user/add-subscription?url=%s", "Go Read");
+		}
+	};
+
 	$scope.showMessage = function(m) {
 		$('#message-list').text(m);
 		$('#messages').modal('show');
