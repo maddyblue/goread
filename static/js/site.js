@@ -337,10 +337,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			delete $scope.unreadStories[s.guid];
 			delete s.Unread;
 			s.read = true;
+			s.remove = true;
 		} else {
 			$scope.unreadStories[s.guid] = true;
 			s.Unread = true;
 			delete s.read;
+			delete s.remove;
 		}
 		if ($scope.stories.indexOf(s) == -1) {
 			$scope.stories.push(s);
