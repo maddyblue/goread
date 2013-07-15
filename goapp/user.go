@@ -337,7 +337,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(b)
 	})
-	_ = utf8.RuneError
 }
 
 func cleanNonUTF8(s string) string {
