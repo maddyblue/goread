@@ -474,6 +474,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	f.Checked = time.Now()
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
+	f.Link = strings.TrimSpace(f.Link)
 
 	if u, err := url.Parse(f.Url); err == nil {
 		if ul, err := u.Parse(f.Link); err == nil {
@@ -488,6 +489,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	for _, s := range ss {
 		s.Parent = fk
 		s.Created = f.Checked
+		s.Link = strings.TrimSpace(s.Link)
 		if !s.Updated.IsZero() && s.Published.IsZero() {
 			s.Published = s.Updated
 		}
