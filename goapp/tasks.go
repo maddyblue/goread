@@ -249,7 +249,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(100)
+	q = q.Limit(1000)
 	cs := r.FormValue("c")
 	hasCursor := false
 	if len(cs) > 0 {
