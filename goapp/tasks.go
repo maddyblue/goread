@@ -209,7 +209,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
 		nf, ss := ParseFeed(c, f.Url, b)
-		err := updateFeed(c, f.Url, nf, ss)
+		err := updateFeed(c, f.Url, nf, ss, false)
 		if err != nil {
 			c.Errorf("push error: %v", err)
 		}
@@ -367,7 +367,7 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 	return nil, nil
 }
 
-func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
+func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll bool) error {
 	gn := goon.FromContext(c)
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err != nil {
@@ -388,7 +388,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	feed.Average = f.Average
 	f = *feed
 
-	if hasUpdated && isFeedUpdated {
+	if hasUpdated && isFeedUpdated && !updateAll {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
 		gn.Put(&f)
@@ -413,7 +413,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story) error {
 	for i, s := range getStories {
 		if goon.NotFound(err, i) {
 			updateStories = append(updateStories, stories[i])
-		} else if !stories[i].Updated.IsZero() && !stories[i].Updated.Equal(s.Updated) {
+		} else if (!stories[i].Updated.IsZero() && !stories[i].Updated.Equal(s.Updated)) || updateAll {
 			stories[i].Created = s.Created
 			stories[i].Published = s.Published
 			updateStories = append(updateStories, stories[i])
@@ -484,7 +484,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if feed, stories := fetchFeed(c, f.Url, f.Url); feed != nil {
-		if err := updateFeed(c, f.Url, feed, stories); err != nil {
+		if err := updateFeed(c, f.Url, feed, stories, false); err != nil {
 			feedError()
 		}
 	} else {

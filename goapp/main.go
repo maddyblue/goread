@@ -127,7 +127,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 			for _, s := range stories {
 				s.Created = s.Published
 			}
-			if err := updateFeed(c, f.Url, feed, stories); err != nil {
+			if err := updateFeed(c, f.Url, feed, stories, false); err != nil {
 				return err
 			}
 
