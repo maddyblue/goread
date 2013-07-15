@@ -89,6 +89,11 @@
 		.story-content.short {
 			max-width: 650px;
 		}
+		.story-footer {
+			background-color: #f5f5f5;
+			padding-left: 7px;
+			height: 25px;
+		}
 		.active-name {
 			font-weight: bold;
 			padding: 10px 0;
@@ -548,21 +553,28 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, false, true, null, true)"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div class="story-content" ng-click="setCurrent($index, true, true)" ng-show="$index == currentStory || (opts.expanded && !collapsed)" ng-class="{short: opts.nav}">
-						<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
-						<p><small>
-							from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
-							<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
-						</small></p>
-						<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
-						<div ng-show="s.MediaContent" ng-switch on="s.MediaContent != undefined">
-							<div ng-switch-when="true">
-								<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
-								<a {{htmlattr `ng-href="{{s.MediaContent}}"`}} target="_blank">Original audio source</a>
+					<div ng-show="$index == currentStory || (opts.expanded && !collapsed)">
+						<div class="story-content" ng-click="setCurrent($index, true, true)" ng-class="{short: opts.nav}">
+							<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+							<p><small>
+								from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+							</small></p>
+							<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
+							<div ng-show="s.MediaContent" ng-switch on="s.MediaContent != undefined">
+								<div ng-switch-when="true">
+									<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
+									<a {{htmlattr `ng-href="{{s.MediaContent}}"`}} target="_blank">Original audio source</a>
+								</div>
 							</div>
 						</div>
-						<div>
-							<a href="#" ng-click="markUnread(s)">mark unread</a>
+						<div class="story-footer">
+							<form class="form-inline">
+							<label class="checkbox" ng-click="$event.stopPropagation()">
+								<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
+								keep unread
+							</label>
+							</form>
 						</div>
 					</div>
 				</div>
@@ -681,6 +693,7 @@
 				<li><button class="btn btn-small">u</button> hides/unhides the left hand side module</li>
 				<li><button class="btn btn-small">1</button> switch to expanded view</li>
 				<li><button class="btn btn-small">2</button> switch to list view</li>
+				<li><button class="btn btn-small">m</button> mark as read/unread</li>
 			</ul>
 		</div>
 	</div>

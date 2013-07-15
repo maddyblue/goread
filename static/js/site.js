@@ -298,7 +298,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var checkStories = story ? [story] : $scope.dispStories;
 		for (var i = 0; i < checkStories.length; i++) {
 			var s = checkStories[i];
-			if (!s.read) {
+			if (s.Unread) {
+				continue;
+			} else if (!s.read) {
 				if ($scope.opts.mode == 'unread') s.remove = true;
 				s.read = true;
 				$scope.markReadStories.push({
@@ -324,21 +326,36 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: $scope.last });
 	};
 
-	$scope.markUnread = function(story) {
-		$scope.http('POST', $('#mark-all-read').attr('data-url'), {
-			feed: story.feed.XmlUrl,
-			story: story.Id
+	$scope.markUnread = function(s) {
+		var uc = !s.Unread;
+		$scope.http('POST', $('#mark-all-read').attr('data-url-unread'), {
+			feed: s.feed.XmlUrl,
+			story: s.Id,
+			uncheck: uc
 		});
-		$scope.unreadStories[s.guid] = true;
-		$scope.stories.
+		if (uc) {
+			delete $scope.unreadStories[s.guid];
+			delete s.Unread;
+			s.read = true;
+		} else {
+			$scope.unreadStories[s.guid] = true;
+			s.Unread = true;
+			delete s.read;
+		}
+		if ($scope.stories.indexOf(s) == -1) {
+			$scope.stories.push(s);
+		}
+		$scope.update();
 	};
 
 	$scope.sendReadStories = _.debounce(function() {
 		var ss = $scope.markReadStories;
 		$scope.markReadStories = [];
-		$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-			stories: JSON.stringify(ss)
-		});
+		if (ss.length > 0) {
+			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
+				stories: JSON.stringify(ss)
+			});
+		}
 	}, 1000);
 
 	$scope.active = function() {
@@ -954,6 +971,16 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	});
 	Mousetrap.bind('2', function() {
 		$scope.$apply("setExpanded(false)");
+		return false;
+	});
+	Mousetrap.bind('m', function() {
+		var s = $scope.dispStories[$scope.currentStory];
+		if (s) {
+			$scope.$apply(function() {
+				s.Unread = !s.Unread;
+				$scope.markUnread(s);
+			});
+		}
 		return false;
 	});
 

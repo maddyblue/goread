@@ -53,10 +53,15 @@ type UserData struct {
 	Parent *datastore.Key `datastore:"-" goon:"parent"`
 	Opml   []byte         `datastore:"o,noindex"`
 	Read   []byte         `datastore:"r,noindex"`
-	Unread []byte `datastore:"u,noindex"`
+	Unread []byte         `datastore:"u,noindex"`
+}
+
+type readStory struct {
+	Feed, Story string
 }
 
 type Read map[string][]string
+type Unread map[readStory]bool
 
 type Feed struct {
 	_kind      string        `goon:"kind,F"`
@@ -112,6 +117,7 @@ type Story struct {
 	Author       string         `datastore:"a,noindex" json:",omitempty"`
 	Summary      string         `datastore:"s,noindex"`
 	MediaContent string         `datastore:"m,noindex" json:",omitempty"`
+	Unread       bool           `datastore:"-" json:",omitempty"`
 
 	content string
 }

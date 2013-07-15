@@ -21,6 +21,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
+	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -157,9 +158,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.GetMulti([]interface{}{u, ud})
 
 	read := make(Read)
+	unread := make(Unread)
 	var uf Opml
 	c.Step("unmarshal user data", func() {
 		json.Unmarshal(ud.Read, &read)
+		gob.NewDecoder(bytes.NewReader(ud.Unread)).Decode(&unread)
 		json.Unmarshal(ud.Opml, &uf)
 	})
 	var feeds []*Feed
@@ -258,7 +261,34 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			queue <- f
 		}
 		close(queue)
+		var urs []*Story
+		for s := range unread {
+			urs = append(urs, &Story{
+				Id:     s.Story,
+				Parent: gn.Key(&Feed{Url: s.Feed}),
+				Unread: true,
+			})
+		}
+		gn.GetMulti(&urs)
 		wg.Wait()
+		for _, us := range urs {
+			f := us.Parent.StringID()
+			if fs, present := fl[f]; present {
+				found := false
+				for _, s := range fs {
+					if s.Id == us.Id {
+						found = true
+						s.Unread = true
+						break
+					}
+				}
+				if !found {
+					fl[f] = append(fs, us)
+				}
+			} else {
+				fl[f] = []*Story{us}
+			}
+		}
 	})
 	if !hasStories {
 		var last time.Time
@@ -325,10 +355,6 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	read := make(Read)
-
-	type readStory struct {
-		Feed, Story string
-	}
 	var stories []readStory
 	if r.FormValue("stories") != "" {
 		json.Unmarshal([]byte(r.FormValue("stories")), &stories)
@@ -361,35 +387,32 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func MarkUnread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	read := make(Read)
-
-	type readStory struct {
-		Feed, Story string
+	unread := make(Unread)
+	f := r.FormValue("feed")
+	s := r.FormValue("story")
+	uc := r.FormValue("uncheck") == "true"
+	if len(f) == 0 || len(s) == 0 {
+		return
 	}
-	var stories []readStory
-	if r.FormValue("stories") != "" {
-		json.Unmarshal([]byte(r.FormValue("stories")), &stories)
-	}
-	if r.FormValue("feed") != "" {
-		stories = append(stories, readStory{
-			Feed:  r.FormValue("feed"),
-			Story: r.FormValue("story"),
-		})
-	}
-
 	gn.RunInTransaction(func(gn *goon.Goon) error {
 		u := &User{Id: cu.ID}
 		ud := &UserData{
 			Id:     "data",
 			Parent: gn.Key(u),
 		}
-		gn.Get(ud)
-		json.Unmarshal(ud.Read, &read)
-		for _, s := range stories {
-			read[s.Feed] = append(read[s.Feed], s.Story)
+		if err := gn.Get(ud); err != nil {
+			return err
 		}
-		b, _ := json.Marshal(&read)
-		ud.Read = b
+		gob.NewDecoder(bytes.NewReader(ud.Unread)).Decode(&unread)
+		rs := readStory{Feed: f, Story: s}
+		if uc {
+			delete(unread, rs)
+		} else {
+			unread[rs] = true
+		}
+		b := bytes.Buffer{}
+		gob.NewEncoder(&b).Encode(&unread)
+		ud.Unread = b.Bytes()
 		_, err := gn.Put(ud)
 		return err
 	}, nil)
@@ -471,6 +494,7 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Get(ud)
 		u.Read = time.Time{}
 		ud.Read = nil
+		ud.Unread = nil
 		ud.Opml = nil
 		gn.PutMany(u, ud)
 		c.Infof("%v cleared", u.Email)
