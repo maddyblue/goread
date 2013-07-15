@@ -561,7 +561,9 @@
 								from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 							</small></p>
-							<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
+							<div ng-switch on="$index == currentStory || (opts.expanded && !collapsed)">
+								<div ng-switch-when="true" ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
+							</div>
 							<div ng-show="s.MediaContent" ng-switch on="s.MediaContent != undefined">
 								<div ng-switch-when="true">
 									<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
