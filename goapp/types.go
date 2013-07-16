@@ -60,8 +60,7 @@ type readStory struct {
 	Feed, Story string
 }
 
-type Read map[string][]string
-type Unread map[readStory]bool
+type Read map[readStory]bool
 
 type Feed struct {
 	_kind      string        `goon:"kind,F"`
@@ -159,3 +158,9 @@ type Image struct {
 	Blob appengine.BlobKey `datastore:"b,noindex"`
 	Url  string            `datastore:"u,noindex"`
 }
+
+type Stories []*Story
+
+func (s Stories) Len() int           { return len(s) }
+func (s Stories) Less(i, j int) bool { return s[i].Created.Before(s[j].Created) }
+func (s Stories) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
