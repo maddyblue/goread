@@ -152,7 +152,7 @@ func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
 }
 
 const oldDuration = time.Hour * 24 * 7 * 2 // two weeks
-const numStoriesLimit = 100
+const numStoriesLimit = 1000
 
 func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
