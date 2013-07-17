@@ -943,11 +943,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 	});
 	Mousetrap.bind('b', function() {
-		if ($scope.dispStories[$scope.currentStory]) {
-			var $link = $('div .story.selected .story-content a:first');
+		var s = $scope.dispStories[$scope.currentStory];
+		if (s) {
+			var $link = document.createElement("a");
+			$link.href = s.Link;
 			var evt = document.createEvent("MouseEvents");
 			evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, true, false, false, true, 0, null);
-			$link[0].dispatchEvent(evt);
+			$link.dispatchEvent(evt);
 			return false;
 		}
 	});
