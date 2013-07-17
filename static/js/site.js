@@ -14,6 +14,9 @@ function countProperties(obj) {
 }
 
 var goReadAppModule = angular.module('goReadApp', ['ui.sortable']);
+goReadAppModule.filter('encodeURI', function() {
+	return encodeURIComponent;
+});
 goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
 	$scope.contents = {};
