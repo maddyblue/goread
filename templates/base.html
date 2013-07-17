@@ -572,11 +572,11 @@
 							</div>
 						</div>
 						<div class="story-footer">
-							<form class="form-inline">
-							<label class="checkbox" ng-click="$event.stopPropagation()">
-								<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
-								keep unread
-							</label>
+							<form class="form-inline" ng-show="s.canUnread">
+								<label class="checkbox" ng-click="$event.stopPropagation()">
+									<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
+									keep unread
+								</label>
 							</form>
 						</div>
 					</div>

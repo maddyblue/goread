@@ -171,11 +171,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	read := make(Read)
-	unread := make(Read)
 	var uf Opml
 	c.Step("unmarshal user data", func() {
 		gob.NewDecoder(bytes.NewReader(ud.Read)).Decode(&read)
-		gob.NewDecoder(bytes.NewReader(ud.Unread)).Decode(&unread)
 		json.Unmarshal(ud.Opml, &uf)
 	})
 	var feeds []*Feed
@@ -263,34 +261,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			queue <- f
 		}
 		close(queue)
-		var urs []*Story
-		for s := range unread {
-			urs = append(urs, &Story{
-				Id:     s.Story,
-				Parent: gn.Key(&Feed{Url: s.Feed}),
-				Unread: true,
-			})
-		}
-		gn.GetMulti(&urs)
 		wg.Wait()
-		for _, us := range urs {
-			f := us.Parent.StringID()
-			if fs, present := fl[f]; present {
-				found := false
-				for _, s := range fs {
-					if s.Id == us.Id {
-						found = true
-						s.Unread = true
-						break
-					}
-				}
-				if !found {
-					fl[f] = append(fs, us)
-				}
-			} else {
-				fl[f] = []*Story{us}
-			}
-		}
 	})
 	if numStories > numStoriesLimit {
 		c.Step("numStories", func() {
@@ -442,32 +413,24 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func MarkUnread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	unread := make(Read)
+	read := make(Read)
 	f := r.FormValue("feed")
 	s := r.FormValue("story")
-	uc := r.FormValue("uncheck") == "true"
-	if len(f) == 0 || len(s) == 0 {
-		return
+	rs := readStory{Feed: f, Story: s}
+	u := &User{Id: cu.ID}
+	ud := &UserData{
+		Id:     "data",
+		Parent: gn.Key(u),
 	}
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		u := &User{Id: cu.ID}
-		ud := &UserData{
-			Id:     "data",
-			Parent: gn.Key(u),
-		}
 		if err := gn.Get(ud); err != nil {
 			return err
 		}
-		gob.NewDecoder(bytes.NewReader(ud.Unread)).Decode(&unread)
-		rs := readStory{Feed: f, Story: s}
-		if uc {
-			delete(unread, rs)
-		} else {
-			unread[rs] = true
-		}
+		gob.NewDecoder(bytes.NewReader(ud.Read)).Decode(&read)
+		delete(read, rs)
 		b := bytes.Buffer{}
-		gob.NewEncoder(&b).Encode(&unread)
-		ud.Unread = b.Bytes()
+		gob.NewEncoder(&b).Encode(&read)
+		ud.Read = b.Bytes()
 		_, err := gn.Put(ud)
 		return err
 	}, nil)
@@ -549,7 +512,6 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Get(ud)
 		u.Read = time.Time{}
 		ud.Read = nil
-		ud.Unread = nil
 		ud.Opml = nil
 		gn.PutMany(u, ud)
 		c.Infof("%v cleared", u.Email)

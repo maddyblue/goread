@@ -143,6 +143,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 						if ($scope.last < stories[i].Date) {
 							$scope.last = stories[i].Date;
 						}
+						stories[i].canUnread = true;
 						$scope.stories.push(stories[i]);
 						$scope.unreadStories[stories[i].guid] = true;
 					}
@@ -298,11 +299,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var checkStories = story ? [story] : $scope.dispStories;
 		for (var i = 0; i < checkStories.length; i++) {
 			var s = checkStories[i];
-			if (s.Unread) {
-				continue;
-			} else if (!s.read) {
+			if (!s.read) {
 				if ($scope.opts.mode == 'unread') s.remove = true;
 				s.read = true;
+				delete s.Unread;
 				$scope.markReadStories.push({
 					Feed: s.feed.XmlUrl,
 					Story: s.Id
@@ -328,10 +328,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.markUnread = function(s) {
 		var uc = !s.Unread;
-		$scope.http('POST', $('#mark-all-read').attr('data-url-unread'), {
+		var attr = uc ? '' : 'un';
+		$scope.http('POST', $('#mark-all-read').attr('data-url-' + attr + 'read'), {
 			feed: s.feed.XmlUrl,
-			story: s.Id,
-			uncheck: uc
+			story: s.Id
 		});
 		if (uc) {
 			delete $scope.unreadStories[s.guid];

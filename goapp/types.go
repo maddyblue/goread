@@ -53,7 +53,6 @@ type UserData struct {
 	Parent *datastore.Key `datastore:"-" goon:"parent"`
 	Opml   []byte         `datastore:"o,noindex"`
 	Read   []byte         `datastore:"r,noindex"`
-	Unread []byte         `datastore:"u,noindex"`
 }
 
 type readStory struct {
@@ -116,7 +115,6 @@ type Story struct {
 	Author       string         `datastore:"a,noindex" json:",omitempty"`
 	Summary      string         `datastore:"s,noindex"`
 	MediaContent string         `datastore:"m,noindex" json:",omitempty"`
-	Unread       bool           `datastore:"-" json:",omitempty"`
 
 	content string
 }
