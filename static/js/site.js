@@ -942,15 +942,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			return false;
 		}
 	});
-    Mousetrap.bind('b', function() {
-        if ($scope.dispStories[$scope.currentStory]) {
-            var $link = $('div .story.selected .story-content a:first');
-            var evt = document.createEvent("MouseEvents");
-            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, true, false, false, true, 0, null);
-            $link[0].dispatchEvent(evt);
-            return false;
-        }
-    });
+	Mousetrap.bind('b', function() {
+		if ($scope.dispStories[$scope.currentStory]) {
+			var $link = $('div .story.selected .story-content a:first');
+			var evt = document.createEvent("MouseEvents");
+			evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, true, false, false, true, 0, null);
+			$link[0].dispatchEvent(evt);
+			return false;
+		}
+	});
 	Mousetrap.bind('shift+a', function() {
 		if ($scope.nouser) {
 			return;
