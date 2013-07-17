@@ -135,7 +135,7 @@ type StoryContent struct {
 type OpmlOutline struct {
 	Outline []*OpmlOutline `xml:"outline" json:",omitempty"`
 	Title   string         `xml:"title,attr,omitempty" json:",omitempty"`
-	XmlUrl  string         `xml:"xmlUrl,attr" json:",omitempty"`
+	XmlUrl  string         `xml:"xmlUrl,attr,omitempty" json:",omitempty"`
 	Type    string         `xml:"type,attr,omitempty" json:",omitempty"`
 	Text    string         `xml:"text,attr,omitempty" json:",omitempty"`
 	HtmlUrl string         `xml:"htmlUrl,attr,omitempty" json:",omitempty"`
@@ -144,6 +144,7 @@ type OpmlOutline struct {
 type Opml struct {
 	XMLName string         `xml:"opml"`
 	Version string         `xml:"version,attr"`
+	Title   string         `xml:"head>title"`
 	Outline []*OpmlOutline `xml:"body>outline"`
 }
 

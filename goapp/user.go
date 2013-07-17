@@ -592,10 +592,22 @@ func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.Get(&ud)
 	opml := Opml{}
 	json.Unmarshal(ud.Opml, &opml)
+	opml.Version = "1.0"
+	opml.Title = fmt.Sprintf("%s subscriptions in Go Read", u.Email)
+	for _, o := range opml.Outline {
+		o.Text = o.Title
+		if len(o.XmlUrl) > 0 {
+			o.Type = "rss"
+		}
+		for _, so := range o.Outline {
+			so.Text = so.Title
+			so.Type = "rss"
+		}
+	}
 	b, _ := xml.MarshalIndent(&opml, "", "\t")
 	w.Header().Add("Content-Type", "text/xml")
 	w.Header().Add("Content-Disposition", "attachment; filename=subscriptions.opml")
-	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>`, string(b))
+	fmt.Fprint(w, xml.Header, string(b))
 }
 
 func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
