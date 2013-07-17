@@ -69,6 +69,12 @@ type StripeCustomer struct {
 	} `json:"subscription"`
 }
 
+type StripeError struct {
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
 func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
@@ -98,8 +104,15 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	} else if resp.StatusCode != http.StatusOK {
-		c.Errorf("%s", resp.Body)
-		serveError(w, fmt.Errorf("Error"))
+		var se StripeError
+		defer resp.Body.Close()
+		b, _ := ioutil.ReadAll(resp.Body)
+		if err := json.Unmarshal(b, &se); err == nil {
+			serveError(w, fmt.Errorf(se.Error.Message))
+		} else {
+			serveError(w, fmt.Errorf("Error"))
+		}
+		c.Errorf("status: %v, %s", resp.StatusCode, b)
 		return
 	}
 	uc, err = setCharge(c, resp)

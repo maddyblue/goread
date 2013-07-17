@@ -839,8 +839,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					})
 					.error(function(data) {
 						button.button('reset');
-						console.log(data);
-						alert('Error');
+						alert(data);
 					});
 			};
 			StripeCheckout.open({
