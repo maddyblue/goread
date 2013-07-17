@@ -94,6 +94,14 @@
 			padding-left: 7px;
 			height: 25px;
 		}
+		.form-inline {
+			display:inline-block;
+		}
+		.story-actions {
+			display: inline;
+			position: relative;
+			bottom: -1px;
+		}
 		.active-name {
 			font-weight: bold;
 			padding: 10px 0;
@@ -577,7 +585,8 @@
 								<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
 								keep unread
 							</label>
-							</form>
+							</form> | 
+							<div class="story-actions"><a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">Save to Instapaper</a></div>
 						</div>
 					</div>
 				</div>
