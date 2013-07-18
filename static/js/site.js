@@ -138,6 +138,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.refresh = function(cb) {
 		$scope.loading++;
 		$scope.shown = 'feeds';
+		$scope.resetScroll();
 		delete $scope.currentStory;
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
