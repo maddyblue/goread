@@ -544,7 +544,7 @@
 					</div>
 				</div>
 				<div
-					ng-repeat="s in dispStories"
+					ng-repeat="s in dispStories | limitTo:dispLimit"
 					class="story"
 					ng-mouseenter="overContents(s)"
 					ng-mouseleave="leaveContents(s)"
