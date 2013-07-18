@@ -13,7 +13,7 @@ function countProperties(obj) {
 	return count;
 }
 
-var goReadAppModule = angular.module('goReadApp', ['ui.sortable']);
+var goReadAppModule = angular.module('goReadApp', ['ui.sortable', 'ngSanitize']);
 goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window) {
 	$scope.loading = 0;
 	$scope.contents = {};

@@ -53,6 +53,7 @@ func serveError(w http.ResponseWriter, err error) {
 
 type Includes struct {
 	Angular             string
+	AngularSanitize     string
 	BootstrapCss        string
 	BootstrapJs         string
 	Jquery              string
@@ -70,13 +71,14 @@ type Includes struct {
 }
 
 var (
-	Angular      string
-	BootstrapCss string
-	BootstrapJs  string
-	Jquery       string
-	JqueryUI     string
-	Underscore   string
-	isDevServer  bool
+	Angular         string
+	AngularSanitize string
+	BootstrapCss    string
+	BootstrapJs     string
+	Jquery          string
+	JqueryUI        string
+	Underscore      string
+	isDevServer     bool
 )
 
 func init() {
@@ -89,6 +91,7 @@ func init() {
 
 	if appengine.IsDevAppServer() {
 		Angular = fmt.Sprintf("/static/js/angular-%v.js", angular_ver)
+		AngularSanitize = fmt.Sprintf("/static/js/angular-sanitize-%v.js", angular_ver)
 		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-%v.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap-%v.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
@@ -96,6 +99,7 @@ func init() {
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.js", underscore_ver)
 	} else {
 		Angular = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular.min.js", angular_ver)
+		AngularSanitize = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular-sanitize.min.js", angular_ver)
 		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.min.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
@@ -107,6 +111,7 @@ func init() {
 func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 	i := &Includes{
 		Angular:             Angular,
+		AngularSanitize:     AngularSanitize,
 		BootstrapCss:        BootstrapCss,
 		BootstrapJs:         BootstrapJs,
 		Jquery:              Jquery,
