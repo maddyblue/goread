@@ -477,6 +477,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 	f.Link = strings.TrimSpace(f.Link)
+	f.Title = html.UnescapeString(f.Title)
 
 	if u, err := url.Parse(f.Url); err == nil {
 		if ul, err := u.Parse(f.Link); err == nil {
@@ -539,6 +540,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 			s.Link = ""
 		}
 		s.content, s.Summary = Sanitize(s.content, su)
+		s.Title = html.UnescapeString(s.Title)
 	}
 
 	return f, ss
