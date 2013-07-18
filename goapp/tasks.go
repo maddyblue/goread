@@ -285,16 +285,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Errorf("no results")
 		return
 	} else {
-		cur, err := it.Cursor()
-		if err != nil {
-			c.Errorf("to cur error %v", err.Error())
-		} else {
-			c.Infof("add with cur %v", cur)
-			t := taskqueue.NewPOSTTask(routeUrl("update-feeds"), url.Values{
-				"c": {cur.String()},
-			})
-			taskqueue.Add(c, t, "update-feed")
-		}
+
 	}
 	c.Infof("updating %d feeds", len(keys))
 
@@ -302,6 +293,15 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	for _, k := range keys {
 		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
+		}))
+	}
+	cur, err := it.Cursor()
+	if err != nil {
+		c.Errorf("to cur error %v", err.Error())
+	} else {
+		c.Infof("add with cur %v", cur)
+		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feeds"), url.Values{
+			"c": {cur.String()},
 		}))
 	}
 	var ts []*taskqueue.Task
