@@ -906,9 +906,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
-	$scope.encode = function(v) {
-		return encodeURIComponent(v);
-	};
+	$scope.encode = encodeURIComponent;
 
 	$scope.shortcuts = $('#shortcuts');
 	Mousetrap.bind('?', function() {
