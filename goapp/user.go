@@ -20,7 +20,6 @@ import (
 	"appengine"
 	"archive/zip"
 	"bytes"
-	"compress/gzip"
 	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
@@ -476,18 +475,7 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.GetMulti(scs)
 	ret := make([]string, len(reqs))
 	for i, sc := range scs {
-		if len(sc.Compressed) > 0 {
-			buf := bytes.NewReader(sc.Compressed)
-			if gz, err := gzip.NewReader(buf); err == nil {
-				if b, _ = ioutil.ReadAll(gz); err == nil {
-					ret[i] = string(b)
-				}
-				gz.Close()
-			}
-		}
-		if len(ret[i]) == 0 {
-			ret[i] = sc.Content
-		}
+		ret[i] = sc.content()
 	}
 	b, _ = json.Marshal(&ret)
 	w.Write(b)

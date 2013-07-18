@@ -17,7 +17,10 @@
 package goapp
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
+	"io/ioutil"
 	"net/url"
 	"time"
 
@@ -128,6 +131,19 @@ type StoryContent struct {
 	Parent     *datastore.Key `datastore:"-" goon:"parent"`
 	Content    string         `datastore:"c,noindex"`
 	Compressed []byte         `datastore:"z,noindex"`
+}
+
+func (sc *StoryContent) content() string {
+	if len(sc.Compressed) > 0 {
+		buf := bytes.NewReader(sc.Compressed)
+		if gz, err := gzip.NewReader(buf); err == nil {
+			defer gz.Close()
+			if b, _ := ioutil.ReadAll(gz); err == nil {
+				return string(b)
+			}
+		}
+	}
+	return sc.Content
 }
 
 type OpmlOutline struct {

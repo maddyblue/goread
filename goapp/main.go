@@ -27,6 +27,7 @@ import (
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/user"
 	"appengine_internal"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
@@ -43,6 +44,7 @@ func init() {
 	if templates, err = template.New("").Funcs(funcs).
 		ParseFiles(
 		"templates/base.html",
+		"templates/story.html",
 		"templates/admin-all-feeds.html",
 		"templates/admin-date-formats.html",
 		"templates/admin-feed.html",
@@ -96,7 +98,36 @@ func init() {
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
+	feed := r.FormValue("f")
+	story := r.FormValue("s")
+	cu := user.Current(c)
+	if len(feed) == 0 || len(story) == 0 || cu != nil {
+		if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
+			c.Errorf("%v", err)
+			serveError(w, err)
+		}
+		return
+	}
+	gn := goon.FromContext(c)
+	f := &Feed{Url: feed}
+	s := &Story{Id: story, Parent: gn.Key(f)}
+	sc := &StoryContent{Id: 1, Parent: gn.Key(s)}
+	if err := gn.GetMulti([]interface{}{f, s, sc}); err != nil {
+		c.Errorf("%v", err)
+		serveError(w, err)
+		return
+	}
+	if err := templates.ExecuteTemplate(w, "story.html", struct {
+		Story   *Story
+		Feed    *Feed
+		Content template.HTML
+		Ad      template.HTML
+	}{
+		Story:   s,
+		Feed:    f,
+		Content: template.HTML(sc.content()),
+		Ad:      template.HTML(GOOGLE_AD),
+	}); err != nil {
 		c.Errorf("%v", err)
 		serveError(w, err)
 		return

@@ -13,11 +13,13 @@ function countProperties(obj) {
 	return count;
 }
 
-var goReadAppModule = angular.module('goReadApp', ['ui.sortable']);
-goReadAppModule.filter('encodeURI', function() {
-	return encodeURIComponent;
-});
-goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window) {
+var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
+	.filter('encodeURI', function() {
+		return encodeURIComponent;
+	}).config(function($locationProvider) {
+		return $locationProvider.html5Mode(true);
+	});
+goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window, $location) {
 	$scope.loading = 0;
 	$scope.contents = {};
 	$scope.opts = {
@@ -211,6 +213,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.currentStory = i;
 		}
 		$scope.markAllRead(story);
+		$location.search({
+			f: story.feed.XmlUrl,
+			s: story.Id
+		});
 	};
 
 	$scope.prev = function() {
