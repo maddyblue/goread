@@ -587,6 +587,12 @@
 									</a>
 								</li>
 								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="https://twitter.com/intent/tweet?text={{`{{s.Title | encodeURI}}`}}&url={{`{{s.Link | encodeURI}}`}}">
+										<i class="icon-retweet"></i>
+										tweet
+									</a>
+								</li>
+								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">save to Instapaper</a>
 								</li>
 								<li ng-show="s.canUnread">
