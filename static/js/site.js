@@ -32,6 +32,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		scrollRead: false
 	};
 
+	$scope.$watch(function() {
+		return $location.path();
+	}, function(path) {
+		if (path != "/")
+			window.location.href = path;
+	});
+
 	$scope.sortableOptions = {
 		stop: function() {
 			$scope.uploadOpml();
