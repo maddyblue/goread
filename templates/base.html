@@ -581,6 +581,12 @@
 						<div class="story-footer">
 							<ul class="inline">
 								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="mailto:?subject={{`{{s.Title | encodeURI}}`}}&body={{`{{s.Link | encodeURI}}`}}">
+										<i class="icon-envelope"></i>
+										email
+									</a>
+								</li>
+								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">save to Instapaper</a>
 								</li>
 								<li ng-show="s.canUnread">
