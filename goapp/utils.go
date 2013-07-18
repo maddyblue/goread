@@ -134,6 +134,9 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 				user.Messages = nil
 				gn.Put(user)
 			}
+			if user.Account != AFree {
+				i.GoogleAd = ""
+			}
 
 			/*
 				if _, err := r.Cookie("update-bug"); err != nil {
