@@ -16,8 +16,8 @@ function countProperties(obj) {
 var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
 	.filter('encodeURI', function() {
 		return encodeURIComponent;
-	}).config(function($locationProvider) {
-		return $locationProvider.html5Mode(true);
+//	}).config(function($locationProvider) {
+//		return $locationProvider.html5Mode(true);
 	});
 goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window, $location) {
 	$scope.loading = 0;
@@ -32,12 +32,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		scrollRead: false
 	};
 
+	/*
 	$scope.$watch(function() {
 		return $location.path();
 	}, function(path) {
 		if (path != "/")
 			window.location.href = path;
 	});
+	*/
 
 	$scope.sortableOptions = {
 		stop: function() {
@@ -221,10 +223,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.currentStory = i;
 		}
 		$scope.markAllRead(story);
+		/*
 		$location.search({
 			f: story.feed.XmlUrl,
 			s: story.Id
 		});
+		*/
 	};
 
 	$scope.prev = function() {
