@@ -447,6 +447,8 @@ func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
 		switch {
 		case l.Rel == "hub":
 			return 0
+		case l.Rel == "alternate" && l.Type == "text/html":
+			return 4
 		case l.Type == "text/html":
 			return 3
 		case l.Rel != "self":
