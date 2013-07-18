@@ -94,6 +94,10 @@
 			padding-left: 7px;
 			height: 25px;
 		}
+		.story-footer a {
+			color: #333;
+			text-decoration: none;
+		}
 		.form-inline {
 			display:inline-block;
 		}
@@ -576,6 +580,9 @@
 						</div>
 						<div class="story-footer">
 							<ul class="inline">
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">save to Instapaper</a>
+								</li>
 								<li ng-show="s.canUnread">
 									<form class="form-inline">
 										<label class="checkbox" ng-click="$event.stopPropagation()">
@@ -583,9 +590,6 @@
 											keep unread
 										</label>
 									</form>
-								</li>
-								<li style="vertical-align: middle">
-									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">Save to Instapaper</a>
 								</li>
 							</ul>
 						</div>
