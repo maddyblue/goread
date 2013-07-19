@@ -564,12 +564,12 @@
 					</div>
 					<div ng-show="$index == currentStory || (opts.expanded && !collapsed)">
 						<div class="story-content" ng-click="setCurrent($index, true, true)" ng-class="{short: opts.nav}">
-							<h3><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+							<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 							<p><small>
 								from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 								<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 							</small></p>
-							<div ng-switch on="$index == currentStory || (opts.expanded && !collapsed)">
+							<div ng-switch on="$index == currentStory || (opts.expanded && !collapsed)" dir="auto">
 								<div ng-switch-when="true">
 									<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix"></div>
 									<div ng-show="s.MediaContent" ng-switch on="s.MediaContent != undefined">
