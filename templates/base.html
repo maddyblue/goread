@@ -578,7 +578,9 @@
 											<a {{htmlattr `ng-href="{{s.MediaContent}}"`}} target="_blank">Original audio source</a>
 										</div>
 									</div>
-									{{.GoogleAd}}
+									{{if .GoogleAd}}
+									<div class="google-ad">{{.GoogleAd}}</div>
+									{{end}}
 								</div>
 							</div>
 						</div>
