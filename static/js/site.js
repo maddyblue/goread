@@ -573,7 +573,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.renameFolder = function(folder) {
-		var name = prompt('Rename to');
+		var name = prompt('Rename to', folder);
 		if (!name) return;
 		var src, dst;
 		for (var i = 0; i < $scope.feeds.length; i++) {
