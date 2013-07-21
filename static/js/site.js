@@ -504,6 +504,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.applyGetFeed();
 		$scope.updateUnreadCurrent();
 		$scope.resetScroll();
+		$scope.resetLimit();
 	};
 
 	$scope.resetScroll = function() {
