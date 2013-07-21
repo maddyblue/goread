@@ -477,12 +477,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
-	$scope.dispLimit = 10;
+	limitInc = 20;
+	$scope.dispLimit = limitInc;
 	$scope.resetLimit = function() {
-		var storyHeight = 30; // FIXME find out the height of the story rows
-		var len = parseInt($(window).height() / storyHeight);
-		if (len < 10) len = 10;
-		$scope.dispLimit = len;
+		$scope.dispLimit = limitInc;
+		$scope.checkLoadNextPage();
 	}
 
 	$scope.setActiveFeed = function(feed) {
@@ -761,8 +760,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.scrollRead();
 		$scope.$apply(function() {
 			$scope.collapsed = $(window).width() <= 979;
+			$scope.checkLoadNextPage();
 		});
-		$scope.checkLoadNextPage();
 	}, 300);
 
 	$scope.checkLoadNextPage = function() {
@@ -777,11 +776,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.loadNextPage = function() {
 		var max = $scope.dispStories.length;
-		var len = $scope.dispLimit + 10;
-		if (len > max) len = max;
-		$scope.$apply(function() {
-			$scope.dispLimit = len;
-		});
+		var len = $scope.dispLimit + limitInc;
+		if (len > max)
+			len = max;
+		else if (len < max)
+			$timeout($scope.checkLoadNextPage);
+		$scope.dispLimit = len;
 	};
 
 	sl.on('scroll', $scope.onScroll);
