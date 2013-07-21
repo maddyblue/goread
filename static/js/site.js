@@ -178,6 +178,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				$scope.update();
+				$scope.resetLimit();
 				setTimeout($scope.applyGetFeed);
 			})
 			.error(function() {
@@ -476,6 +477,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
+	$scope.dispLimit = 10;
+	$scope.resetLimit = function() {
+		var storyHeight = 30; // FIXME find out the height of the story rows
+		var len = parseInt($(window).height() / storyHeight);
+		if (len < 10) len = 10;
+		$scope.dispLimit = len;
+	}
+
 	$scope.setActiveFeed = function(feed) {
 		delete $scope.activeFolder;
 		$scope.activeFeed = feed;
@@ -484,6 +493,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.applyGetFeed();
 		$scope.updateUnreadCurrent();
 		$scope.resetScroll();
+		$scope.resetLimit();
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -751,7 +761,28 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.$apply(function() {
 			$scope.collapsed = $(window).width() <= 979;
 		});
+		$scope.checkLoadNextPage();
 	}, 300);
+
+	$scope.checkLoadNextPage = function() {
+		var sh = sl[0].scrollHeight;
+		var h = Math.min(sl.height(), $(window).height());
+		var st = Math.max(sl.scrollTop(), $(window).scrollTop());
+		if (sh - (st + h) > 200) {
+			return;
+		}
+		$scope.loadNextPage();
+	};
+
+	$scope.loadNextPage = function() {
+		var max = $scope.dispStories.length;
+		var len = $scope.dispLimit + 10;
+		if (len > max) len = max;
+		$scope.$apply(function() {
+			$scope.dispLimit = len;
+		});
+	};
+
 	sl.on('scroll', $scope.onScroll);
 	$window.onscroll = $scope.onScroll;
 	$window.onresize = $scope.onScroll;
