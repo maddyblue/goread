@@ -562,7 +562,7 @@
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, false, true, null, true)"><i class="icon-share-alt"></i></a>
 						</div>
 					</div>
-					<div ng-show="$index == currentStory || (opts.expanded && !collapsed)">
+					<div ng-show="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
 						<div class="story-content" ng-click="setCurrent($index, true, true)" ng-class="{short: opts.nav}">
 							<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 							<p><small>
@@ -722,8 +722,10 @@
 		</div>
 		<div class="modal-body">
 			<ul class="unstyled">
-				<li><button class="btn btn-small">j/k</button> next/previous item</li>
-				<li><button class="btn btn-small">n/p</button> next/previous item</li>
+				<li><button class="btn btn-small">j/k</button> selects the next/previous item in the list</li>
+				<li><button class="btn btn-small">n/p</button> in list view, selects the next item without opening it</li>
+				<li><button class="btn btn-small">o</button> in list view, expands or collapses the selected item</li>
+				<li><button class="btn btn-small">enter</button> in list view, expands or collapses the selected item</li>
 				<li><button class="btn btn-small">r</button> refresh</li>
 				<li><button class="btn btn-small">space</button> next item</li>
 				<li><button class="btn btn-small">&lt;Shift&gt; + space</button> previous item</li>

@@ -971,16 +971,36 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.$apply($scope.refresh());
 		return false;
 	});
-	Mousetrap.bind(['j', 'n'], function() {
-		$scope.$apply('next()');
+	Mousetrap.bind('n', function() {
+		$scope.$apply(function() {
+			$scope.storyCollapse = true;
+			$scope.next();
+		});
+		return false;
+	});
+	Mousetrap.bind('j', function() {
+		$scope.$apply(function() {
+			$scope.storyCollapse = false;
+			$scope.next();
+		});
 		return false;
 	});
 	Mousetrap.bind('space', function() {
 		$scope.$apply('next(true)');
 		return false;
 	});
-	Mousetrap.bind(['k', 'p', 'shift+space'], function() {
-		$scope.$apply('prev()');
+	Mousetrap.bind('p', function() {
+		$scope.$apply(function() {
+			$scope.storyCollapse = true;
+			$scope.prev();
+		});
+		return false;
+	});
+	Mousetrap.bind(['k', 'shift+space'], function() {
+		$scope.$apply(function() {
+			$scope.storyCollapse = false;
+			$scope.prev();
+		});
 		return false;
 	});
 	Mousetrap.bind('v', function() {
@@ -1041,6 +1061,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				$scope.markUnread(s);
 			});
 		}
+		return false;
+	});
+	Mousetrap.bind(['o', 'enter'], function() {
+		$scope.$apply(function() {
+			$scope.storyCollapse = !$scope.storyCollapse;
+		});
 		return false;
 	});
 
