@@ -264,7 +264,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if numStories > numStoriesLimit {
 		c.Step("numStories", func() {
-			c.Errorf("too many stories: %v", numStories)
+			c.Infof("too many stories: %v", numStories)
 			stories := make([]*Story, 0, numStories)
 			for _, v := range fl {
 				stories = append(stories, v...)
@@ -281,7 +281,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				p := fl[fk]
 				fl[fk] = append(p, s)
 			}
-			c.Errorf("filtered: %v, %v", len(stories), last)
+			c.Infof("filtered: %v, %v", len(stories), last)
 		})
 	}
 	if fixRead {
@@ -295,7 +295,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			c.Errorf("fix read: %v -> %v", len(read), len(nread))
+			c.Infof("fix read: %v -> %v", len(read), len(nread))
 			read = nread
 			var b bytes.Buffer
 			gob.NewEncoder(&b).Encode(&read)
