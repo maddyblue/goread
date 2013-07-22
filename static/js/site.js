@@ -219,6 +219,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
 					se[0].scrollIntoView();
 				}
+				gapi.plus.go("storydiv" + i); // render G+ share
 			});
 		}
 		if (!middleClick && !noOpen) {
@@ -1095,3 +1096,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.http('POST', $('#mark-all-read').attr('data-url'), { last: d.valueOf() });
 	};
 });
+
+window.___gcfg = {
+	lang: 'en-US',
+	parsetags: 'explicit'
+};
+
+(function() {
+	var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+	po.src = 'https://apis.google.com/js/plusone.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+})();
+
