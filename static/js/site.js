@@ -221,7 +221,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if (!middleClick && !noOpen) {
 			$scope.currentStory = i;
 		}
-		$scope.markAllRead(story);
+		if ($scope.opts.expanded || !$scope.storyCollapse) {
+			$scope.markAllRead(story);
+		}
 		$location.search({
 			f: story.feed.XmlUrl,
 			s: story.Id
@@ -1066,6 +1068,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	Mousetrap.bind(['o', 'enter'], function() {
 		$scope.$apply(function() {
 			$scope.storyCollapse = !$scope.storyCollapse;
+			if (!$scope.storyCollapse) {
+				$scope.markAllRead($scope.dispStories[$scope.currentStory]);
+			}
 		});
 		return false;
 	});
