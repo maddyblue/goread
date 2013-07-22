@@ -197,7 +197,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($event && !middleClick) {
 			$event.preventDefault();
 		}
-		if (!middleClick && !noClose && i == $scope.currentStory) {
+		if (isClick && $scope.storyCollapse) {
+			$scope.storyCollapse = false;
+		}
+		else if (!middleClick && !noClose && i == $scope.currentStory) {
 			delete $scope.currentStory;
 			return;
 		}
