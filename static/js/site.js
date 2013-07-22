@@ -741,6 +741,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				$scope.readStories[f].push(data.Stories[i]);
 			}
 			$scope.updateStories();
+			$scope.checkLoadNextPage();
 			$scope.applyGetFeed();
 		});
 		$scope.fetching[f] = true;
