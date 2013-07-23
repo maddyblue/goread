@@ -771,6 +771,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	}, 300);
 
 	$scope.checkLoadNextPage = function() {
+		if(!sl.length) return;
 		var sh = sl[0].scrollHeight;
 		var h = Math.min(sl.height(), $(window).height());
 		var st = Math.max(sl.scrollTop(), $(window).scrollTop());
