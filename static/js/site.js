@@ -32,13 +32,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		scrollRead: false
 	};
 
-	$scope.$watch(function() {
-		return $location.path();
-	}, function(path) {
-		if (path.length > 1)
-			window.location.href = path;
-	});
-
 	$scope.sortableOptions = {
 		stop: function() {
 			$scope.uploadOpml();
@@ -202,6 +195,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 		else if (!middleClick && !noClose && i == $scope.currentStory) {
 			delete $scope.currentStory;
+			$location.path('/');
 			return;
 		}
 		var story = $scope.dispStories[i];
@@ -227,10 +221,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($scope.opts.expanded || !$scope.storyCollapse) {
 			$scope.markAllRead(story);
 		}
-		$location.search({
-			f: story.feed.XmlUrl,
-			s: story.Id
-		});
+		$location.path('/s/' + encodeURIComponent(story.feed.XmlUrl) + '/' + encodeURIComponent(story.Id));
 	};
 
 	$scope.prev = function() {
@@ -498,6 +489,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.updateUnreadCurrent();
 		$scope.resetScroll();
 		$scope.resetLimit();
+		$location.path('/');
 	};
 
 	$scope.setActiveFolder = function(folder) {
@@ -509,6 +501,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.updateUnreadCurrent();
 		$scope.resetScroll();
 		$scope.resetLimit();
+		$location.path('/');
 	};
 
 	$scope.resetScroll = function() {

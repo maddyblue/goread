@@ -52,6 +52,7 @@ func init() {
 	}
 
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
+	router.Handle("/s/{feed}/{story}", mpg.NewHandler(Main))
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/push/{feed}", mpg.NewHandler(SubscribeCallback)).Name("subscribe-callback")
@@ -94,8 +95,9 @@ func init() {
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	feed := r.FormValue("f")
-	story := r.FormValue("s")
+	vars := mux.Vars(r)
+	feed, _ := url.QueryUnescape(vars["feed"])
+	story, _ := url.QueryUnescape(vars["story"])
 	cu := user.Current(c)
 	if len(feed) == 0 || len(story) == 0 || cu != nil {
 		if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {

@@ -292,10 +292,10 @@
 								<b class="caret"></b>
 							</a>
 							<ul class="dropdown-menu">
-								<li><a href="{{ url "all-feeds-opml"}}">all feeds opml</a></li>
-								<li><a href="{{ url "all-feeds"}}">all feeds</a></li>
-								<li><a href="{{ url "admin-date-formats"}}">date formats</a></li>
-								<li><a href="{{ url "admin-stats"}}">stats</a></li>
+								<li><a href="{{ url "all-feeds-opml"}}" target="_self">all feeds opml</a></li>
+								<li><a href="{{ url "all-feeds"}}" target="_self">all feeds</a></li>
+								<li><a href="{{ url "admin-date-formats"}}" target="_self">date formats</a></li>
+								<li><a href="{{ url "admin-stats"}}" target="_self">stats</a></li>
 							</ul>
 						</li>
 					{{end}}
@@ -313,15 +313,15 @@
 								<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
 								<li class="divider"></li>
 								<li><a href="https://go-read.appspot.com/">goread over HTTPS</a></li>
-								<li><a href="{{url "export-opml"}}">export opml</a></li>
-								<li><a href="{{url "logout"}}">logout</a></li>
+								<li><a href="{{url "export-opml"}}" target="_self">export opml</a></li>
+								<li><a href="{{url "logout"}}" target="_self">logout</a></li>
 								<li class="divider"></li>
 								<li><a href="#" ng-click="clearFeeds()">clear feeds</a></li>
 								<li><a href="#" data-url="{{url "delete-account"}}" id="delete-account" ng-click="deleteAccount()">delete account</a></li>
 							</ul>
 						</li>
 					{{else}}
-						<li><a href="{{url "login-google"}}">sign up / log in</a></li>
+						<li><a href="{{url "login-google"}}" target="_self">sign up / log in</a></li>
 					{{end}}
 					</ul>
 				</div>
@@ -532,7 +532,7 @@
 								<li><a href="#" ng-click="rename(activeFeed)">rename</a></li>
 								<li><a href="#" ng-click="unsubscribe(activeFeed)">unsubscribe</a></li>
 								{{if .IsAdmin}}
-									<li><a ng-href="{{url "admin-feed"}}?f={{`{{encode(activeFeed)}}`}}">admin</a></li>
+									<li><a ng-href="{{url "admin-feed"}}?f={{`{{encode(activeFeed)}}`}}" target="_self">admin</a></li>
 								{{end}}
 								<li class="divider"></li>
 								<li class="dropdown-submenu pull-left">
@@ -678,7 +678,7 @@
 						<h1>Hi, RSS user</h1>
 						<p>Go Read is a web-based RSS reader.</p>
 						<p>It is designed to be as useful as Google Reader.</p>
-						<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}">sign up / log in with google</a></p>
+						<p><a class="btn btn-primary btn-large" href="{{url "login-google"}}" target="_self">sign up / log in with google</a></p>
 						<p class="alert alert-info">We've just released! Read the <strong><a href="http://mattjibson.com/blog/2013/06/26/go-read-open-source-google-reader-clone/">blog post</a></strong> about it.</p>
 					</div>
 				</div>
@@ -716,7 +716,7 @@
 			<div class="row-fluid hidden-phone">
 				<div class="offset1 span10">
 					<h2>Screenshot</h2>
-					<p class="text-center"><a href="/static/img/preview.png"><img class="img-polaroid" src="/static/img/preview.png" alt="screenshot"></a></p>
+					<p class="text-center"><a href="/static/img/preview.png" target="_self"><img class="img-polaroid" src="/static/img/preview.png" alt="screenshot"></a></p>
 				</div>
 			</div>
 		{{end}}
