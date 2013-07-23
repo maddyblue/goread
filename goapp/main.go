@@ -79,8 +79,6 @@ func init() {
 	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
 	router.Handle("/admin/stats", mpg.NewHandler(AdminStats)).Name("admin-stats")
 	router.Handle("/admin/update-feed", mpg.NewHandler(AdminUpdateFeed)).Name("admin-update-feed")
-	router.Handle("/_ah/start", mpg.NewHandler(BackendStart))
-	router.Handle("/_ah/stop", mpg.NewHandler(BackendStop))
 	router.Handle("/tasks/cfixer", mpg.NewHandler(CFixer))
 	router.Handle("/tasks/cfix", mpg.NewHandler(CFix))
 	router.Handle("/user/charge", mpg.NewHandler(Charge)).Name("charge")

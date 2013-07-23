@@ -33,7 +33,6 @@ import (
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
-	"appengine/runtime"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"code.google.com/p/go-charset/charset"
@@ -132,57 +131,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 const IMPORT_LIMIT = 10
-
-func BackendStart(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	return
-	const sz = 100
-	ic := 0
-	var f func(appengine.Context)
-	var cs string
-	f = func(c appengine.Context) {
-		gn := goon.FromContext(c)
-		c.Errorf("ic: %d", ic)
-		wg := sync.WaitGroup{}
-		wg.Add(sz)
-		var j int64
-		q := datastore.NewQuery("F").KeysOnly()
-		if cs != "" {
-			if cur, err := datastore.DecodeCursor(cs); err == nil {
-				q = q.Start(cur)
-				c.Errorf("cur start: %v", cur)
-			}
-		}
-		it := q.Run(c)
-		for j = 0; j < sz; j++ {
-			k, err := it.Next(nil)
-			c.Errorf("%v: %v, %v", j, k, err)
-			if err != nil {
-				c.Criticalf("err: %v", err)
-				return
-			}
-
-			go func(k *datastore.Key) {
-				f := Feed{Url: k.StringID()}
-				if err := gn.Get(&f); err == nil {
-					f.Subscribe(c)
-				}
-
-				wg.Done()
-			}(k)
-		}
-		cur, err := it.Cursor()
-		if err == nil {
-			cs = cur.String()
-		}
-		wg.Wait()
-		ic++
-		runtime.RunInBackground(c, f)
-	}
-	runtime.RunInBackground(c, f)
-}
-
-func BackendStop(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-}
 
 func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
