@@ -213,6 +213,7 @@ var dateFormats = []string{
 	"January 2, 2006, 3:04 p.m.",
 	"Mon 02 Jan 2006 15:04:05 -0700",
 	"Mon 2 Jan 2006 15:04:05 MST",
+	"Mon Jan 02 2006 15:04:05 -0700",
 	"Mon Jan 2 15:04 2006",
 	"Mon Jan 2 15:04:05 2006 MST",
 	"Mon, 02 Jan 06 15:04:05 MST",
