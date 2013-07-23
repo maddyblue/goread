@@ -25,10 +25,8 @@ import (
 	"net/url"
 	"time"
 
-	"appengine"
 	"appengine/datastore"
 	"appengine/user"
-	"appengine_internal"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/gorilla/mux"
@@ -234,32 +232,4 @@ func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
 	}
 
 	ud.Opml, _ = json.Marshal(&fs)
-}
-
-// Below is from David Symonds; will be in next app engine release
-
-// Timeout returns a replacement context that uses d as the default API RPC timeout.
-func Timeout(c appengine.Context, d time.Duration) appengine.Context {
-	return &timeoutContext{
-		Context: c,
-		d:       d,
-	}
-}
-
-type timeoutContext struct {
-	appengine.Context
-	d time.Duration
-}
-
-func (t *timeoutContext) Call(service, method string, in, out appengine_internal.ProtoMessage, opts *appengine_internal.CallOptions) error {
-	// Only affect calls that don't have a timeout.
-	if opts == nil || opts.Timeout == 0 {
-		newOpts := new(appengine_internal.CallOptions)
-		if opts != nil {
-			*newOpts = *opts
-		}
-		newOpts.Timeout = t.d
-		opts = newOpts
-	}
-	return t.Context.Call(service, method, in, out, opts)
 }

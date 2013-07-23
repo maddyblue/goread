@@ -17,7 +17,6 @@
 package goapp
 
 import (
-	"appengine"
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
@@ -31,6 +30,7 @@ import (
 	"sync"
 	"time"
 
+	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/runtime"
@@ -269,7 +269,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var keys []*datastore.Key
-	it := q.Run(Timeout(c, time.Second*60))
+	it := q.Run(appengine.Timeout(c, time.Second*60))
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
@@ -505,7 +505,7 @@ func CFixer(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var keys []*datastore.Key
-	it := q.Run(Timeout(c, time.Second*15))
+	it := q.Run(appengine.Timeout(c, time.Second*15))
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
