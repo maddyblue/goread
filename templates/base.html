@@ -200,6 +200,9 @@
 				line-height: 43px;
 			}
 		}
+		li.g-plus div:first-child {
+			vertical-align: middle !important;
+		}
 	</style>
 	<link rel="shortcut icon" href="/static/favicon.png">
 </head>
@@ -613,6 +616,9 @@
 									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">
 										save to Instapaper
 									</a>
+								</li>
+								<li class="g-plus">
+									<div class="g-plus" data-annotation="none" data-height="15" data-action="share" ng-href="{{`{{s.Link}}`}}"></div>
 								</li>
 								<li ng-show="s.canUnread">
 									<form class="form-inline">
