@@ -58,6 +58,28 @@ type UserData struct {
 	Read   []byte         `datastore:"r,noindex"`
 }
 
+// parent: User, key: time.Now().UnixNano()
+type UserOpml struct {
+	_kind      string         `goon:"kind,UO"`
+	Id         int64          `datastore:"-" goon:"id"`
+	Parent     *datastore.Key `datastore:"-" goon:"parent"`
+	Opml       []byte         `datastore:"o",noindex"`
+	Compressed []byte         `datastore:"z,noindex"`
+}
+
+func (uo *UserOpml) opml() []byte {
+	if len(uo.Compressed) > 0 {
+		buf := bytes.NewReader(uo.Compressed)
+		if gz, err := gzip.NewReader(buf); err == nil {
+			defer gz.Close()
+			if b, _ := ioutil.ReadAll(gz); err == nil {
+				return b
+			}
+		}
+	}
+	return uo.Opml
+}
+
 type readStory struct {
 	Feed, Story string
 }

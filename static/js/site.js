@@ -381,7 +381,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.nothing = function() {
-		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about' && $scope.shown != 'account';
+		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about' && $scope.shown != 'account' && $scope.shown != 'feed-history';
 	};
 
 	$scope.toggleNav = function() {
@@ -949,6 +949,23 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				button.button('reset');
 				console.log(data);
 				alert('Error');
+			});
+	};
+
+	$scope.getFeedHistory = function() {
+		$http.get($('#feed-history').attr('data-url'))
+			.success(function(data) {
+				$scope.shown = 'feed-history';
+				$scope.feedHistory = [];
+				data.reverse();
+				for(var i = 0; i < data.length; i++) {
+					var m = data[i];
+					m = parseInt(m.substr(0, m.length - 6), 10);
+					$scope.feedHistory.push({
+						value: data[i],
+						time: moment(m).format('MMMM Do YYYY, h:mm a')
+					});
+				}
 			});
 	};
 

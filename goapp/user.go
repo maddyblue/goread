@@ -20,6 +20,7 @@ import (
 	"appengine"
 	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
@@ -540,10 +541,14 @@ func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gn.Get(&ud)
+	downloadOpml(w, ud.Opml, u.Email)
+}
+
+func downloadOpml(w http.ResponseWriter, ob []byte, email string) {
 	opml := Opml{}
-	json.Unmarshal(ud.Opml, &opml)
+	json.Unmarshal(ob, &opml)
 	opml.Version = "1.0"
-	opml.Title = fmt.Sprintf("%s subscriptions in Go Read", u.Email)
+	opml.Title = fmt.Sprintf("%s subscriptions in Go Read", email)
 	for _, o := range opml.Outline {
 		o.Text = o.Title
 		if len(o.XmlUrl) > 0 {
@@ -569,14 +574,65 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
-	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
+	ud := UserData{Id: "data", Parent: gn.Key(&u)}
 	if err := gn.Get(&u); err != nil {
 		serveError(w, err)
 		return
 	}
-	gn.Get(&ud)
-	ud.Opml, _ = json.Marshal(&opml)
-	gn.Put(&ud)
+	if err := gn.Get(&ud); err != nil {
+		serveError(w, err)
+		c.Errorf("get err: %v", err)
+		return
+	}
+	uo := UserOpml{Id: time.Now().UnixNano(), Parent: gn.Key(&u)}
+	buf := &bytes.Buffer{}
+	if gz, err := gzip.NewWriterLevel(buf, gzip.BestCompression); err == nil {
+		gz.Write([]byte(ud.Opml))
+		gz.Close()
+		uo.Compressed = buf.Bytes()
+	} else {
+		serveError(w, err)
+		c.Errorf("gz err: %v", err)
+		uo.Opml = ud.Opml
+	}
+	if b, err := json.Marshal(&opml); err != nil {
+		serveError(w, err)
+		c.Errorf("json err: %v", err)
+		return
+	} else {
+		ud.Opml = b
+	}
+	gn.PutMany(&ud, &uo)
+}
+
+func FeedHistory(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	uk := gn.Key(&u)
+	if v := r.FormValue("v"); len(v) == 0 {
+		q := datastore.NewQuery(gn.Key(&UserOpml{}).Kind()).Ancestor(uk).KeysOnly()
+		keys, err := gn.GetAll(q, nil)
+		if err != nil {
+			serveError(w, err)
+			return
+		}
+		times := make([]string, len(keys))
+		for i, k := range keys {
+			times[i] = strconv.FormatInt(k.IntID(), 10)
+		}
+		b, _ := json.Marshal(&times)
+		w.Write(b)
+	} else {
+		a, _ := strconv.ParseInt(v, 10, 64)
+		uo := UserOpml{Id: a, Parent: uk}
+		c.Errorf("k: %v", uo)
+		if err := gn.Get(&uo); err != nil {
+			serveError(w, err)
+			return
+		}
+		downloadOpml(w, uo.opml(), cu.Email)
+	}
 }
 
 func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
