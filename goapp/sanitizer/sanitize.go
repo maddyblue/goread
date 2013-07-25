@@ -25,9 +25,18 @@ import (
 )
 
 func sanitizeLink(u *url.URL, v string) string {
-	p, err := u.Parse(v)
-	if err != nil {
-		return ""
+	var p *url.URL
+	var err error
+	if u == nil {
+		p, err = url.Parse(v)
+		if err != nil {
+			return ""
+		}
+	} else {
+		p, err = u.Parse(v)
+		if err != nil {
+			return ""
+		}
 	}
 	if !acceptableUriSchemes[p.Scheme] {
 		return ""
@@ -73,8 +82,10 @@ func Sanitize(s string, u *url.URL) (string, string) {
 	buf := &bytes.Buffer{}
 	strip := &bytes.Buffer{}
 	skip := 0
-	u.RawQuery = ""
-	u.Fragment = ""
+	if u != nil {
+		u.RawQuery = ""
+		u.Fragment = ""
+	}
 	for {
 		if z.Next() == html.ErrorToken {
 			if err := z.Err(); err == io.EOF {
