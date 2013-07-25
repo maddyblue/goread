@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package goapp
+package sanitizer
 
 import (
 	"bytes"
@@ -129,7 +129,7 @@ func snipper(s string) string {
 	if i != -1 {
 		return s[:i]
 	}
-	return cleanNonUTF8(s)
+	return s
 }
 
 // Based on list from MDN's HTML5 element list
