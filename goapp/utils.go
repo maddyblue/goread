@@ -67,7 +67,7 @@ type Includes struct {
 	IsAdmin             bool
 	StripeKey           string
 	StripePlans         []Plan
-	GoogleAd            template.HTML
+	GoogleAd, GoogleAdT template.HTML
 }
 
 var (
@@ -120,6 +120,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		StripeKey:           STRIPE_KEY,
 		StripePlans:         STRIPE_PLANS,
 		GoogleAd:            GOOGLE_AD,
+		GoogleAdT:           GOOGLE_AD_TALL,
 	}
 
 	if cu := user.Current(c); cu != nil {
@@ -136,6 +137,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 			}
 			if user.Account != AFree {
 				i.GoogleAd = ""
+				i.GoogleAdT = ""
 			}
 
 			/*

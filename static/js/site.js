@@ -186,6 +186,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.setCurrent = function(i, noClose, isClick, $event, noOpen) {
+		$scope.adTall = false;
+		$scope.adBottom = false;
 		var middleClick = $event && $event.which == 2;
 		if ($event && !middleClick) {
 			$event.preventDefault();
@@ -207,12 +209,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
 		if ($scope.currentStory != i) {
-			setTimeout(function() {
+			$timeout(function() {
 				se = $('#storydiv' + i);
 				var eTop = se.offset().top;
 				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
 					se[0].scrollIntoView();
 				}
+				$scope.adTall = se.width() > 650 + 10 + 160 && !$scope.collapsed;
+				$scope.adBottom = !$scope.adTall && !$scope.collapsed;
 			});
 		}
 		if (!middleClick && !noOpen) {

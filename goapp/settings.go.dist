@@ -19,6 +19,7 @@ const (
 	STRIPE_SECRET         = ""
 	STRIPE_PLAN           = ""
 	GOOGLE_AD             = ""
+	GOOGLE_AD_TALL        = ""
 )
 
 const (
