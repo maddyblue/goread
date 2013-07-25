@@ -556,8 +556,9 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 			su = &url.URL{}
 			s.Link = ""
 		}
+		const snipLen = 100
 		s.content, s.Summary = sanitizer.Sanitize(s.content, su)
-		s.Summary = cleanNonUTF8(s.Summary)
+		s.Summary = cleanNonUTF8(sanitizer.SnipText(s.Summary, snipLen))
 		s.Title = html.UnescapeString(s.Title)
 	}
 
