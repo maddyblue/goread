@@ -328,8 +328,12 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if updatedLinks {
-		ud.Opml, _ = json.Marshal(&uf)
-		put = true
+		if o, err := json.Marshal(&uf); err == nil {
+			ud.Opml = o
+			put = true
+		} else {
+			c.Errorf("json UL err: %v, %v", err, uf)
+		}
 	}
 	if put {
 		gn.PutMany(u, ud)
