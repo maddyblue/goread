@@ -225,7 +225,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($scope.opts.expanded || !$scope.storyCollapse) {
 			$scope.markAllRead(story);
 		}
-		$location.path('/s/' + encodeURIComponent(story.feed.XmlUrl) + '/' + encodeURIComponent(story.Id));
+		$location.path('/s/' + Base64.encode(story.feed.XmlUrl) + '/' + Base64.encode(story.Id));
 	};
 
 	$scope.prev = function() {

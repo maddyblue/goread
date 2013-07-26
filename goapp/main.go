@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -107,6 +108,10 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	b, _ := base64.URLEncoding.DecodeString(feed)
+	feed = string(b)
+	b, _ = base64.URLEncoding.DecodeString(story)
+	story = string(b)
 	gn := goon.FromContext(c)
 	f := &Feed{Url: feed}
 	s := &Story{Id: story, Parent: gn.Key(f)}
