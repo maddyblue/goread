@@ -55,6 +55,7 @@ type Includes struct {
 	Angular             string
 	BootstrapCss        string
 	BootstrapJs         string
+	FontAwesome         string
 	Jquery              string
 	JqueryUI            string
 	Underscore          string
@@ -74,6 +75,7 @@ var (
 	Angular      string
 	BootstrapCss string
 	BootstrapJs  string
+	FontAwesome  string
 	Jquery       string
 	JqueryUI     string
 	Underscore   string
@@ -82,7 +84,8 @@ var (
 
 func init() {
 	angular_ver := "1.0.7"
-	bootstrap_ver := "2.3.1"
+	bootstrap_ver := "2.3.2"
+	font_awesome_ver := "3.2.1"
 	jquery_ver := "1.9.1"
 	jqueryui_ver := "1.10.3"
 	underscore_ver := "1.4.4"
@@ -90,15 +93,17 @@ func init() {
 
 	if appengine.IsDevAppServer() {
 		Angular = fmt.Sprintf("/static/js/angular-%v.js", angular_ver)
-		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-%v.css", bootstrap_ver)
+		BootstrapCss = fmt.Sprintf("/static/css/bootstrap-combined-no-icons-%v.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap-%v.js", bootstrap_ver)
+		FontAwesome = fmt.Sprintf("/static/css/font-awesome-%v.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.js", underscore_ver)
 	} else {
 		Angular = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular.min.js", angular_ver)
-		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.min.css", bootstrap_ver)
+		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/css/bootstrap-combined.no-icons.min.css", bootstrap_ver)
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/twitter-bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
+		FontAwesome = fmt.Sprintf("//netdna.bootstrapcdn.com/font-awesome/%v/css/font-awesome.min.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jqueryui/%v/jquery-ui.min.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
@@ -110,6 +115,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		Angular:             Angular,
 		BootstrapCss:        BootstrapCss,
 		BootstrapJs:         BootstrapJs,
+		FontAwesome:         FontAwesome,
 		Jquery:              Jquery,
 		JqueryUI:            JqueryUI,
 		Underscore:          Underscore,
