@@ -1,0 +1,10 @@
+<html>
+<body>
+{{if .Cursor}}
+<a href="{{url "sitemap-feed" "feed" .Feed}}?c={{.Cursor}}">next</a>
+{{end}}
+{{range $name, $link := .Stories}}
+<a href="{{url "main-story" "feed" $.Feed64 "story" $link}}">{{$name}}</a>
+{{end}}
+</body>
+</html>

@@ -1,0 +1,10 @@
+<html>
+<body>
+{{if .Cursor}}
+<a href="{{url "sitemap"}}?c={{.Cursor}}">next</a>
+{{end}}
+{{range .Keys}}
+<a href="{{url "sitemap-feed" "feed" .Encode}}">{{.StringID}}</a>
+{{end}}
+</body>
+</html>
