@@ -47,7 +47,10 @@ func eq(args ...interface{}) bool {
 }
 
 func routeUrl(name string, pairs ...string) string {
-	u, _ := router.Get(name).URL(pairs...)
+	u, err := router.Get(name).URL(pairs...)
+	if err != nil {
+		return err.Error()
+	}
 	return u.String()
 }
 
