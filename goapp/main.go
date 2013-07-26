@@ -225,7 +225,6 @@ func SitemapFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		stories[k.StringID()] = base64.URLEncoding.EncodeToString([]byte(k.StringID()))
 	}
-	c.Errorf(routeUrl("sitemap-feed", "feed", "test"))
 	cs = ""
 	if len(stories) == Limit {
 		if cur, err := it.Cursor(); err == nil {
