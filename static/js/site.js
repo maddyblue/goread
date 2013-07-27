@@ -186,8 +186,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.setCurrent = function(i, noClose, isClick, $event, noOpen) {
-		$scope.adTall = false;
-		$scope.adBottom = false;
 		var middleClick = $event && $event.which == 2;
 		if ($event && !middleClick) {
 			$event.preventDefault();
@@ -209,6 +207,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
 		if ($scope.currentStory != i) {
+			$scope.adTall = false;
+			$scope.adBottom = false;
 			$timeout(function() {
 				se = $('#storydiv' + i);
 				var eTop = se.offset().top;
