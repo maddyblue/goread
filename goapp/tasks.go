@@ -416,6 +416,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
 		return
 	}
+	f.Subscribe(c)
 
 	feedError := func() {
 		f.Errors++

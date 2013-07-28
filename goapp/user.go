@@ -237,7 +237,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						c.Warningf("manual feed update: %v", f.Url)
 					}
 				}
-				f.Subscribe(c)
 				lock.Lock()
 				fl[f.Url] = stories
 				numStories += len(stories)
