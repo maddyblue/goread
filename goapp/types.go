@@ -99,6 +99,7 @@ type Feed struct {
 	Image      string        `datastore:"i,noindex"`
 	Subscribed time.Time     `datastore:"s,noindex"`
 	Average    time.Duration `datastore:"a,noindex"`
+	LastViewed time.Time     `datastore:"v,noindex"`
 }
 
 func (f Feed) Subscribe(c appengine.Context) {

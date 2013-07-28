@@ -237,6 +237,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						c.Warningf("manual feed update: %v", f.Url)
 					}
 				}
+				if time.Since(f.LastViewed) > time.Hour * 24 {
+					f.LastViewed = time.Now()
+					c.Errorf("set last viewed %v, %v", f.LastViewed, f.Url)
+					gn.Put(f)
+				}
 				lock.Lock()
 				fl[f.Url] = stories
 				numStories += len(stories)
