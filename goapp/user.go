@@ -227,7 +227,17 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					updatedLinks = true
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
-				if f.Errors == 0 && f.NextUpdate.Before(now) {
+				if time.Since(f.LastViewed) > time.Hour*24*2 {
+					f.LastViewed = now
+					c.Errorf("set last viewed %v, %v", f.LastViewed, f.Url)
+					if f.NextUpdate.Equal(timeMax) {
+						f.NextUpdate = now
+						c.Errorf("was not viewed, reset %v", f.Url)
+					}
+					gn.Put(f)
+
+				}
+				if f.Errors == 0 && now.Sub(f.NextUpdate) >= 0 {
 					t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 						"feed": {f.Url},
 					})
@@ -236,11 +246,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					} else {
 						c.Warningf("manual feed update: %v", f.Url)
 					}
-				}
-				if time.Since(f.LastViewed) > time.Hour * 24 {
-					f.LastViewed = time.Now()
-					c.Errorf("set last viewed %v, %v", f.LastViewed, f.Url)
-					gn.Put(f)
 				}
 				lock.Lock()
 				fl[f.Url] = stories
