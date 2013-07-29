@@ -339,6 +339,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	if hasUpdated && isFeedUpdated && !updateAll {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
+		scheduleNextUpdate(&f)
 		gn.Put(&f)
 		return nil
 	}
