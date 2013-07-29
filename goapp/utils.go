@@ -633,7 +633,16 @@ func updateAverage(f *Feed, previousUpdate time.Time, updateCount int) {
 	f.Average = time.Duration(old + cur)
 }
 
+const notViewedDisabled = oldDuration + time.Hour*24*7
+
+var timeMax time.Time = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
+
 func scheduleNextUpdate(f *Feed) {
+	if time.Since(f.LastViewed) > notViewedDisabled {
+		f.NextUpdate = timeMax
+		return
+	}
+
 	now := time.Now()
 	if f.Date.IsZero() {
 		f.NextUpdate = now.Add(UpdateDefault)
