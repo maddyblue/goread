@@ -334,6 +334,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	}
 	feed.Date = f.Date
 	feed.Average = f.Average
+	feed.LastViewed = f.LastViewed
 	f = *feed
 
 	if hasUpdated && isFeedUpdated && !updateAll {

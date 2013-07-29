@@ -267,6 +267,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 			f.Updated = time.Time{}
 			f.Checked = f.Updated
 			f.NextUpdate = f.Updated
+			f.LastViewed = time.Now()
 			gn.Put(&f)
 			for _, s := range stories {
 				s.Created = s.Published
