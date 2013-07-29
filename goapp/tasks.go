@@ -209,7 +209,7 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("cursor error %v", err.Error())
 		}
 	}
-	if !hasCursor {
+	if !hasCursor && !isDevServer {
 		qs, err := taskqueue.QueueStats(c, []string{"update-feed"}, 0)
 		if err != nil || qs[0].Tasks > 0 || qs[0].Executed1Minute > 0 {
 			c.Infof("already %v (%v) tasks", qs[0].Tasks, qs[0].Executed1Minute)
