@@ -14,21 +14,29 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package goapp
+package sanitizer
 
 import (
 	"bytes"
 	"code.google.com/p/go.net/html"
 	"io"
 	"net/url"
-	"regexp"
 	"strings"
 )
 
 func sanitizeLink(u *url.URL, v string) string {
-	p, err := u.Parse(v)
-	if err != nil {
-		return ""
+	var p *url.URL
+	var err error
+	if u == nil {
+		p, err = url.Parse(v)
+		if err != nil {
+			return ""
+		}
+	} else {
+		p, err = u.Parse(v)
+		if err != nil {
+			return ""
+		}
 	}
 	if !acceptableUriSchemes[p.Scheme] {
 		return ""
@@ -72,16 +80,18 @@ func Sanitize(s string, u *url.URL) (string, string) {
 	r := bytes.NewReader([]byte(strings.TrimSpace(s)))
 	z := html.NewTokenizer(r)
 	buf := &bytes.Buffer{}
-	snip := &bytes.Buffer{}
+	strip := &bytes.Buffer{}
 	skip := 0
-	u.RawQuery = ""
-	u.Fragment = ""
+	if u != nil {
+		u.RawQuery = ""
+		u.Fragment = ""
+	}
 	for {
 		if z.Next() == html.ErrorToken {
 			if err := z.Err(); err == io.EOF {
 				break
 			} else {
-				return s, snipper(s)
+				return s, s
 			}
 		}
 
@@ -106,30 +116,12 @@ func Sanitize(s string, u *url.URL) (string, string) {
 		} else if skip == 0 {
 			buf.WriteString(t.String())
 			if t.Type == html.TextToken {
-				snip.WriteString(t.String())
+				strip.WriteString(t.String())
 			}
 		}
 	}
 
-	return buf.String(), snipper(snip.String())
-}
-
-const snipLen = 100
-
-var snipRe = regexp.MustCompile("[\\s]+")
-
-func snipper(s string) string {
-	s = snipRe.ReplaceAllString(strings.TrimSpace(s), " ")
-	s = html.UnescapeString(s)
-	if len(s) <= snipLen {
-		return s
-	}
-	s = s[:snipLen]
-	i := strings.LastIndexAny(s, " .-!?")
-	if i != -1 {
-		return s[:i]
-	}
-	return cleanNonUTF8(s)
+	return buf.String(), strip.String()
 }
 
 // Based on list from MDN's HTML5 element list
