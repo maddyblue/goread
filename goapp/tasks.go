@@ -289,6 +289,10 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 		u.Host = u.Path
 		u.Path = ""
 	}
+	const clURL = "craigslist.org"
+	if strings.HasSuffix(u.Host, clURL) || u.Host == clURL {
+		return nil, nil, fmt.Errorf("Craigslist blocks our server host: not possible to subscribe")
+	}
 	if u.Scheme == "" {
 		u.Scheme = "http"
 		origUrl = u.String()
