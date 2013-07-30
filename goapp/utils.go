@@ -638,7 +638,7 @@ const notViewedDisabled = oldDuration + time.Hour*24*7
 var timeMax time.Time = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 func scheduleNextUpdate(f *Feed) {
-	if time.Since(f.LastViewed) > notViewedDisabled {
+	if f.NotViewed() {
 		f.NextUpdate = timeMax
 		return
 	}

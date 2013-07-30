@@ -127,6 +127,10 @@ func (f Feed) PubSubURL() string {
 	return ru.String()
 }
 
+func (f Feed) NotViewed() bool {
+	return time.Since(f.LastViewed) > notViewedDisabled
+}
+
 // parent: Feed, key: story ID
 type Story struct {
 	_kind        string         `goon:"kind,S"`
