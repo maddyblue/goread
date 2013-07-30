@@ -134,8 +134,12 @@ const IMPORT_LIMIT = 10
 
 func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	vars := mux.Vars(r)
-	b, _ := base64.URLEncoding.DecodeString(vars["feed"])
+	furl := r.FormValue("feed")
+	if len(furl) == 0 {
+		vars := mux.Vars(r)
+		furl = vars["feed"]
+	}
+	b, _ := base64.URLEncoding.DecodeString(furl)
 	f := Feed{Url: string(b)}
 	if err := gn.Get(&f); err != nil || f.NotViewed() {
 		http.Error(w, "", http.StatusNotFound)

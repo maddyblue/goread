@@ -121,9 +121,12 @@ func (f Feed) IsSubscribed() bool {
 
 func (f Feed) PubSubURL() string {
 	b := base64.URLEncoding.EncodeToString([]byte(f.Url))
-	ru, _ := router.Get("subscribe-callback").URL("feed", b)
+	ru, _ := router.Get("subscribe-callback").URL()
 	ru.Scheme = "http"
 	ru.Host = PUBSUBHUBBUB_HOST
+	ru.RawQuery = url.Values{
+		"feed": {b},
+	}.Encode()
 	return ru.String()
 }
 
