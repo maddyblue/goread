@@ -201,7 +201,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Errorf("req error: %v", err)
 	} else if resp.StatusCode != 204 {
 		c.Errorf("resp: %v - %v", f.Url, resp.Status)
-		c.Errorf("%v", resp.Body)
+		c.Errorf("%s", resp.Body)
 	} else {
 		c.Infof("subscribed: %v", f.Url)
 	}
