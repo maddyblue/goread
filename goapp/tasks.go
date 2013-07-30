@@ -141,12 +141,13 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	b, _ := base64.URLEncoding.DecodeString(furl)
 	f := Feed{Url: string(b)}
-	if err := gn.Get(&f); err != nil || f.NotViewed() {
+	c.Warningf("url: %v", f.Url)
+	if err := gn.Get(&f); err != nil {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 	if r.Method == "GET" {
-		if r.FormValue("hub.mode") != "subscribe" || r.FormValue("hub.topic") != f.Url {
+		if f.NotViewed() || r.FormValue("hub.mode") != "subscribe" || r.FormValue("hub.topic") != f.Url {
 			http.Error(w, "", http.StatusNotFound)
 			return
 		}
@@ -156,7 +157,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Put(&f)
 		c.Debugf("subscribed: %v - %v", f.Url, f.Subscribed)
 		return
-	} else {
+	} else if !f.NotViewed() {
 		c.Infof("push: %v", f.Url)
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
@@ -168,6 +169,8 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if err := updateFeed(c, f.Url, nf, ss, false); err != nil {
 			c.Errorf("push error: %v", err)
 		}
+	} else {
+		c.Infof("not viewed")
 	}
 }
 
