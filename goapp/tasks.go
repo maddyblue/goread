@@ -183,7 +183,12 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u.Add("hub.topic", fu.String())
 	req, err := http.NewRequest("POST", PUBSUBHUBBUB_HUB, strings.NewReader(u.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	cl := urlfetch.Client(c)
+	cl := &http.Client{
+		Transport: &urlfetch.Transport{
+			Context:  c,
+			Deadline: time.Minute,
+		},
+	}
 	resp, err := cl.Do(req)
 	if err != nil {
 		c.Errorf("req error: %v", err)
