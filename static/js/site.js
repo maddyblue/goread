@@ -523,6 +523,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.opts.sort = order;
 		$scope.updateStories();
 		$scope.saveOpts();
+		$scope.resetScroll();
+		$scope.resetLimit();
 	};
 
 	$scope.updateStories = function() {
