@@ -505,6 +505,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 		c.Warningf("unable to parse link: %v", f.Link)
 	}
 
+	var nss []*Story
 	for _, s := range ss {
 		s.Parent = fk
 		s.Created = f.Checked
@@ -546,9 +547,9 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 		}
 		const keySize = 500
 		sk := g.Key(s)
-		if kl := len(sk.Encode()); kl > keySize {
+		if kl := len(sk.String()); kl > keySize {
 			c.Warningf("key too long: %v, %v, %v", kl, f.Url, s.Id)
-			return nil, nil, fmt.Errorf("Item id too large")
+			continue
 		}
 		su, serr := url.Parse(s.Link)
 		if serr != nil {
@@ -557,9 +558,10 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 		}
 		s.content, s.Summary = Sanitize(s.content, su)
 		s.Title = html.UnescapeString(s.Title)
+		nss = append(nss, s)
 	}
 
-	return f, ss, nil
+	return f, nss, nil
 }
 
 func loadImage(c appengine.Context, f *Feed) string {
