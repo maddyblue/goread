@@ -77,7 +77,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			// I think this is needed due to the datastore's eventual consistency.
 			// Without the delay we only get the feed data with no story data.
 			$timeout(function() {
-				$scope.refresh($scope.loaded);
+				$scope.refresh(function() {
+					$scope.loaded();
+					$scope.setActiveFeed(_.last($scope.feeds).XmlUrl);
+				});
 			}, 250);
 		}, function(data) {
 			if (data.data) {
