@@ -98,11 +98,11 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("f")
-	if feed, stories := fetchFeed(c, url, url); feed != nil {
+	if feed, stories, err := fetchFeed(c, url, url); err == nil {
 		updateFeed(c, url, feed, stories, true)
 		fmt.Fprintf(w, "updated: %v", url)
 	} else {
-		fmt.Fprintf(w, "error updating: %v", url)
+		fmt.Fprintf(w, "error updating %v: %v", url, err)
 	}
 }
 

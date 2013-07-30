@@ -312,7 +312,7 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
-func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
+func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error) {
 	f := Feed{Url: u}
 	var s []*Story
 
@@ -455,7 +455,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story) {
 	c.Warningf("atom parse error: %s", atomerr.Error())
 	c.Warningf("xml parse error: %s", rsserr.Error())
 	c.Warningf("rdf parse error: %s", rdferr.Error())
-	return nil, nil
+	return nil, nil, fmt.Errorf("Could not parse feed data")
 }
 
 func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
@@ -487,7 +487,7 @@ func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
 	return bestlink
 }
 
-func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
+func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	fk := g.Key(f)
@@ -527,7 +527,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 				s.Id = s.Title
 			} else {
 				c.Errorf("story has no id: %v", s)
-				return nil, nil
+				return nil, nil, fmt.Errorf("Bad item data in feed")
 			}
 		}
 		// if a story doesn't have a link, see if its id is a URL
@@ -547,8 +547,8 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 		const keySize = 500
 		sk := g.Key(s)
 		if kl := len(sk.Encode()); kl > keySize {
-			c.Errorf("key too long: %v, %v, %v", kl, f.Url, s.Id)
-			return nil, nil
+			c.Warningf("key too long: %v, %v, %v", kl, f.Url, s.Id)
+			return nil, nil, fmt.Errorf("Item id too large")
 		}
 		su, serr := url.Parse(s.Link)
 		if serr != nil {
@@ -559,7 +559,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story) {
 		s.Title = html.UnescapeString(s.Title)
 	}
 
-	return f, ss
+	return f, ss, nil
 }
 
 func loadImage(c appengine.Context, f *Feed) string {

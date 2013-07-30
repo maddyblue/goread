@@ -160,9 +160,12 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Infof("push: %v", f.Url)
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
-		nf, ss := ParseFeed(c, f.Url, b)
-		err := updateFeed(c, f.Url, nf, ss, false)
+		nf, ss, err := ParseFeed(c, f.Url, b)
 		if err != nil {
+			c.Errorf("parse error: %v", err)
+			return
+		}
+		if err := updateFeed(c, f.Url, nf, ss, false); err != nil {
 			c.Errorf("push error: %v", err)
 		}
 	}
@@ -277,18 +280,21 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
+func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error) {
 	u, err := url.Parse(fetchUrl)
+	if err != nil {
+		return nil, nil, err
+	}
 	if u.Host == "" {
 		u.Host = u.Path
 		u.Path = ""
 	}
-	if err == nil && u.Scheme == "" {
+	if u.Scheme == "" {
 		u.Scheme = "http"
 		origUrl = u.String()
 		fetchUrl = origUrl
 		if origUrl == "" {
-			return nil, nil
+			return nil, nil, fmt.Errorf("bad URL")
 		}
 	}
 
@@ -317,11 +323,12 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story) {
 		}
 		return ParseFeed(c, origUrl, b)
 	} else if err != nil {
-		c.Warningf("fetch feed error: %s", err.Error())
+		c.Warningf("fetch feed error: %v", err)
+		return nil, nil, fmt.Errorf("Could not fetch feed")
 	} else {
 		c.Warningf("fetch feed error: status code: %s", resp.Status)
+		return nil, nil, fmt.Errorf("Bad response code from server")
 	}
-	return nil, nil
 }
 
 func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll bool) error {
@@ -429,7 +436,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	f.Subscribe(c)
 
-	feedError := func() {
+	feedError := func(err error) {
 		f.Errors++
 		v := f.Errors + 1
 		const max = 24 * 7
@@ -440,15 +447,15 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		f.NextUpdate = time.Now().Add(time.Hour * time.Duration(v))
 		gn.Put(&f)
-		c.Warningf("error with %v (%v), bump next update to %v", url, f.Errors, f.NextUpdate)
+		c.Warningf("error with %v (%v), bump next update to %v, %v", url, f.Errors, f.NextUpdate, err)
 	}
 
-	if feed, stories := fetchFeed(c, f.Url, f.Url); feed != nil {
+	if feed, stories, err := fetchFeed(c, f.Url, f.Url); err == nil {
 		if err := updateFeed(c, f.Url, feed, stories, false); err != nil {
-			feedError()
+			feedError(err)
 		}
 	} else {
-		feedError()
+		feedError(err)
 	}
 }
 

@@ -261,8 +261,8 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 
 	f := Feed{Url: o.XmlUrl}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
-		if feed, stories := fetchFeed(c, o.XmlUrl, o.XmlUrl); feed == nil {
-			return fmt.Errorf("could not add feed %s", o.XmlUrl)
+		if feed, stories, err := fetchFeed(c, o.XmlUrl, o.XmlUrl); err != nil {
+			return fmt.Errorf("could not add feed %s: %v", o.XmlUrl, err)
 		} else {
 			f = *feed
 			f.Updated = time.Time{}
