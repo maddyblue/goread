@@ -137,7 +137,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	b, _ := base64.URLEncoding.DecodeString(vars["feed"])
 	f := Feed{Url: string(b)}
-	if err := gn.Get(&f); err != nil {
+	if err := gn.Get(&f); err != nil || f.NotViewed() {
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
