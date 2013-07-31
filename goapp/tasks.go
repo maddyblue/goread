@@ -166,7 +166,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("parse error: %v", err)
 			return
 		}
-		if err := updateFeed(c, f.Url, nf, ss, false); err != nil {
+		if err := updateFeed(c, f.Url, nf, ss, false, true); err != nil {
 			c.Errorf("push error: %v", err)
 		}
 	} else {
@@ -338,7 +338,7 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 	}
 }
 
-func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll bool) error {
+func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll, fromSub bool) error {
 	gn := goon.FromContext(c)
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err != nil {
@@ -360,7 +360,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	feed.LastViewed = f.LastViewed
 	f = *feed
 
-	if hasUpdated && isFeedUpdated && !updateAll {
+	if hasUpdated && isFeedUpdated && !updateAll && !fromSub {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
 		scheduleNextUpdate(&f)
@@ -420,7 +420,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 			f.Updated = f.Date
 		}
 	}
-	scheduleNextUpdate(&f)
+	if fromSub {
+		f.NextUpdate = time.Now().Add(time.Hour * 24)
+	} else {
+		scheduleNextUpdate(&f)
+	}
 	delay := f.NextUpdate.Sub(time.Now())
 	c.Infof("next update scheduled for %v from now", delay-delay%time.Second)
 	gn.PutMulti(puts)
@@ -458,7 +462,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if feed, stories, err := fetchFeed(c, f.Url, f.Url); err == nil {
-		if err := updateFeed(c, f.Url, feed, stories, false); err != nil {
+		if err := updateFeed(c, f.Url, feed, stories, false, false); err != nil {
 			feedError(err)
 		}
 	} else {
