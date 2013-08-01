@@ -17,8 +17,10 @@
 package sanitizer
 
 import (
+	"bytes"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"code.google.com/p/go.net/html"
 )
@@ -36,5 +38,16 @@ func SnipText(s string, length int) string {
 	if i != -1 {
 		return s[:i]
 	}
-	return s
+	return CleanNonUTF8(s)
+}
+
+func CleanNonUTF8(s string) string {
+	b := &bytes.Buffer{}
+	for i := 0; i < len(s); i++ {
+		c, size := utf8.DecodeRuneInString(s[i:])
+		if c != utf8.RuneError || size != 1 {
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
 }

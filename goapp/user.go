@@ -33,7 +33,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"appengine/blobstore"
 	"appengine/datastore"
@@ -41,6 +40,7 @@ import (
 	"appengine/user"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
+	"goapp/sanitizer"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -364,7 +364,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("cleaning")
 			for _, v := range fl {
 				for _, s := range v {
-					n := cleanNonUTF8(s.Summary)
+					n := sanitizer.CleanNonUTF8(s.Summary)
 					if n != s.Summary {
 						s.Summary = n
 						c.Errorf("cleaned %v", s.Id)
@@ -376,17 +376,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(b)
 	})
-}
-
-func cleanNonUTF8(s string) string {
-	b := &bytes.Buffer{}
-	for i := 0; i < len(s); i++ {
-		c, size := utf8.DecodeRuneInString(s[i:])
-		if c != utf8.RuneError || size != 1 {
-			b.WriteRune(c)
-		}
-	}
-	return b.String()
 }
 
 func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
