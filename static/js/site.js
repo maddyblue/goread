@@ -209,6 +209,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if (i < $scope.dispStories.length - 2) {
 			$scope.getContents($scope.dispStories[i + 1]);
 		}
+		if (i == $scope.dispLimit - 1) {
+			$scope.loadNextPage();
+		}
 		if ($scope.currentStory != i) {
 			$scope.adTall = false;
 			$scope.adBottom = false;
