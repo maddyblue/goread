@@ -45,6 +45,7 @@ import (
 	"goapp/atom"
 	"goapp/rdf"
 	"goapp/rss"
+	"goapp/sanitizer"
 )
 
 func serveError(w http.ResponseWriter, err error) {
@@ -556,8 +557,10 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 			su = &url.URL{}
 			s.Link = ""
 		}
-		s.content, s.Summary = Sanitize(s.content, su)
-		s.Title = html.UnescapeString(s.Title)
+		const snipLen = 100
+		s.content, s.Summary = sanitizer.Sanitize(s.content, su)
+		s.Summary = cleanNonUTF8(sanitizer.SnipText(s.Summary, snipLen))
+		s.Title = html.UnescapeString(sanitizer.StripTags(s.Title))
 		nss = append(nss, s)
 	}
 
