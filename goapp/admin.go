@@ -108,13 +108,10 @@ func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminDateFormats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&DateFormat{}).Kind()).KeysOnly()
-	keys, err := gn.GetAll(q, nil)
-	if err != nil {
-		serveError(w, err)
-		return
-	}
-	if err := templates.ExecuteTemplate(w, "admin-date-formats.html", keys); err != nil {
+	var dfs []*DateFormat
+	q := datastore.NewQuery(gn.Key(&DateFormat{}).Kind()).Limit(dateFormatCount)
+	gn.GetAll(q, &dfs)
+	if err := templates.ExecuteTemplate(w, "admin-date-formats.html", dfs); err != nil {
 		serveError(w, err)
 	}
 }

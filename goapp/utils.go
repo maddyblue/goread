@@ -292,6 +292,8 @@ var dateFormats = []string{
 	time.UnixDate,
 }
 
+const dateFormatCount = 500
+
 func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err error) {
 	for _, d := range ds {
 		d = strings.TrimSpace(d)
@@ -304,10 +306,12 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 			}
 		}
 		gn := goon.FromContext(c)
-		gn.Put(&DateFormat{
-			Id:     d,
-			Parent: gn.Key(feed),
-		})
+		df := &DateFormat{
+			Id:    rand.Int63n(dateFormatCount),
+			Feed:  feed.Url,
+			Value: d,
+		}
+		gn.Put(df)
 	}
 	err = fmt.Errorf("could not parse date: %v", strings.Join(ds, ", "))
 	return

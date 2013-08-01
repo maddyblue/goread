@@ -2,7 +2,7 @@
 <body>
 <ul>
 {{range .}}
-	<li>{{.Parent.StringID}} - {{.StringID}}</li>
+	<li>{{.Value}} - <a href="{{.Feed}}">{{.Feed}}</a></li>
 {{end}}
 </ul>
 </body>

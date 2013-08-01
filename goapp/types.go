@@ -193,9 +193,10 @@ type Opml struct {
 }
 
 type DateFormat struct {
-	Id     string         `datastore:"-" goon:"id"`
-	_kind  string         `goon:"kind,DF"`
-	Parent *datastore.Key `datastore:"-" goon:"parent"`
+	Id    int64  `datastore:"-" goon:"id"`
+	_kind string `goon:"kind,DF"`
+	Value string `datastore:"v"`
+	Feed  string `datastore:"f"`
 }
 
 type Image struct {
