@@ -229,10 +229,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				}
 				if time.Since(f.LastViewed) > time.Hour*24*2 {
 					f.LastViewed = now
-					c.Errorf("set last viewed %v, %v", f.LastViewed, f.Url)
 					if f.NextUpdate.Equal(timeMax) {
 						f.NextUpdate = now
-						c.Errorf("was not viewed, reset %v", f.Url)
 					}
 					gn.Put(f)
 
