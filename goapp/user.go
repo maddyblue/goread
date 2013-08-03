@@ -163,11 +163,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	put := false
 	fixRead := false
 	if time.Since(u.Read) > oldDuration {
-		c.Warningf("u.Read too old, fixing: %v", u.Read)
 		u.Read = time.Now().Add(-oldDuration)
 		put = true
 		fixRead = true
-		c.Warningf("new: %v", u.Read)
 	}
 
 	read := make(Read)
