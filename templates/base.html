@@ -476,6 +476,13 @@
 					</li>
 					<li class="all-subs" ng-show="loading">loading...</li>
 				</ul>
+				{{if .StripeKey}}
+				<ul class="unstyled" ng-hide="accountType">
+					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
+					<li>to remove ads and</li>
+					<li>keep go read alive</li>
+				</ul>
+				{{end}}
 				<ul class="unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
 						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
@@ -508,13 +515,6 @@
 						</div>
 					</li>
 				</ul>
-				{{if .StripeKey}}
-				<ul class="unstyled" ng-hide="accountType">
-					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
-					<li>to remove ads and</li>
-					<li>keep go read alive</li>
-				</ul>
-				{{end}}
 			</div>
 
 			<div
