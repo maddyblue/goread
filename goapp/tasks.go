@@ -457,7 +457,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	} else if err != nil {
 		return
 	} else if last {
-		c.Errorf("last: %v", f.LastViewed)
+		// noop
 	} else if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
 		return
