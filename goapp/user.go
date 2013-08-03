@@ -202,6 +202,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	c.Step("feed fetch + wait", func() {
 		queue := make(chan *Feed)
+		tc := make(chan *taskqueue.Task)
 		wg := sync.WaitGroup{}
 		feedProc := func() {
 			for f := range queue {
@@ -225,23 +226,24 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					updatedLinks = true
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
+				manualDone := false
 				if time.Since(f.LastViewed) > time.Hour*24*2 {
-					f.LastViewed = now
 					if f.NextUpdate.Equal(timeMax) {
-						f.NextUpdate = now
+						tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
+							"feed": {f.Url},
+							"last": {"1"},
+						})
+						manualDone = true
+					} else {
+						tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-last"), url.Values{
+							"feed": {f.Url},
+						})
 					}
-					gn.Put(f)
-
 				}
-				if f.Errors == 0 && now.Sub(f.NextUpdate) >= 0 {
-					t := taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+				if !manualDone && now.Sub(f.NextUpdate) >= 0 {
+					tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
 						"feed": {f.Url},
 					})
-					if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
-						c.Errorf("taskqueue error: %v", err.Error())
-					} else {
-						c.Warningf("manual feed update: %v", f.Url)
-					}
 				}
 				lock.Lock()
 				fl[f.Url] = stories
@@ -255,6 +257,22 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				lock.Unlock()
 			}
 		}
+		go func() {
+			var tasks []*taskqueue.Task
+			for t := range tc {
+				tasks = append(tasks, t)
+				if len(tasks) == 100 {
+					taskqueue.AddMulti(c, tasks, "update-manual")
+					c.Infof("added %v tasks", len(tasks))
+					tasks = tasks[0:0]
+				}
+			}
+			if len(tasks) > 0 {
+				taskqueue.AddMulti(c, tasks, "update-manual")
+				c.Infof("added %v tasks", len(tasks))
+			}
+			wg.Done()
+		}()
 		for i := 0; i < 20; i++ {
 			go feedProc()
 		}
@@ -266,6 +284,11 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			queue <- f
 		}
 		close(queue)
+		// wait for feeds to complete so there are no more tasks to queue
+		wg.Wait()
+		wg.Add(1)
+		// then finish enqueuing tasks
+		close(tc)
 		wg.Wait()
 	})
 	if numStories > numStoriesLimit {

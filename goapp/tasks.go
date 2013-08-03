@@ -173,7 +173,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("parse error: %v", err)
 			return
 		}
-		if err := updateFeed(c, f.Url, nf, ss, false, true); err != nil {
+		if err := updateFeed(c, f.Url, nf, ss, false, true, false); err != nil {
 			c.Errorf("push error: %v", err)
 		}
 	} else {
@@ -348,7 +348,7 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 	}
 }
 
-func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll, fromSub bool) error {
+func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateAll, fromSub, updateLast bool) error {
 	gn := goon.FromContext(c)
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err != nil {
@@ -369,6 +369,9 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	feed.Average = f.Average
 	feed.LastViewed = f.LastViewed
 	f = *feed
+	if updateLast {
+		f.LastViewed = time.Now()
+	}
 
 	if hasUpdated && isFeedUpdated && !updateAll && !fromSub {
 		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
@@ -445,12 +448,15 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	url := r.FormValue("feed")
 	c.Debugf("update feed %s", url)
+	last := len(r.FormValue("last")) > 0
 	f := Feed{Url: url}
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		c.Errorf("no such entity")
 		return
 	} else if err != nil {
 		return
+	} else if last {
+		c.Errorf("last: %v", f.LastViewed)
 	} else if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
 		return
@@ -472,12 +478,24 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if feed, stories, err := fetchFeed(c, f.Url, f.Url); err == nil {
-		if err := updateFeed(c, f.Url, feed, stories, false, false); err != nil {
+		if err := updateFeed(c, f.Url, feed, stories, false, false, last); err != nil {
 			feedError(err)
 		}
 	} else {
 		feedError(err)
 	}
+}
+
+func UpdateFeedLast(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	url := r.FormValue("feed")
+	c.Debugf("update feed last %s", url)
+	f := Feed{Url: url}
+	if err := gn.Get(&f); err != nil {
+		return
+	}
+	f.LastViewed = time.Now()
+	gn.Put(&f)
 }
 
 func CFixer(c mpg.Context, w http.ResponseWriter, r *http.Request) {

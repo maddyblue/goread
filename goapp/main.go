@@ -62,6 +62,8 @@ func init() {
 	router.Handle("/push", mpg.NewHandler(SubscribeCallback)).Name("subscribe-callback")
 	router.Handle("/tasks/import-opml", mpg.NewHandler(ImportOpmlTask)).Name("import-opml-task")
 	router.Handle("/tasks/subscribe-feed", mpg.NewHandler(SubscribeFeed)).Name("subscribe-feed")
+	router.Handle("/tasks/update-feed-last", mpg.NewHandler(UpdateFeedLast)).Name("update-feed-last")
+	router.Handle("/tasks/update-feed-manual", mpg.NewHandler(UpdateFeed)).Name("update-feed-manual")
 	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
 	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
@@ -273,7 +275,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 			for _, s := range stories {
 				s.Created = s.Published
 			}
-			if err := updateFeed(c, f.Url, feed, stories, false, false); err != nil {
+			if err := updateFeed(c, f.Url, feed, stories, false, false, false); err != nil {
 				return err
 			}
 
