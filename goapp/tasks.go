@@ -209,12 +209,13 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	resp, err := cl.Do(req)
 	if err != nil {
 		c.Errorf("req error: %v", err)
-	} else if resp.StatusCode != 204 {
-		c.Errorf("resp: %v - %v", f.Url, resp.Status)
-		c.Errorf("%s", resp.Body)
+	} else if resp.StatusCode != http.StatusNoContent {
 		f.Subscribed = time.Now().Add(time.Hour * 48)
-		c.Errorf("next sub: %v", f.Subscribed)
 		gn.Put(&f)
+		if resp.StatusCode != http.StatusConflict {
+			c.Errorf("resp: %v - %v", f.Url, resp.Status)
+			c.Errorf("%s", resp.Body)
+		}
 	} else {
 		c.Infof("subscribed: %v", f.Url)
 	}
