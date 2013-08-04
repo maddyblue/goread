@@ -130,7 +130,11 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
 	gn.Get(&ud)
-	mergeUserOpml(&ud, o)
+	if err := mergeUserOpml(&ud, o); err != nil {
+		c.Errorf("add sub error opml (%v): %v", url, err)
+		serveError(w, err)
+		return
+	}
 	gn.Put(&ud)
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)

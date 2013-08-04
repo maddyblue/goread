@@ -298,7 +298,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	return nil
 }
 
-func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
+func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) error {
 	var fs Opml
 	json.Unmarshal(ud.Opml, &fs)
 	urls := make(map[string]bool)
@@ -350,5 +350,10 @@ func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) {
 		}
 	}
 
-	ud.Opml, _ = json.Marshal(&fs)
+	b, err := json.Marshal(&fs)
+	if err != nil {
+		return err
+	}
+	ud.Opml = b
+	return nil
 }
