@@ -130,7 +130,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
 	gn.Get(&ud)
-	if err := mergeUserOpml(&ud, o); err != nil {
+	if err := mergeUserOpml(c, &ud, o); err != nil {
 		c.Errorf("add sub error opml (%v): %v", url, err)
 		serveError(w, err)
 		return
@@ -364,6 +364,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			ud.Opml = o
 			put = true
 		} else {
+			saveError(c, fmt.Sprintf("%v", uf), err)
 			c.Errorf("json UL err: %v, %v", err, uf)
 		}
 	}
@@ -621,6 +622,7 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		uo.Opml = ud.Opml
 	}
 	if b, err := json.Marshal(&opml); err != nil {
+		saveError(c, fmt.Sprintf("%v", opml), err)
 		serveError(w, err)
 		c.Errorf("json err: %v", err)
 		return
@@ -728,4 +730,18 @@ func DeleteAccount(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.Delete(gn.Key(&ud))
 	gn.Delete(ud.Parent)
 	http.Redirect(w, r, routeUrl("logout"), http.StatusFound)
+}
+
+func saveError(c appengine.Context, d string, err error) {
+	gn := goon.FromContext(c)
+	e := Error{
+		Date: time.Now(),
+		Text: err.Error(),
+		Desc: d,
+	}
+	u := user.Current(c)
+	if u != nil {
+		e.User = u.ID
+	}
+	gn.Put(&e)
 }

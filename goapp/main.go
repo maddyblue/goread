@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"time"
 
+	"appengine"
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/MiniProfiler/go/miniprofiler"
@@ -298,7 +299,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	return nil
 }
 
-func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) error {
+func mergeUserOpml(c appengine.Context, ud *UserData, outlines ...*OpmlOutline) error {
 	var fs Opml
 	json.Unmarshal(ud.Opml, &fs)
 	urls := make(map[string]bool)
@@ -352,6 +353,7 @@ func mergeUserOpml(ud *UserData, outlines ...*OpmlOutline) error {
 
 	b, err := json.Marshal(&fs)
 	if err != nil {
+		saveError(c, fmt.Sprintf("%v", fs), err)
 		return err
 	}
 	ud.Opml = b

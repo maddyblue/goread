@@ -210,3 +210,12 @@ type Stories []*Story
 func (s Stories) Len() int           { return len(s) }
 func (s Stories) Less(i, j int) bool { return s[i].Created.Before(s[j].Created) }
 func (s Stories) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+type Error struct {
+	_kind string    `goon:"kind,E"`
+	Id    int64     `datastore:"-" goon:"id"`
+	Date  time.Time `datastore:"t,noindex"`
+	User  string    `datastore:"u,noindex"`
+	Text  string    `datastore:"t,noindex"`
+	Desc  string    `datastore:"d,noindex"`
+}
