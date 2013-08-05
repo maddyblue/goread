@@ -551,12 +551,12 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.Infof("%v deleted", kind)
 	}
-	for _, i := range []interface{}{&Feed{}, &Story{}, &StoryContent{}} {
+	for _, i := range []interface{}{&Feed{}, &Story{}, &StoryContent{}, &DateFormat{}} {
 		k := gn.Key(i).Kind()
 		go del(k)
 	}
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 5; i++ {
 		<-done
 	}
 
