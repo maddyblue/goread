@@ -201,6 +201,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	hasStories := false
 	updatedLinks := false
 	icons := make(map[string]string)
+	noads := make(map[string]bool)
 	now := time.Now()
 	numStories := 0
 
@@ -257,6 +258,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				}
 				if f.Image != "" {
 					icons[f.Url] = f.Image
+				}
+				if f.NoAds {
+					noads[f.Url] = true
 				}
 				lock.Unlock()
 			}
@@ -376,11 +380,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Opml    []*OpmlOutline
 			Stories map[string][]*Story
 			Icons   map[string]string
+			NoAds   map[string]bool
 			Options string
 		}{
 			Opml:    uf.Outline,
 			Stories: fl,
 			Icons:   icons,
+			NoAds:   noads,
 			Options: u.Options,
 		}
 		b, err := json.Marshal(o)

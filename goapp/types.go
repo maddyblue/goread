@@ -100,6 +100,7 @@ type Feed struct {
 	Subscribed time.Time     `datastore:"s,noindex"`
 	Average    time.Duration `datastore:"a,noindex"`
 	LastViewed time.Time     `datastore:"v,noindex"`
+	NoAds      bool          `datastore:"o,noindex"`
 }
 
 func (f Feed) Subscribe(c appengine.Context) {

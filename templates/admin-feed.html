@@ -17,10 +17,13 @@
 	<li>subscribed: {{.Feed.Subscribed}}</li>
 	<li>last view: {{.Feed.LastViewed}}</li>
 	<li>average: {{.Feed.Average}}</li>
+	<li>no ads: {{.Feed.NoAds}}</li>
 	<li>link: {{.Feed.Link}}</li>
 	<li>errors: {{.Feed.Errors}}</li>
 	<li><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></li>
+	<li><a href="?f={{.Feed.Url}}&noads=1">toggle no ads</a></li>
 </ul>
+
 
 stories:
 <ul>
