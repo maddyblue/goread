@@ -26,15 +26,6 @@ type Rss struct {
 	// http://cyber.law.harvard.edu/rss/languages.html
 	Language string `xml:"channel>language,omitempty"`
 
-	// Optional. Copyright notice for channel content
-	Copyright string `xml:"channel>copyright,omitempty"`
-
-	// Optional. Email address for the managing editor
-	ManagingEditor string `xml:"channel>managingEditor,omitempty"`
-
-	// Optional. Email address for the channel's web master
-	WebMaster string `xml:"channel>webMaster,omitempty"`
-
 	// Optional. Publication date of the channel. See rssgo.ComposeRssDate and
 	// rssgo.ParseRssDate
 	PubDate string `xml:"channel>pubDate,omitempty"`
@@ -43,30 +34,14 @@ type Rss struct {
 	// rssgo.ComposeRssDate and rssgo.ParseRssDate
 	LastBuildDate string `xml:"channel>lastBuildDate,omitempty"`
 
-	// Optional. The hierarchical categorizations.
-	Categories []Category `xml:"channel>category"`
-
-	// Optional. The program used to generate the RSS
-	Generator string `xml:"channel>generator,omitempty"`
-
-	// Optional. The URL for the document describing the RSS format. Should be
-	// the DocsURL constant
-	Docs string `xml:"channel>docs,omitempty"`
-
-	// Optional. A web service that supports the rssCloud interface
-	Cloud *Cloud `xml:"channel>cloud"`
-
 	// Optional. The number of minutes the channel can be cached
-	Ttl int `xml:"channel>ttl,omitempty"`
+	Ttl string `xml:"channel>ttl,omitempty"`
 
 	// Optional. An image that represents the channel.
 	Image *Image `xml:"channel>image"`
 
 	// Optional. The PICS rating for this channel. See http://www.w3.org/PICS/
 	Rating string `xml:"channel>rating,omitempty"`
-
-	// Optional. The channel's text input box
-	TextInput *TextInput `xml:"channel>textInput"`
 
 	// Optional. The hours when aggregators may not read the channel
 	SkipHours *Hours `xml:"channel>skipHours,omitempty"`
@@ -91,9 +66,6 @@ type Item struct {
 
 	// Optional. The authors email address
 	Author string `xml:"author,omitempty"`
-
-	// Optional. The items hierarchical categorizations.
-	Categories []Category `xml:"category"`
 
 	// Optional. The URL for the page containing the items comments.
 	Comments string `xml:"comments,omitempty"`
@@ -155,7 +127,7 @@ type Enclosure struct {
 	Url string `xml:"url,attr"`
 
 	// Required. The enclosures size.
-	Length int64 `xml:"length,attr,omitempty"`
+	Length string `xml:"length,attr,omitempty"`
 
 	// Required. The enclosures MIME type.
 	Type string `xml:"type,attr"`
@@ -170,22 +142,7 @@ type Days struct {
 // An hour when an aggregator may not read the channel
 type Hours struct {
 	// Required. The hour
-	Hours []int `xml:"hour"`
-}
-
-// The Rsa channel's text input box
-type TextInput struct {
-	// Required. The text input's Submit button text
-	Title string `xml:"title,omitempty"`
-
-	// Required. The text input's desxcription.
-	Description string `xml:"description,omitempty"`
-
-	// Required. The text input objects name
-	Name string `xml:"name,omitempty"`
-
-	// Required. The URL of the CGI script that processes the text input request.
-	Link string `xml:"link,omitempty"`
+	Hours []string `xml:"hour"`
 }
 
 // An RSS channel's image
@@ -202,37 +159,10 @@ type Image struct {
 	// Optional. The image width.
 	// Note: If the element is missing from the XML this field will have a value
 	// of 0. The field value should be treated as having a value of DefaultWidth
-	Width int `xml:"width,omitempty"`
+	Width string `xml:"width,omitempty"`
 
 	// Optional. The image height.
 	// Note: If the element is missing from the XML this field will have a value
 	// of 0. The field value should be treated as having a value of DefaultHeight
-	Height int `xml:"height,omitempty"`
-}
-
-// The rssCloud interface parameters
-type Cloud struct {
-	// Required. The rssCloud domain
-	Domain string `xml:"domain,attr"`
-
-	// Required. The rssCloud port 0-65535
-	Port int `xml:"port,attr,omitempty"`
-
-	// Required. The rssCloud path
-	Path string `xml:"path,attr"`
-
-	// Required. The name of the rssCloud register procedure
-	RegisterProcedure string `xml:"registerProcedure,attr"`
-
-	// Required. The protocol. Must be xml-rpc, soap, or http-post
-	Protocol string `xml:"protocol,attr"`
-}
-
-// A hierarchical categorization type
-type Category struct {
-	// Required. A hierarchical categorizations
-	Category string `xml:",chardata"`
-
-	// Optional. The domain URL
-	Domain string `xml:"domain,attr,omitempty"`
+	Height string `xml:"height,omitempty"`
 }
