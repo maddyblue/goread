@@ -220,7 +220,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				se = $('#storydiv' + i);
 				var eTop = se.offset().top;
 				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
-					se[0].scrollIntoView();
+					setTimeout(function() { se[0].scrollIntoView(); });
 				}
 				if (!$scope.noads[story.feed.XmlUrl]) {
 					$scope.adTall = se.width() > 650 + 10 + 160 && !$scope.collapsed;
