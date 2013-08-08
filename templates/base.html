@@ -593,7 +593,7 @@
 					<div ng-show="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
 						<div class="story-content" ng-click="setCurrent($index, true, true)" ng-class="{short: opts.nav}">
 							<div ng-switch on="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
-								<div ng-switch-when="true" class="story-content-switch" ng-class="{tall: opts.nav && adTall}">
+								<div ng-switch-when="true" class="story-content-switch" ng-class="{tall: $index == currentStory && opts.nav && adTall}">
 									<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 									<p><small>
 										from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
@@ -601,7 +601,7 @@
 									</small></p>
 									<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix" dir="auto"></div>
 									{{if .GoogleAdT}}
-									<div class="google-ad-tall" ng-switch on="opts.nav && adTall">
+									<div class="google-ad-tall" ng-switch on="$index == currentStory && opts.nav && adTall">
 										<div ng-switch-when="true">
 											{{.GoogleAdT}}
 										</div>
@@ -614,7 +614,7 @@
 										</div>
 									</div>
 									{{if .GoogleAd}}
-									<div class="google-ad" ng-switch on="adBottom || (!opts.nav && adTall)">
+									<div class="google-ad" ng-switch on="$index == currentStory && (adBottom || (!opts.nav && adTall))">
 										<div ng-switch-when="true">
 											{{.GoogleAd}}
 										</div>
