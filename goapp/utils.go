@@ -482,7 +482,11 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error)
 				Link:   i.Link,
 				Author: i.Creator,
 			}
-			st.content = html.UnescapeString(i.Description)
+			if len(i.Description) > 0 {
+				st.content = html.UnescapeString(i.Description)
+			} else if len(i.Content) > 0 {
+				st.content = html.UnescapeString(i.Content)
+			}
 			if t, err := parseDate(c, &f, i.Date); err == nil {
 				st.Published = t
 				st.Updated = t

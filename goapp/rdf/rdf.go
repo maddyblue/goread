@@ -42,4 +42,5 @@ type Item struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
+	Content     string `xml:"encoded"`
 }
