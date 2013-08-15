@@ -81,6 +81,7 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	backupOPML(c)
 
 	if file, _, err := r.FormFile("file"); err == nil {
 		if fdata, err := ioutil.ReadAll(file); err == nil {
@@ -114,6 +115,7 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	backupOPML(c)
 	cu := user.Current(c)
 	url := r.FormValue("url")
 	o := &OpmlOutline{
@@ -139,6 +141,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
+	backupOPML(c)
 }
 
 func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
@@ -603,29 +606,15 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	backupOPML(c)
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
 	ud := UserData{Id: "data", Parent: gn.Key(&u)}
-	if err := gn.Get(&u); err != nil {
-		serveError(w, err)
-		return
-	}
 	if err := gn.Get(&ud); err != nil {
 		serveError(w, err)
 		c.Errorf("get err: %v", err)
 		return
-	}
-	uo := UserOpml{Id: time.Now().UnixNano(), Parent: gn.Key(&u)}
-	buf := &bytes.Buffer{}
-	if gz, err := gzip.NewWriterLevel(buf, gzip.BestCompression); err == nil {
-		gz.Write([]byte(ud.Opml))
-		gz.Close()
-		uo.Compressed = buf.Bytes()
-	} else {
-		serveError(w, err)
-		c.Errorf("gz err: %v", err)
-		uo.Opml = ud.Opml
 	}
 	if b, err := json.Marshal(&opml); err != nil {
 		saveError(c, fmt.Sprintf("%v", opml), err)
@@ -635,7 +624,29 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		ud.Opml = b
 	}
-	gn.PutMany(&ud, &uo)
+	gn.Put(&ud)
+	backupOPML(c)
+}
+
+func backupOPML(c mpg.Context) {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	ud := UserData{Id: "data", Parent: gn.Key(&u)}
+	if err := gn.Get(&ud); err != nil {
+		return
+	}
+	uo := UserOpml{Id: time.Now().UnixNano(), Parent: gn.Key(&u)}
+	buf := &bytes.Buffer{}
+	if gz, err := gzip.NewWriterLevel(buf, gzip.BestCompression); err == nil {
+		gz.Write([]byte(ud.Opml))
+		gz.Close()
+		uo.Compressed = buf.Bytes()
+	} else {
+		c.Errorf("gz err: %v", err)
+		uo.Opml = ud.Opml
+	}
+	gn.Put(&uo)
 }
 
 func FeedHistory(c mpg.Context, w http.ResponseWriter, r *http.Request) {
