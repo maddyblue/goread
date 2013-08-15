@@ -28,7 +28,6 @@ import (
 
 	"appengine"
 	"appengine/datastore"
-	"appengine/user"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/gorilla/mux"
@@ -46,7 +45,6 @@ func init() {
 		"templates/base.html",
 		"templates/sitemap.html",
 		"templates/sitemap-feed.html",
-		"templates/story.html",
 		"templates/admin-all-feeds.html",
 		"templates/admin-date-formats.html",
 		"templates/admin-feed.html",
@@ -56,7 +54,6 @@ func init() {
 	}
 
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
-	router.Handle("/s/{feed}/{story}", mpg.NewHandler(Main)).Name("main-story")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/push/{feed}", mpg.NewHandler(SubscribeCallback))
@@ -106,43 +103,11 @@ func init() {
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	feed, _ := url.QueryUnescape(vars["feed"])
-	story, _ := url.QueryUnescape(vars["story"])
-	cu := user.Current(c)
-	if len(feed) == 0 || len(story) == 0 || cu != nil {
-		if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
-			c.Errorf("%v", err)
-			serveError(w, err)
-		}
-		return
-	}
-	b, _ := base64.URLEncoding.DecodeString(feed)
-	feed = string(b)
-	b, _ = base64.URLEncoding.DecodeString(story)
-	story = string(b)
-	gn := goon.FromContext(c)
-	f := &Feed{Url: feed}
-	s := &Story{Id: story, Parent: gn.Key(f)}
-	sc := &StoryContent{Id: 1, Parent: gn.Key(s)}
-	if err := gn.GetMulti([]interface{}{f, s, sc}); err != nil {
+	if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
 		c.Errorf("%v", err)
 		serveError(w, err)
-		return
 	}
-	if err := templates.ExecuteTemplate(w, "story.html", struct {
-		Story   *Story
-		Feed    *Feed
-		Content template.HTML
-	}{
-		Story:   s,
-		Feed:    f,
-		Content: template.HTML(sc.content()),
-	}); err != nil {
-		c.Errorf("%v", err)
-		serveError(w, err)
-		return
-	}
+	return
 }
 
 func SitemapXML(c mpg.Context, w http.ResponseWriter, r *http.Request) {
