@@ -96,18 +96,6 @@
 		.story-content-switch {
 			position: relative;
 		}
-		{{if .GoogleAdT}}
-		.story-content-switch.tall {
-			min-height: 600px;
-		}
-		.google-ad-tall {
-			position: absolute;
-			left: 660px;
-			top: 0;
-			width: 160px;
-			height: 600px;
-		}
-		{{end}}
 		.story-footer {
 			background-color: #f5f5f5;
 			padding-left: 7px;
@@ -600,26 +588,12 @@
 										<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 									</small></p>
 									<div ng-bind-html-unsafe="contents[s.guid]" class="clearfix" dir="auto"></div>
-									{{if .GoogleAdT}}
-									<div class="google-ad-tall" ng-switch on="$index == currentStory && opts.nav && adTall">
-										<div ng-switch-when="true">
-											{{.GoogleAdT}}
-										</div>
-									</div>
-									{{end}}
 									<div ng-show="s.MediaContent" ng-switch on="s.MediaContent != undefined">
 										<div ng-switch-when="true">
 											<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
 											<a {{htmlattr `ng-href="{{s.MediaContent}}"`}} target="_blank">Original audio source</a>
 										</div>
 									</div>
-									{{if .GoogleAd}}
-									<div class="google-ad" ng-switch on="$index == currentStory && (adBottom || (!opts.nav && adTall))">
-										<div ng-switch-when="true">
-											{{.GoogleAd}}
-										</div>
-									</div>
-									{{end}}
 								</div>
 							</div>
 						</div>

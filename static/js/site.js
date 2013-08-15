@@ -214,17 +214,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.loadNextPage();
 		}
 		if ($scope.currentStory != i) {
-			$scope.adTall = false;
-			$scope.adBottom = false;
 			$timeout(function() {
 				se = $('#storydiv' + i);
 				var eTop = se.offset().top;
 				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
 					setTimeout(function() { se[0].scrollIntoView(); });
-				}
-				if (!$scope.noads[story.feed.XmlUrl]) {
-					$scope.adTall = se.width() > 650 + 10 + 160 && !$scope.collapsed;
-					$scope.adBottom = !$scope.adTall && !$scope.collapsed;
 				}
 			});
 		}

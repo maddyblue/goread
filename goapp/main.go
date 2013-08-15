@@ -134,12 +134,10 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		Story   *Story
 		Feed    *Feed
 		Content template.HTML
-		Ad      template.HTML
 	}{
 		Story:   s,
 		Feed:    f,
 		Content: template.HTML(sc.content()),
-		Ad:      template.HTML(GOOGLE_AD),
 	}); err != nil {
 		c.Errorf("%v", err)
 		serveError(w, err)
