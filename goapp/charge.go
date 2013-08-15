@@ -184,22 +184,29 @@ func Account(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func Uncheckout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	uc, err := doUncheckout(c)
+	if err != nil {
+		serveError(w, err)
+		return
+	}
+	b, _ := json.Marshal(uc)
+	w.Write(b)
+}
+
+func doUncheckout(c mpg.Context) (*UserCharge, error) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
 	uc := UserCharge{Id: 1, Parent: gn.Key(&u)}
 	if err := gn.Get(&u); err != nil {
-		serveError(w, err)
-		return
+		return nil, err
 	}
 	if err := gn.Get(&uc); err != nil || len(uc.Customer) == 0 {
-		serveError(w, err)
-		return
+		return nil, err
 	}
 	resp, err := stripe(c, "DELETE", "customers/"+uc.Customer, "")
 	if err != nil {
-		serveError(w, err)
-		return
+		return nil, err
 	} else if resp.StatusCode != http.StatusOK {
 		c.Errorf("%s", resp.Body)
 		c.Errorf("stripe delete error, but proceeding")
@@ -215,11 +222,9 @@ func Uncheckout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		_, err := gn.Put(&u)
 		return err
 	}, nil); err != nil {
-		serveError(w, err)
-		return
+		return nil, err
 	}
-	b, _ := json.Marshal(&uc)
-	w.Write(b)
+	return &uc, nil
 }
 
 func stripe(c mpg.Context, method, urlStr, body string) (*http.Response, error) {
