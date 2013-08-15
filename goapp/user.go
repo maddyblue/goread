@@ -167,11 +167,12 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := &User{Id: cu.ID}
 	ud := &UserData{Id: "data", Parent: gn.Key(u)}
 	gn.GetMulti([]interface{}{u, ud})
-	put := false
+	putU := false
+	putUD := false
 	fixRead := false
 	if time.Since(u.Read) > oldDuration {
 		u.Read = time.Now().Add(-oldDuration)
-		put = true
+		putU = true
 		fixRead = true
 	}
 
@@ -313,7 +314,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			last := stories[numStoriesLimit].Created
 			stories = stories[:numStoriesLimit]
 			u.Read = last
-			put = true
+			putU = true
 			fixRead = true
 			fl = make(map[string][]*Story)
 			for _, s := range stories {
@@ -340,7 +341,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			var b bytes.Buffer
 			gob.NewEncoder(&b).Encode(&read)
 			ud.Read = b.Bytes()
-			put = true
+			putUD = true
 		})
 	}
 	for k, v := range fl {
@@ -361,22 +362,27 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		if u.Read.Before(last) {
 			c.Debugf("setting %v read to %v", cu.ID, last)
-			put = true
+			putU = true
+			putUD = true
 			u.Read = last
 			ud.Read = nil
 		}
 	}
 	if updatedLinks {
+		backupOPML(c)
 		if o, err := json.Marshal(&uf); err == nil {
 			ud.Opml = o
-			put = true
+			putUD = true
 		} else {
 			saveError(c, fmt.Sprintf("%v", uf), err)
 			c.Errorf("json UL err: %v, %v", err, uf)
 		}
 	}
-	if put {
-		gn.PutMany(u, ud)
+	if putU {
+		gn.Put(u)
+	}
+	if putUD {
+		gn.Put(ud)
 	}
 	c.Step("json marshal", func() {
 		o := struct {
