@@ -670,7 +670,6 @@ func FeedHistory(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		a, _ := strconv.ParseInt(v, 10, 64)
 		uo := UserOpml{Id: a, Parent: uk}
-		c.Errorf("k: %v", uo)
 		if err := gn.Get(&uo); err != nil {
 			serveError(w, err)
 			return
