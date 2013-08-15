@@ -17,7 +17,6 @@
 package goapp
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -43,8 +42,6 @@ func init() {
 	if templates, err = template.New("").Funcs(funcs).
 		ParseFiles(
 		"templates/base.html",
-		"templates/sitemap.html",
-		"templates/sitemap-feed.html",
 		"templates/admin-all-feeds.html",
 		"templates/admin-date-formats.html",
 		"templates/admin-feed.html",
@@ -91,9 +88,6 @@ func init() {
 	router.Handle("/user/donate", mpg.NewHandler(Donate)).Name("donate")
 	router.Handle("/user/account", mpg.NewHandler(Account)).Name("account")
 	router.Handle("/user/uncheckout", mpg.NewHandler(Uncheckout)).Name("uncheckout")
-	router.Handle("/sitemap.xml", mpg.NewHandler(SitemapXML))
-	router.Handle("/sitemap", mpg.NewHandler(Sitemap)).Name("sitemap")
-	router.Handle("/sitemap/{feed}", mpg.NewHandler(SitemapFeed)).Name("sitemap-feed")
 
 	http.Handle("/", router)
 
@@ -108,110 +102,6 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 	}
 	return
-}
-
-func SitemapXML(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-	<url>
-		<loc>http://%v/sitemap</loc>
-		<changefreq>hourly</changefreq>
-	</url>
-</urlset>
-`, r.Host)
-}
-
-const Limit = 1000
-
-func Sitemap(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly()
-	q = q.Limit(Limit)
-	cs := r.FormValue("c")
-	if len(cs) > 0 {
-		if cur, err := datastore.DecodeCursor(cs); err == nil {
-			q = q.Start(cur)
-		}
-	}
-	var keys []*datastore.Key
-	it := q.Run(c)
-	for {
-		k, err := it.Next(nil)
-		if err == datastore.Done {
-			break
-		} else if err != nil {
-			c.Errorf("next error: %v", err)
-			break
-		}
-		keys = append(keys, k)
-	}
-	cs = ""
-	if len(keys) == Limit {
-		if cur, err := it.Cursor(); err == nil {
-			cs = cur.String()
-		}
-	}
-	if err := templates.ExecuteTemplate(w, "sitemap.html", struct {
-		Keys   []*datastore.Key
-		Cursor string
-	}{
-		Keys:   keys,
-		Cursor: cs,
-	}); err != nil {
-		c.Errorf("%v", err)
-		serveError(w, err)
-		return
-	}
-}
-
-func SitemapFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	feed := vars["feed"]
-	fk, err := datastore.DecodeKey(feed)
-	if err != nil {
-		serveError(w, err)
-		return
-	}
-	bf := base64.URLEncoding.EncodeToString([]byte(fk.StringID()))
-	q := datastore.NewQuery("S").KeysOnly().Ancestor(fk)
-	q = q.Limit(Limit)
-	cs := r.FormValue("c")
-	if len(cs) > 0 {
-		if cur, err := datastore.DecodeCursor(cs); err == nil {
-			q = q.Start(cur)
-		}
-	}
-	stories := make(map[string]string)
-	it := q.Run(c)
-	for {
-		k, err := it.Next(nil)
-		if err == datastore.Done {
-			break
-		} else if err != nil {
-			c.Errorf("next error: %v", err)
-			break
-		}
-		stories[k.StringID()] = base64.URLEncoding.EncodeToString([]byte(k.StringID()))
-	}
-	cs = ""
-	if len(stories) == Limit {
-		if cur, err := it.Cursor(); err == nil {
-			cs = cur.String()
-		}
-	}
-	if err := templates.ExecuteTemplate(w, "sitemap-feed.html", struct {
-		Feed, Feed64 string
-		Stories      map[string]string
-		Cursor       string
-	}{
-		Feed:    feed,
-		Feed64:  bf,
-		Stories: stories,
-		Cursor:  cs,
-	}); err != nil {
-		c.Errorf("%v", err)
-		serveError(w, err)
-		return
-	}
 }
 
 func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
