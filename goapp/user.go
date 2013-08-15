@@ -336,7 +336,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			c.Infof("fix read: %v -> %v", len(read), len(nread))
 			read = nread
 			var b bytes.Buffer
 			gob.NewEncoder(&b).Encode(&read)
