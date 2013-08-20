@@ -19,6 +19,7 @@ package goapp
 import (
 	"html/template"
 	"reflect"
+	"time"
 )
 
 // eq reports whether the first argument is equal to
@@ -58,8 +59,13 @@ func htmlattr(s string) template.HTMLAttr {
 	return template.HTMLAttr(s)
 }
 
+func since(t time.Time) time.Duration {
+	return time.Since(t)
+}
+
 var funcs = template.FuncMap{
 	"eq":       eq,
 	"htmlattr": htmlattr,
 	"url":      routeUrl,
+	"since":    since,
 }

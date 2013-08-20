@@ -3,27 +3,25 @@
 
 <a href="{{url "admin-update-feed"}}?f={{.Feed.Url}}">update</a>
 
-<p>feed:
-<ul style="text-align: right;">
-	<li>url: {{.Feed.Url}}</li>
-	<li>img: {{.Feed.Image}}</li>
-	<li>img: <img src="{{.Feed.Image}}"></li>
-	<li>title: {{.Feed.Title}}</li>
-	<li>now: {{.Now}}</li>
-	<li>updated: {{.Feed.Updated}}</li>
-	<li>date: {{.Feed.Date}}</li>
-	<li>checked: {{.Feed.Checked}}</li>
-	<li>next: {{.Feed.NextUpdate}}</li>
-	<li>subscribed: {{.Feed.Subscribed}}</li>
-	<li>last view: {{.Feed.LastViewed}}</li>
-	<li>average: {{.Feed.Average}}</li>
-	<li>no ads: {{.Feed.NoAds}}</li>
-	<li>link: {{.Feed.Link}}</li>
-	<li>errors: {{.Feed.Errors}}</li>
-	<li><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></li>
-	<li><a href="?f={{.Feed.Url}}&noads=1">toggle no ads</a></li>
-</ul>
-
+<table>
+	<tr><td>url</td><td>{{.Feed.Url}}</td></tr>
+	<tr><td>img</td><td>{{.Feed.Image}}</td></tr>
+	<tr><td>img</td><td><img src="{{.Feed.Image}}"></td></tr>
+	<tr><td>title</td><td>{{.Feed.Title}}</td></tr>
+	<tr><td>now</td><td>{{.Now}}</td></tr>
+	<tr><td>updated</td><td>{{.Feed.Updated}}</td><td>{{since .Feed.Updated}}</td></tr>
+	<tr><td>date</td><td>{{.Feed.Date}}</td><td>{{since .Feed.Date}}</td></tr>
+	<tr><td>checked</td><td>{{.Feed.Checked}}</td><td>{{since .Feed.Checked}}</td></tr>
+	<tr><td>next</td><td>{{.Feed.NextUpdate}}</td><td>{{since .Feed.NextUpdate}}</td></tr>
+	<tr><td>subscribed</td><td>{{.Feed.Subscribed}}</td><td>{{since .Feed.Subscribed}}</td></tr>
+	<tr><td>last view</td><td>{{.Feed.LastViewed}}</td><td>{{since .Feed.LastViewed}}</td></tr>
+	<tr><td>average</td><td>{{.Feed.Average}}</td></tr>
+	<tr><td>no ads</td><td>{{.Feed.NoAds}}</td></tr>
+	<tr><td>link</td><td>{{.Feed.Link}}</td></tr>
+	<tr><td>errors</td><td>{{.Feed.Errors}}</td></tr>
+	<tr><td><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></td></tr>
+	<tr><td><a href="?f={{.Feed.Url}}&noads=1">toggle no ads</a></td></tr>
+</table>
 
 stories:
 <ul>
