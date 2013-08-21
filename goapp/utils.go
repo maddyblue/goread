@@ -597,7 +597,6 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 		const snipLen = 100
 		s.content, s.Summary = sanitizer.Sanitize(s.content, su)
 		s.Summary = sanitizer.SnipText(s.Summary, snipLen)
-		s.Title = html.UnescapeString(sanitizer.StripTags(s.Title))
 		nss = append(nss, s)
 	}
 
