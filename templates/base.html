@@ -115,7 +115,7 @@
 			left: 245px;
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
-			top: 40px;
+			top: 50px;
 			bottom: 0;
 			right: 0;
 		}
@@ -129,7 +129,7 @@
 			position: absolute;
 			font-size: 13px;
 			width: 220px;
-			top: 40px;
+			top: 50px;
 			bottom: 0;
 			overflow: hidden;
 			left: 20px;
@@ -647,23 +647,25 @@
 		<div class="row top-margin" ng-show="shown == 'add-subscription' || nothing()">
 			<div class="col-md-offset-2 col-md-8">
 				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
-					<fieldset>
-						<legend>Feed URL</legend>
-						<input type="text" class="col-md-12" ng-model="addFeedUrl">
-						<p><button ng-click="addSubscription($event)" data-loading-text="importing.." class="btn">import</button></p>
-					</fieldset>
+					<legend>Feed URL</legend>
+					<div class="form-group">
+						<input type="text" class="form-control" ng-model="addFeedUrl">
+					</div>
+					<button ng-click="addSubscription($event)" data-loading-text="importing.." class="btn btn-default">import</button>
 				</form>
 			</div>
 		</div>
 
+		<div class="row" ng-show="nothing()"><p></p></div>
+
 		<div class="row top-margin" ng-show="shown == 'import-opml' || nothing()">
 			<div class="col-md-offset-2 col-md-8">
 				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
-					<fieldset>
-						<legend>Upload OPML file</legend>
+					<legend>Upload OPML file</legend>
+					<div class="form-group">
 						<input type="file" name="file">
-						<p><button ng-click="importOpml()" type="submit" class="btn">upload</button></p>
-					</fieldset>
+					</div>
+					<button ng-click="importOpml()" type="submit" class="btn btn-default">upload</button>
 				</form>
 			</div>
 		</div>
