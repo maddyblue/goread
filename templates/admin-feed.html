@@ -8,6 +8,11 @@
 	<tr><td>img</td><td>{{.Feed.Image}}</td></tr>
 	<tr><td>img</td><td><img src="{{.Feed.Image}}"></td></tr>
 	<tr><td>title</td><td>{{.Feed.Title}}</td></tr>
+	<tr><td>no ads</td><td>{{.Feed.NoAds}}</td></tr>
+	<tr><td>link</td><td>{{.Feed.Link}}</td></tr>
+	<tr><td>errors</td><td>{{.Feed.Errors}}</td></tr>
+</table>
+<table>
 	<tr><td>now</td><td>{{.Now}}</td></tr>
 	<tr><td>updated</td><td>{{.Feed.Updated}}</td><td>{{since .Feed.Updated}}</td></tr>
 	<tr><td>date</td><td>{{.Feed.Date}}</td><td>{{since .Feed.Date}}</td></tr>
@@ -16,9 +21,6 @@
 	<tr><td>subscribed</td><td>{{.Feed.Subscribed}}</td><td>{{since .Feed.Subscribed}}</td></tr>
 	<tr><td>last view</td><td>{{.Feed.LastViewed}}</td><td>{{since .Feed.LastViewed}}</td></tr>
 	<tr><td>average</td><td>{{.Feed.Average}}</td></tr>
-	<tr><td>no ads</td><td>{{.Feed.NoAds}}</td></tr>
-	<tr><td>link</td><td>{{.Feed.Link}}</td></tr>
-	<tr><td>errors</td><td>{{.Feed.Errors}}</td></tr>
 	<tr><td><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></td></tr>
 	<tr><td><a href="?f={{.Feed.Url}}&noads=1">toggle no ads</a></td></tr>
 </table>
