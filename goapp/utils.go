@@ -65,6 +65,7 @@ type Includes struct {
 	Messages            []string
 	GoogleAnalyticsId   string
 	GoogleAnalyticsHost string
+	SubURL              string
 	IsDev               bool
 	IsAdmin             bool
 	StripeKey           string
@@ -80,6 +81,7 @@ var (
 	JqueryUI     string
 	Underscore   string
 	isDevServer  bool
+	subURL       string
 )
 
 func init() {
@@ -108,6 +110,15 @@ func init() {
 		JqueryUI = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jqueryui/%v/jquery-ui.min.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
 	}
+	if len(PUBSUBHUBBUB_HOST) > 0 {
+		u := url.URL{
+			Scheme:   "http",
+			Host:     PUBSUBHUBBUB_HOST,
+			Path:     routeUrl("add-subscription"),
+			RawQuery: url.Values{"url": {"{url}"}}.Encode(),
+		}
+		subURL = u.String()
+	}
 }
 
 func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
@@ -122,6 +133,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		MiniProfiler:        c.Includes(r),
 		GoogleAnalyticsId:   GOOGLE_ANALYTICS_ID,
 		GoogleAnalyticsHost: GOOGLE_ANALYTICS_HOST,
+		SubURL:              subURL,
 		IsDev:               isDevServer,
 		StripeKey:           STRIPE_KEY,
 		StripePlans:         STRIPE_PLANS,

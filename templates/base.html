@@ -824,5 +824,9 @@
 			});
 		</script>
 	{{end}}
+
+	{{if .SubURL}}
+	<iframe style="display:none;" src='https://www.subtome.com/register.html?name=go read&url={{.SubURL}}' />
+	{{end}}
 </body>
 </html>
