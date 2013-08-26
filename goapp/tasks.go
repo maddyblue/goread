@@ -225,25 +225,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(1000)
-	cs := r.FormValue("c")
-	hasCursor := false
-	if len(cs) > 0 {
-		if cur, err := datastore.DecodeCursor(cs); err == nil {
-			q = q.Start(cur)
-			hasCursor = true
-			c.Infof("starting at %v", cur)
-		} else {
-			c.Errorf("cursor error %v", err.Error())
-		}
-	}
-	if !hasCursor && !isDevServer {
-		qs, err := taskqueue.QueueStats(c, []string{"update-feed"}, 0)
-		if err != nil || qs[0].Tasks > 0 || qs[0].Executed1Minute > 0 {
-			c.Infof("already %v (%v) tasks", qs[0].Tasks, qs[0].Executed1Minute)
-			return
-		}
-	}
+	q = q.Limit(10 * 60 * 20) // 10/s queue, 20 min cron
 	var keys []*datastore.Key
 	it := q.Run(appengine.Timeout(c, time.Second*60))
 	for {
@@ -260,8 +242,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if len(keys) == 0 {
 		c.Errorf("no results")
 		return
-	} else {
-
 	}
 	c.Infof("updating %d feeds", len(keys))
 
@@ -269,15 +249,6 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	for _, k := range keys {
 		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
 			"feed": {k.StringID()},
-		}))
-	}
-	cur, err := it.Cursor()
-	if err != nil {
-		c.Errorf("to cur error %v", err.Error())
-	} else {
-		c.Infof("add with cur %v", cur)
-		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feeds"), url.Values{
-			"c": {cur.String()},
 		}))
 	}
 	var ts []*taskqueue.Task
@@ -377,7 +348,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	}
 
 	if hasUpdated && isFeedUpdated && !updateAll && !fromSub {
-		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
+		c.Errorf("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
 		scheduleNextUpdate(&f)
 		gn.Put(&f)
