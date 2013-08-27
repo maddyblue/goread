@@ -741,7 +741,7 @@ func taskSender(c mpg.Context, queue string, tc chan *taskqueue.Task, done chan 
 	const taskLimit = 100
 	tasks := make([]*taskqueue.Task, 0, taskLimit)
 	send := func() {
-		taskqueue.AddMulti(c, tasks, "update-manual")
+		taskqueue.AddMulti(c, tasks, queue)
 		c.Infof("added %v tasks", len(tasks))
 		tasks = tasks[0:0]
 	}
