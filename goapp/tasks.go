@@ -226,8 +226,12 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
 	q = q.Limit(10 * 60 * 20) // 10/s queue, 20 min cron
-	var keys []*datastore.Key
 	it := q.Run(appengine.Timeout(c, time.Second*60))
+	tc := make(chan *taskqueue.Task)
+	done := make(chan bool)
+	i := 0
+	u := routeUrl("update-feed")
+	go taskSender(c, "update-feed", tc, done)
 	for {
 		k, err := it.Next(nil)
 		if err == datastore.Done {
@@ -236,35 +240,14 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("next error: %v", err.Error())
 			break
 		}
-		keys = append(keys, k)
-	}
-
-	if len(keys) == 0 {
-		c.Errorf("no results")
-		return
-	}
-	c.Infof("updating %d feeds", len(keys))
-
-	var tasks []*taskqueue.Task
-	for _, k := range keys {
-		tasks = append(tasks, taskqueue.NewPOSTTask(routeUrl("update-feed"), url.Values{
+		tc <- taskqueue.NewPOSTTask(u, url.Values{
 			"feed": {k.StringID()},
-		}))
+		})
+		i++
 	}
-	var ts []*taskqueue.Task
-	const taskLimit = 100
-	for len(tasks) > 0 {
-		if len(tasks) > taskLimit {
-			ts = tasks[:taskLimit]
-			tasks = tasks[taskLimit:]
-		} else {
-			ts = tasks
-			tasks = tasks[0:0]
-		}
-		if _, err := taskqueue.AddMulti(c, ts, "update-feed"); err != nil {
-			c.Errorf("taskqueue error: %v", err.Error())
-		}
-	}
+	close(tc)
+	<-done
+	c.Infof("updating %d feeds", i)
 }
 
 func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error) {

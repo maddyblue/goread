@@ -36,6 +36,7 @@ import (
 	"appengine"
 	"appengine/blobstore"
 	aimage "appengine/image"
+	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"appengine/user"
 	"code.google.com/p/go-charset/charset"
@@ -734,4 +735,24 @@ func scheduleNextUpdate(f *Feed) {
 		pause -= jitter
 	}
 	f.NextUpdate = time.Now().Add(pause)
+}
+
+func taskSender(c mpg.Context, queue string, tc chan *taskqueue.Task, done chan bool) {
+	const taskLimit = 100
+	tasks := make([]*taskqueue.Task, 0, taskLimit)
+	send := func() {
+		taskqueue.AddMulti(c, tasks, "update-manual")
+		c.Infof("added %v tasks", len(tasks))
+		tasks = tasks[0:0]
+	}
+	for t := range tc {
+		tasks = append(tasks, t)
+		if len(tasks) == taskLimit {
+			send()
+		}
+	}
+	if len(tasks) > 0 {
+		send()
+	}
+	done <- true
 }
