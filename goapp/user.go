@@ -212,6 +212,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Step("feed fetch + wait", func() {
 		queue := make(chan *Feed)
 		tc := make(chan *taskqueue.Task)
+		done := make(chan bool)
 		wg := sync.WaitGroup{}
 		feedProc := func() {
 			for f := range queue {
@@ -269,22 +270,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				lock.Unlock()
 			}
 		}
-		go func() {
-			var tasks []*taskqueue.Task
-			for t := range tc {
-				tasks = append(tasks, t)
-				if len(tasks) == 100 {
-					taskqueue.AddMulti(c, tasks, "update-manual")
-					c.Infof("added %v tasks", len(tasks))
-					tasks = tasks[0:0]
-				}
-			}
-			if len(tasks) > 0 {
-				taskqueue.AddMulti(c, tasks, "update-manual")
-				c.Infof("added %v tasks", len(tasks))
-			}
-			wg.Done()
-		}()
+		go taskSender(c, "update-manual", tc, done)
 		for i := 0; i < 20; i++ {
 			go feedProc()
 		}
@@ -298,10 +284,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		close(queue)
 		// wait for feeds to complete so there are no more tasks to queue
 		wg.Wait()
-		wg.Add(1)
 		// then finish enqueuing tasks
 		close(tc)
-		wg.Wait()
+		<-done
 	})
 	if numStories > numStoriesLimit {
 		c.Step("numStories", func() {
