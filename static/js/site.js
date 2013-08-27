@@ -761,7 +761,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.applyGetFeed();
 		$scope.scrollRead();
 		$scope.$apply(function() {
-			$scope.collapsed = $(window).width() <= 979;
+			$scope.collapsed = $(window).width() < 768;
 			$scope.checkLoadNextPage();
 		});
 	}, 300);
