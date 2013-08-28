@@ -225,7 +225,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(10 * 60 * 20) // 10/s queue, 20 min cron
+	q = q.Limit(10 * 60 * 2) // 10/s queue, 2 min cron
 	it := q.Run(appengine.Timeout(c, time.Second*60))
 	tc := make(chan *taskqueue.Task)
 	done := make(chan bool)
