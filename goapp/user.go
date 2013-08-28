@@ -166,7 +166,10 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	u := &User{Id: cu.ID}
 	ud := &UserData{Id: "data", Parent: gn.Key(u)}
-	gn.GetMulti([]interface{}{u, ud})
+	if err := gn.GetMulti([]interface{}{u, ud}); err != nil && !goon.NotFound(err, 1) {
+		serveError(w, err)
+		return
+	}
 	putU := false
 	putUD := false
 	fixRead := false
@@ -422,7 +425,9 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Id:     "data",
 			Parent: gn.Key(u),
 		}
-		gn.Get(ud)
+		if err := gn.Get(ud); err != nil {
+			return err
+		}
 		gob.NewDecoder(bytes.NewReader(ud.Read)).Decode(&read)
 		for _, s := range stories {
 			read[s] = true
@@ -468,7 +473,9 @@ func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := &UserData{Id: "data", Parent: gn.Key(u)}
 	last := r.FormValue("last")
 	gn.RunInTransaction(func(gn *goon.Goon) error {
-		gn.GetMulti([]interface{}{u, ud})
+		if err := gn.GetMulti([]interface{}{u, ud}); err != nil {
+			return err
+		}
 		if ilast, err := strconv.ParseInt(last, 10, 64); err == nil && ilast > 0 && false {
 			u.Read = time.Unix(ilast/1000, 0)
 		} else {
