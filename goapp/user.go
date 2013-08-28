@@ -247,6 +247,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					gn.GetMulti(stories)
 				}
 				if f.Link != opmlMap[f.Url].HtmlUrl {
+					l.Text += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
 					updatedLinks = true
 					opmlMap[f.Url].HtmlUrl = f.Link
 				}
