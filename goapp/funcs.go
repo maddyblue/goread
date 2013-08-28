@@ -63,9 +63,14 @@ func since(t time.Time) time.Duration {
 	return time.Since(t)
 }
 
+func nanotime(i int64) time.Time {
+	return time.Unix(0, i)
+}
+
 var funcs = template.FuncMap{
 	"eq":       eq,
 	"htmlattr": htmlattr,
+	"nanotime": nanotime,
 	"url":      routeUrl,
 	"since":    since,
 }

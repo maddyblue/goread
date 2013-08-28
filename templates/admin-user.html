@@ -1,0 +1,22 @@
+<html>
+<body>
+{{if .Error}}
+	{{.Error}}
+{{else}}
+<table>
+	<tr><td>id</td><td>{{.User.Id}}</td></tr>
+	<tr><td>email</td><td>{{.User.Email}}</td></tr>
+	<tr><td>read</td><td>{{.User.Read}}</td></tr>
+	<tr><td>account</td><td>{{.User.Account}}</td></tr>
+</table>
+<table>
+{{range .Log}}
+	<tr>
+		<td>{{nanotime .Id}}</td>
+		<td>{{.Text}}</td>
+	</tr>
+{{end}}
+</table>
+{{end}}
+</body>
+</html>

@@ -46,6 +46,7 @@ func init() {
 		"templates/admin-date-formats.html",
 		"templates/admin-feed.html",
 		"templates/admin-stats.html",
+		"templates/admin-user.html",
 	); err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +79,7 @@ func init() {
 
 	router.Handle("/admin/all-feeds", mpg.NewHandler(AllFeeds)).Name("all-feeds")
 	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
+	router.Handle("/admin/user", mpg.NewHandler(AdminUser)).Name("admin-user")
 	router.Handle("/date-formats", mpg.NewHandler(AdminDateFormats)).Name("admin-date-formats")
 	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
 	router.Handle("/admin/stats", mpg.NewHandler(AdminStats)).Name("admin-stats")

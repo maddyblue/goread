@@ -137,7 +137,11 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	gn.Put(&ud)
+	gn.PutMany(&ud, &Log{
+		Parent: ud.Parent,
+		Id:     time.Now().UnixNano(),
+		Text:   fmt.Sprintf("add sub: %v", url),
+	})
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
@@ -170,6 +174,12 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	l := &Log{
+		Parent: ud.Parent,
+		Id: time.Now().UnixNano(),
+		Text: "list feeds",
+	}
+	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
 	putU := false
 	putUD := false
 	fixRead := false
@@ -177,6 +187,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		u.Read = time.Now().Add(-oldDuration)
 		putU = true
 		fixRead = true
+		l.Text += ", u.Read"
 	}
 
 	read := make(Read)
@@ -304,6 +315,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			u.Read = last
 			putU = true
 			fixRead = true
+			l.Text += ", numStories"
 			fl = make(map[string][]*Story)
 			for _, s := range stories {
 				fk := s.Parent.StringID()
@@ -329,6 +341,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			gob.NewEncoder(&b).Encode(&read)
 			ud.Read = b.Bytes()
 			putUD = true
+			l.Text += ", fix read"
 		})
 	}
 	for k, v := range fl {
@@ -353,6 +366,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			putUD = true
 			u.Read = last
 			ud.Read = nil
+			l.Text += ", read last"
 		}
 	}
 	if updatedLinks {
@@ -360,6 +374,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if o, err := json.Marshal(&uf); err == nil {
 			ud.Opml = o
 			putUD = true
+			l.Text += ", update links"
 		} else {
 			saveError(c, fmt.Sprintf("%v", uf), err)
 			c.Errorf("json UL err: %v, %v", err, uf)
@@ -367,10 +382,14 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if putU {
 		gn.Put(u)
+		l.Text += ", putU"
 	}
 	if putUD {
 		gn.Put(ud)
+		l.Text += ", putUD"
 	}
+	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
+	gn.Put(l)
 	c.Step("json marshal", func() {
 		o := struct {
 			Opml    []*OpmlOutline
@@ -556,6 +575,7 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		&Story{},
 		&StoryContent{},
 		&DateFormat{},
+		&Log{},
 		&UserOpml{},
 	}
 	for _, i := range types {
@@ -626,10 +646,18 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		c.Errorf("json err: %v", err)
 		return
 	} else {
+		l := Log{
+			Parent: ud.Parent,
+			Id:     time.Now().UnixNano(),
+			Text:   fmt.Sprintf("upload opml: %v -> %v", len(ud.Opml), len(b)),
+		}
 		ud.Opml = b
+		if _, err := gn.PutMany(&ud, &l); err != nil {
+			serveError(w, err)
+			return
+		}
+		backupOPML(c)
 	}
-	gn.Put(&ud)
-	backupOPML(c)
 }
 
 func backupOPML(c mpg.Context) {
@@ -692,7 +720,11 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		u.Options = r.FormValue("options")
-		_, err := gn.Put(&u)
+		_, err := gn.PutMany(&u, &Log{
+			Parent: gn.Key(&u),
+			Id:     time.Now().UnixNano(),
+			Text:   fmt.Sprintf("save options: %v", len(u.Options)),
+		})
 		return err
 	}, nil)
 }

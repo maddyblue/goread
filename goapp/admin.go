@@ -132,3 +132,28 @@ func AdminStats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		uc,
 	})
 }
+
+func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	q := datastore.NewQuery(gn.Key(&User{}).Kind()).Limit(1)
+	q = q.Filter("e =", r.FormValue("u"))
+	it := gn.Run(q)
+	var u User
+	var h []Log
+	k, err := it.Next(&u)
+	if err == nil {
+		q = datastore.NewQuery(gn.Key(&Log{}).Kind()).Ancestor(k)
+		_, err = gn.GetAll(q, &h)
+	}
+	if err := templates.ExecuteTemplate(w, "admin-user.html", struct {
+		User  User
+		Log   []Log
+		Error error
+	}{
+		u,
+		h,
+		err,
+	}); err != nil {
+		serveError(w, err)
+	}
+}

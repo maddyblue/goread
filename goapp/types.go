@@ -32,7 +32,7 @@ import (
 type User struct {
 	_kind    string    `goon:"kind,U"`
 	Id       string    `datastore:"-" goon:"id"`
-	Email    string    `datastore:"e,noindex"`
+	Email    string    `datastore:"e"`
 	Messages []string  `datastore:"m,noindex"`
 	Read     time.Time `datastore:"r,noindex"`
 	Options  string    `datastore:"o,noindex"`
@@ -219,4 +219,11 @@ type Error struct {
 	User  string    `datastore:"u,noindex"`
 	Text  string    `datastore:"t,noindex"`
 	Desc  string    `datastore:"d,noindex"`
+}
+
+type Log struct {
+	_kind  string         `goon:"kind,L"`
+	Id     int64          `datastore:"-" goon:"id"`
+	Parent *datastore.Key `datastore:"-" goon:"parent"`
+	Text   string         `datastore:"t,noindex"`
 }
