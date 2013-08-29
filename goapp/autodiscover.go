@@ -29,8 +29,6 @@ var ErrNoRssLink = errors.New("No rss link found")
 func Autodiscover(b []byte) (string, error) {
 	r := bytes.NewReader(b)
 	z := html.NewTokenizer(r)
-	inHtml := false
-	inHead := false
 	for {
 		if z.Next() == html.ErrorToken {
 			if err := z.Err(); err == io.EOF {
@@ -41,12 +39,8 @@ func Autodiscover(b []byte) (string, error) {
 		}
 		t := z.Token()
 		switch t.DataAtom {
-		case atom.Html:
-			inHtml = !inHtml
-		case atom.Head:
-			inHead = !inHead
 		case atom.Link:
-			if inHead && inHtml && (t.Type == html.StartTagToken || t.Type == html.SelfClosingTagToken) {
+			if t.Type == html.StartTagToken || t.Type == html.SelfClosingTagToken {
 				attrs := make(map[string]string)
 				for _, a := range t.Attr {
 					attrs[a.Key] = a.Val
@@ -58,6 +52,5 @@ func Autodiscover(b []byte) (string, error) {
 			}
 		}
 	}
-
 	return "", ErrNoRssLink
 }
