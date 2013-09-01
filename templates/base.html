@@ -16,9 +16,12 @@
 			cursor: hand;
 			cursor: pointer;
 		}
+		label.normal {
+			font-weight: normal;
+		}
 		#nav-right {
 			position: absolute;
-			right: 0;
+			right: 15px;
 			left: auto;
 		}
 		.nav li .btn-sm i {
@@ -103,9 +106,6 @@
 			color: #333;
 			text-decoration: none;
 		}
-		.form-list-inline {
-			display:list-inline-block;
-		}
 		.active-name {
 			font-weight: bold;
 			padding: 10px 0;
@@ -153,7 +153,7 @@
 			padding: 5px 0;
 		}
 		.top-margin {
-			//margin-top: 20px;
+			margin-top: 20px;
 		}
 		a.navbar-brand {
 			background-image: url("/static/icon.png");
@@ -171,33 +171,20 @@
 		#feed-list::-webkit-scrollbar { width: 8px; }
 		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
 		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
-		@media (max-width: 979px) {
+		@media (max-width: 768px) {
 			body {
-				padding-top: 0;
-			}
-			body, .story-header, .story-content, .btn {
-				font-size: 14px;
+				padding-top: 50px;
 			}
 			#nav-right {
-				position: relative;
-				left: 0;
+				position: static;
+				left: auto;
 				right: auto;
-			}
-			a.navbar-brand {
-				background-position: 0px 7px;
-				padding-left: 34px !important;
-				margin-left: -4px !important;
-			}
-			.navbar-fixed-top {
-				margin-bottom: 0;
 			}
 			#feed-list {
 				display: none;
 			}
 			#story-list {
 				position: static;
-				margin-left: -19px;
-				margin-right: -19px;
 			}
 			.story-header {
 				padding: 0;
@@ -245,7 +232,7 @@
 						data-url-read="{{url "mark-read"}}"
 						data-url-unread="{{url "mark-unread"}}"
 						data-url-contents="{{url "get-contents"}}"
-						>mark all as read</button>
+						>mark all read</button>
 					<button
 						id="refresh"
 						class="btn btn-default navbar-btn btn-sm"
@@ -257,15 +244,20 @@
 						<button class="btn btn-default navbar-btn btn-sm" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
 					</div>
 					<div class="btn-group">
-						<button class="btn btn-default navbar-btn btn-sm" ng-click="toggleExpanded()" ng-disabled="opts.expanded"><i class="icon-th-list"></i></button>
-						<button class="btn btn-default navbar-btn btn-sm" ng-click="toggleExpanded()" ng-disabled="!opts.expanded"><i class="icon-align-justify"></i></button>
-					</div>
-					<div class="btn-group">
 						<a href="#" class="btn btn-default navbar-btn btn-sm dropdown-toggle" data-toggle="dropdown">
 							view
 							<b class="caret"></b>
 						</a>
 						<ul class="dropdown-menu">
+							<li><a href="#" ng-click="toggleExpanded()">
+								expanded view
+								<i class="icon-ok" ng-show="opts.expanded"></i>
+							</a></li>
+							<li><a href="#" ng-click="toggleExpanded()">
+								list view
+								<i class="icon-ok" ng-show="!opts.expanded"></i>
+							</a></li>
+							<li class="divider"></li>
 							<li><a href="#" ng-click="setSort('newest')">
 								sort by newest
 								<i class="icon-ok" ng-show="opts.sort != 'oldest'"></i>
@@ -290,7 +282,7 @@
 				<li><a ng-show="loading" style="position: absolute">loading...</a></li>
 			{{end}}
 			</ul>
-			<ul class="nav navbar-nav navbar-right" id="REMOVEnav-right">
+			<ul class="nav navbar-nav navbar-right" id="nav-right">
 			{{if .User}}
 				<li class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -322,7 +314,7 @@
 	<div class="container">
 		{{if and .User .StripeKey}}
 		<div
-			class="row top-margin"
+			class="row"
 			ng-show="shown == 'account'"
 			id="account"
 			data-url-charge="{{url "charge"}}"
@@ -374,24 +366,6 @@
 					<button class="btn" ng-click="unCheckout()" data-loading-text="Working..." id="uncheckoutButton">Unsubscribe</button>
 				</div>
 				<div>
-					<h3>Donation</h3>
-					<p>Want to spend more than $3?</p>
-						<form class="form-list-inline">
-						<div class="input-prepend input-append">
-							<span class="add-on">$</span>
-							<input type="number" class="input-sm" ng-model="donateAmount" min="2" ng-init="donateAmount = 5">
-						</div>
-						<button
-							class="btn btn-success"
-							ng-click="donate()"
-							id="donateButton"
-							data-loading-text="Working..."
-							>Donate
-						</button>
-						</form>
-					<p>Some features have unavoidable costs, and won't be implemented until they are sustainable. For example, HTTPS requires purchase of certificates and other costs. Donations help fund these features faster. Donations do not mark your account as a subscriber - they are just a way to donate.</p>
-				</div>
-				<div>
 					<h3>Support</h3>
 					<p>Email <a href="mailto:support@goread.io">support@goread.io</a></p>
 					<p>Tweet <a href="http://twitter.com/goreadrss">@GoReadRss</a>
@@ -399,8 +373,8 @@
 			</div>
 		</div>
 		{{end}}
-		<div class="row top-margin" ng-show="shown == 'about'">
-			<div class="col-md-offset-3 col-md-6">
+		<div class="row" ng-show="shown == 'about'">
+			<div class="col-md-offset-1 col-md-10">
 				<h1>About</h1>
 				<p>Go Read is a web-based RSS reader.</p>
 				<p>It is designed to be as useful as Google Reader.</p>
@@ -435,7 +409,101 @@
 		</div>
 
 		{{if .User}}
-		<div class="row" ng-init="refresh()">
+		<div ng-show="nothing()" class="row top-margin">
+			<div class="col-md-offset-2 col-md-8">
+				<p>You don't have any feeds.</p>
+				<p>Add some, or upload an OPML file.</p>
+			</div>
+		</div>
+
+		<div class="row top-margin" ng-show="shown == 'add-subscription' || nothing()">
+			<div class="col-md-offset-2 col-md-8">
+				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
+					<legend>Feed URL</legend>
+					<div class="form-group">
+						<input type="text" class="form-control" ng-model="addFeedUrl">
+					</div>
+					<button ng-click="addSubscription($event)" data-loading-text="importing.." class="btn btn-default">import</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="row" ng-show="nothing()"><p></p></div>
+
+		<div class="row top-margin" ng-show="shown == 'import-opml' || nothing()">
+			<div class="col-md-offset-2 col-md-8">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
+					<legend>Upload OPML file</legend>
+					<div class="form-group">
+						<input type="file" name="file">
+					</div>
+					<button ng-click="importOpml()" type="submit" class="btn btn-default">upload</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="row" ng-show="shown == 'feed-history'">
+			<div class="col-md-offset-2 col-md-8">
+				<h1>Feed History</h1>
+				<ul class="list-unstyled">
+					<li ng-repeat="h in feedHistory">
+						<a ng-href="{{url "feed-history"}}?v={{`{{h.value}}`}}" ng-bind="h.time"></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		{{else}}
+			<div class="row" ng-init="nouser = true">
+				<div class="col-md-offset-1 col-md-10" ng-hide="shown">
+					<div class="jumbotron">
+						<h1>Hi, RSS user</h1>
+						<p>Go Read is a web-based RSS reader.</p>
+						<p>It is designed to be as useful as Google Reader.</p>
+						<p><a class="btn btn-primary btn-lg" href="{{url "login-google"}}">sign up / log in with google</a></p>
+						<p class="alert alert-info">We've just released! Read the <strong><a href="http://mattjibson.com/blog/2013/06/26/go-read-open-source-google-reader-clone/">blog post</a></strong> about it.</p>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-offset-1 col-md-5">
+					<div class="panel panel-default">
+						<div class="panel-heading"><h3>features</h3></div>
+						<div class="panel-body">
+							<ul>
+								<li>import from Google Reader or OPML</li>
+								<li>same keyboard shortcuts as Google Reader</li>
+								<li>fast, snappy, and clean</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-5">
+					<div class="panel panel-default">
+						<div class="panel-heading"><h3>recent updates</h3></div>
+						<div class="panel-body">
+							<ul>
+								<li>07/22: n/p and o/enter shortcuts</li>
+								<li>07/14: keep stories unread</li>
+								<li>07/10: correctly determine unread stories; allow subscriptions with stripe</li>
+								<li>07/07: mark items read on scroll; podcast support</li>
+								<li>07/03: improved OPML support; middle click story titles to open; fixed the &quot;no feeds show up&quot; bug; numerous bug fixes and tweaks</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row hidden-sm hidden-xs">
+				<div class="col-md-offset-1 col-md-10">
+					<h2>Screenshot</h2>
+					<a href="/static/img/preview.png"><img src="/static/img/preview.png" alt="screenshot" class="img-responsive"></a>
+				</div>
+			</div>
+		{{end}}
+	</div>
+
+	{{if .User}}
+		<div ng-init="refresh()">
 			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
 				<ul class="list-unstyled">
 					<li>
@@ -501,7 +569,7 @@
 					<div ng-show="activeFolder">
 						<span ng-bind="activeFolder"></span>
 						<div class="pull-right btn-group config">
-							<a class="btn btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
+							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
 								<i class="icon-cog"></i>
 								<span class="caret"></span>
 							</a>
@@ -516,7 +584,7 @@
 							{{`{{active()}}`}} »
 						</a>
 						<div class="pull-right btn-group config">
-							<a class="btn btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
+							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
 								<i class="icon-cog"></i>
 								<span class="caret"></span>
 							</a>
@@ -527,16 +595,12 @@
 									<li><a ng-href="{{url "admin-feed"}}?f={{`{{encode(activeFeed)}}`}}">admin</a></li>
 								{{end}}
 								<li class="divider"></li>
-								<li class="dropdown-submenu pull-left">
-									<a tabindex="-1" href="#">move to folder</a>
-									<ul class="dropdown-menu">
-										<li><a href="#" ng-click="moveFeed(activeFeed)">[root]</a></li>
-										<li ng-repeat="(f, _) in unread.folders">
-											<a href="#" ng-bind="f" ng-click="moveFeed(activeFeed, f)"></a>
-										</li>
-										<li><a href="#" ng-click="moveFeedNew(activeFeed)">[new folder]</a></li>
-									</ul>
+								<li class="dropdown-header">move to folder</li>
+								<li><a href="#" ng-click="moveFeed(activeFeed)">[root]</a></li>
+								<li ng-repeat="(f, _) in unread.folders">
+									<a href="#" ng-bind="f" ng-click="moveFeed(activeFeed, f)"></a>
 								</li>
+								<li><a href="#" ng-click="moveFeedNew(activeFeed)">[new folder]</a></li>
 							</ul>
 						</div>
 					</div>
@@ -550,12 +614,12 @@
 					ng-class="{selected: $index == currentStory}"
 				>
 					<div class="story-header hand" ng-class="{read: s.read}">
-						<div class="story-feed muted visible-lg" ng-click="setCurrent($index, false, true)" ng-bind="s.feed.Title"></div>
+						<div class="story-feed muted hidden-xs" ng-click="setCurrent($index, false, true)" ng-bind="s.feed.Title"></div>
 						<div class="story-title" ng-click="setCurrent($index, false, true)" title="{{`{{s.Title}}`}}" dir="auto">
 							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, false, true, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
-						<div class="story-date muted visible-lg">
+						<div class="story-date muted hidden-xs">
 							<span ng-bind="s.dispdate" ng-click="setCurrent($index, false, true)"></span>
 							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, false, true, null, true)"><i class="icon-share-alt"></i></a>
 						</div>
@@ -611,8 +675,8 @@
 									</a>
 								</li>
 								<li ng-show="s.canUnread">
-									<form class="form-list-inline">
-										<label class="checkbox" ng-click="$event.stopPropagation()">
+									<form class="form-inline">
+										<label class="checkbox normal" ng-click="$event.stopPropagation()">
 											<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
 											keep unread
 										</label>
@@ -636,135 +700,53 @@
 				</div>
 			</div>
 		</div>
+	{{end}}
 
-		<div ng-show="nothing()" class="row top-margin">
-			<div class="col-md-offset-2 col-md-8">
-				<p>You don't have any feeds.</p>
-				<p>Add some, or upload an OPML file.</p>
-			</div>
-		</div>
-
-		<div class="row top-margin" ng-show="shown == 'add-subscription' || nothing()">
-			<div class="col-md-offset-2 col-md-8">
-				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
-					<legend>Feed URL</legend>
-					<div class="form-group">
-						<input type="text" class="form-control" ng-model="addFeedUrl">
-					</div>
-					<button ng-click="addSubscription($event)" data-loading-text="importing.." class="btn btn-default">import</button>
-				</form>
-			</div>
-		</div>
-
-		<div class="row" ng-show="nothing()"><p></p></div>
-
-		<div class="row top-margin" ng-show="shown == 'import-opml' || nothing()">
-			<div class="col-md-offset-2 col-md-8">
-				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
-					<legend>Upload OPML file</legend>
-					<div class="form-group">
-						<input type="file" name="file">
-					</div>
-					<button ng-click="importOpml()" type="submit" class="btn btn-default">upload</button>
-				</form>
-			</div>
-		</div>
-
-		<div class="row top-margin" ng-show="shown == 'feed-history'">
-			<div class="col-md-offset-2 col-md-8">
-				<h1>Feed History</h1>
-				<ul class="list-unstyled">
-					<li ng-repeat="h in feedHistory">
-						<a ng-href="{{url "feed-history"}}?v={{`{{h.value}}`}}" ng-bind="h.time"></a>
-					</li>
-				</ul>
-			</div>
-		</div>
-
-		{{else}}
-			<div class="row top-margin" ng-init="nouser = true">
-				<div class="col-md-offset-1 col-md-10" ng-hide="shown">
-					<div class="jumbotron">
-						<h1>Hi, RSS user</h1>
-						<p>Go Read is a web-based RSS reader.</p>
-						<p>It is designed to be as useful as Google Reader.</p>
-						<p><a class="btn btn-primary btn-lg" href="{{url "login-google"}}">sign up / log in with google</a></p>
-						<p class="alert alert-info">We've just released! Read the <strong><a href="http://mattjibson.com/blog/2013/06/26/go-read-open-source-google-reader-clone/">blog post</a></strong> about it.</p>
-					</div>
+	<div id="shortcuts" class="modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4>keyboard shortcuts</h4>
+				</div>
+				<div class="modal-body">
+					<table class="table">
+						<tbody>
+							<tr><td><strong>j/k</strong></td><td>selects the next/previous item in the list</td></tr>
+							<tr><td><strong>n/p</strong></td><td>in list view, selects the next item without opening it</td></tr>
+							<tr><td><strong>o</strong></td><td>in list view, expands or collapses the selected item</td></tr>
+							<tr><td><strong>enter</strong></td><td>in list view, expands or collapses the selected item</td></tr>
+							<tr><td><strong>r</strong></td><td>refresh</td></tr>
+							<tr><td><strong>space</strong></td><td>next item</td></tr>
+							<tr><td><strong>&lt;Shift&gt; space</strong></td><td>previous item</td></tr>
+							<tr><td><strong>v</strong></td><td>view original</td></tr>
+							<tr><td><strong>b</strong></td><td>view original in new background tab</td></tr>
+							<tr><td><strong>&lt;Shift&gt; a</strong></td><td>mark all as read</td></tr>
+							<tr><td><strong>a</strong></td><td>add subscription</td></tr>
+							<tr><td><strong>g a</strong></td><td>go to all items</td></tr>
+							<tr><td><strong>u</strong></td><td>hides/unhides the left hand side module</td></tr>
+							<tr><td><strong>1</strong></td><td>switch to expanded view</td></tr>
+							<tr><td><strong>2</strong></td><td>switch to list view</td></tr>
+							<tr><td><strong>m</strong></td><td>mark as read/unread</td></tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-md-offset-1 col-md-5">
-					<div class="panel panel-default">
-						<div class="panel-heading"><h3>features</h3></div>
-						<div class="panel-body">
-							<ul>
-								<li>import from Google Reader or OPML</li>
-								<li>same keyboard shortcuts as Google Reader</li>
-								<li>fast, snappy, and clean</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-5">
-					<div class="panel panel-default">
-						<div class="panel-heading"><h3>recent updates</h3></div>
-						<div class="panel-body">
-							<ul>
-								<li>07/22: n/p and o/enter shortcuts</li>
-								<li>07/14: keep stories unread</li>
-								<li>07/10: correctly determine unread stories; allow subscriptions with stripe</li>
-								<li>07/07: mark items read on scroll; podcast support</li>
-								<li>07/03: improved OPML support; middle click story titles to open; fixed the &quot;no feeds show up&quot; bug; numerous bug fixes and tweaks</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row hidden-sm">
-				<div class="col-md-offset-1 col-md-10">
-					<h2>Screenshot</h2>
-					<a href="/static/img/preview.png"><img src="/static/img/preview.png" alt="screenshot" style="width: 100%"></a>
-				</div>
-			</div>
-		{{end}}
-	</div>
-
-	<div id="shortcuts" class="modal hide">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal">&times;</button>
-			<h4>keyboard shortcuts</h4>
-		</div>
-		<div class="modal-body">
-			<ul class="list-unstyled">
-				<li><button class="btn btn-sm">j/k</button> selects the next/previous item in the list</li>
-				<li><button class="btn btn-sm">n/p</button> in list view, selects the next item without opening it</li>
-				<li><button class="btn btn-sm">o</button> in list view, expands or collapses the selected item</li>
-				<li><button class="btn btn-sm">enter</button> in list view, expands or collapses the selected item</li>
-				<li><button class="btn btn-sm">r</button> refresh</li>
-				<li><button class="btn btn-sm">space</button> next item</li>
-				<li><button class="btn btn-sm">&lt;Shift&gt; + space</button> previous item</li>
-				<li><button class="btn btn-sm">v</button> view original</li>
-				<li><button class="btn btn-sm">b</button> view original in new background tab</li>
-				<li><button class="btn btn-sm">&lt;Shift&gt; + a</button> mark all as read</li>
-				<li><button class="btn btn-sm">a</button> add subscription</li>
-				<li><button class="btn btn-sm">g</button> then <button class="btn btn-sm">a</button> go to all items</li>
-				<li><button class="btn btn-sm">u</button> hides/unhides the left hand side module</li>
-				<li><button class="btn btn-sm">1</button> switch to expanded view</li>
-				<li><button class="btn btn-sm">2</button> switch to list view</li>
-				<li><button class="btn btn-sm">m</button> mark as read/unread</li>
-			</ul>
 		</div>
 	</div>
 
-	<div id="messages" class="modal hide" data-show="{{if .Messages}}true{{end}}">
-		<div class="modal-body">
-			<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<div id="message-list">
-				{{range .Messages}}
-					<p>{{.}}</p>
-				{{end}}
+	<div id="messages" class="modal" data-show="{{if .Messages}}true{{end}}">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<div id="message-list">
+					{{range .Messages}}
+						<p>{{.}}</p>
+					{{end}}
+					</div>
 				</div>
+			</div>
 		</div>
 	</div>
 
