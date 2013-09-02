@@ -63,7 +63,7 @@ type UserOpml struct {
 	_kind      string         `goon:"kind,UO"`
 	Id         int64          `datastore:"-" goon:"id"`
 	Parent     *datastore.Key `datastore:"-" goon:"parent"`
-	Opml       []byte         `datastore:"o",noindex"`
+	Opml       []byte         `datastore:"o,noindex"`
 	Compressed []byte         `datastore:"z,noindex"`
 }
 

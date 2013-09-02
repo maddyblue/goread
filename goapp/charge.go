@@ -44,7 +44,7 @@ type UserCharge struct {
 	Id     int64          `datastore:"-" goon:"id"`
 	Parent *datastore.Key `datastore:"-" goon:"parent"`
 
-	Customer string    `datastore:"c,noindex json:"-"`
+	Customer string    `datastore:"c,noindex" json:"-"`
 	Created  time.Time `datastore:"r,noindex"`
 	Last4    string    `datastore:"l,noindex" json:"-"`
 	Next     time.Time `datastore:"n,noindex"`
