@@ -14,6 +14,9 @@ function countProperties(obj) {
 }
 
 var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
+	.config(function($sceDelegateProvider) {
+		$sceDelegateProvider.resourceUrlWhitelist(['.*']);
+	})
 	.filter('encodeURI', function() {
 		return encodeURIComponent;
 	});
