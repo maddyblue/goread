@@ -377,6 +377,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
 				stories: JSON.stringify(ss)
 			});
+			$scope.$apply();
 		}
 	}, 1000);
 
@@ -423,6 +424,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.http('POST', $('#story-list').attr('data-url-options'), {
 			options: opts
 		});
+		$scope.$apply();
 	}, 1000);
 
 	$scope.overContents = function(s) {
@@ -714,6 +716,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
 			opml: opml
 		});
+		$scope.$apply();
 	}, 1000);
 
 	var sl = $('#story-list');
