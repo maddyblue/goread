@@ -89,9 +89,9 @@ func init() {
 	angular_ver := "1.0.7"
 	bootstrap_ver := "3.0.0"
 	font_awesome_ver := "3.2.1"
-	jquery_ver := "1.9.1"
-	jqueryui_ver := "1.10.3"
-	underscore_ver := "1.4.4"
+	jquery_ver := "2.0.3"
+	jqueryui_ver := "1.10.3.sortable"
+	underscore_ver := "1.5.1"
 	isDevServer = appengine.IsDevAppServer()
 
 	if appengine.IsDevAppServer() {
@@ -108,7 +108,7 @@ func init() {
 		BootstrapJs = fmt.Sprintf("//netdna.bootstrapcdn.com/bootstrap/%v/js/bootstrap.min.js", bootstrap_ver)
 		FontAwesome = fmt.Sprintf("//netdna.bootstrapcdn.com/font-awesome/%v/css/font-awesome.min.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
-		JqueryUI = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jqueryui/%v/jquery-ui.min.js", jqueryui_ver)
+		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.min.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
 	}
 	if len(PUBSUBHUBBUB_HOST) > 0 {

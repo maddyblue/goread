@@ -758,7 +758,12 @@
 		</div>
 	</div>
 
-	<script src="{{.Jquery}}"></script>
+	<!--[if lt IE 9]>
+	    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<![endif]-->
+	<!--[if gte IE 9]><!-->
+		<script src="{{.Jquery}}"></script>
+	<!--<![endif]-->
 	<script src="{{.JqueryUI}}"></script>
 	<script src="{{.Underscore}}"></script>
 	<script src="{{.BootstrapJs}}"></script>
