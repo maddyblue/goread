@@ -17,7 +17,7 @@ var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
 	.filter('encodeURI', function() {
 		return encodeURIComponent;
 	});
-goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window) {
+goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window, $sce) {
 	$scope.loading = 0;
 	$scope.contents = {};
 	$scope.opts = {
@@ -471,7 +471,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				for (var i = 0; i < data.length; i++) {
 					var d = $('<div>' + data[i] + '</div>');
 					$('a', d).attr('target', '_blank');
-					$scope.contents[tofetch[i].guid] = d;
+					$scope.contents[tofetch[i].guid] = $sce.trustAsHtml(d.html());
 				}
 			});
 	};
