@@ -899,6 +899,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 						button.button('reset');
 						alert(data);
 					});
+				$scope.$apply();
 			};
 			StripeCheckout.open({
 				key: $('#account').attr('data-stripe-key'),
