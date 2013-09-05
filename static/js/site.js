@@ -913,37 +913,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		});
 	};
 
-	$scope.donate = function() {
-		$scope.loadCheckout(function() {
-			var token = function(res){
-				var button = $('#donateButton');
-				button.button('loading');
-				$scope.http('POST', $('#account').attr('data-url-donate'), {
-						stripeToken: res.id,
-						amount: $scope.donateAmount * 100
-					})
-					.success(function(data) {
-						button.button('reset');
-						alert('Thank you');
-					})
-					.error(function(data) {
-						button.button('reset');
-						console.log(data);
-						alert('Error');
-					});
-			};
-			StripeCheckout.open({
-				key: $('#account').attr('data-stripe-key'),
-				amount: $scope.donateAmount * 100,
-				currency: 'usd',
-				name: 'Go Read',
-				description: 'Donation',
-				panelLabel: 'Donate',
-				token: token
-			});
-		});
-	};
-
 	$scope.unCheckout = function() {
 		if (!confirm('Sure you want to unsubscribe?')) return;
 		var button = $('#uncheckoutButton');
