@@ -207,7 +207,6 @@ func mergeUserOpml(c appengine.Context, ud *UserData, outlines ...*OpmlOutline) 
 
 	b, err := json.Marshal(&fs)
 	if err != nil {
-		saveError(c, fmt.Sprintf("%v", fs), err)
 		return err
 	}
 	ud.Opml = b
