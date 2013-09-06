@@ -481,27 +481,6 @@ func MarkUnread(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}, nil)
 }
 
-func MarkAllRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	cu := user.Current(c)
-	gn := goon.FromContext(c)
-	u := &User{Id: cu.ID}
-	ud := &UserData{Id: "data", Parent: gn.Key(u)}
-	last := r.FormValue("last")
-	gn.RunInTransaction(func(gn *goon.Goon) error {
-		if err := gn.GetMulti([]interface{}{u, ud}); err != nil {
-			return err
-		}
-		if ilast, err := strconv.ParseInt(last, 10, 64); err == nil && ilast > 0 && false {
-			u.Read = time.Unix(ilast/1000, 0)
-		} else {
-			u.Read = time.Now()
-		}
-		ud.Read = nil
-		_, err := gn.PutMany(u, ud)
-		return err
-	}, nil)
-}
-
 func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	var reqs []struct {
 		Feed  string
