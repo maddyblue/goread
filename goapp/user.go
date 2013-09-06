@@ -176,8 +176,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	l := &Log{
 		Parent: ud.Parent,
-		Id: time.Now().UnixNano(),
-		Text: "list feeds",
+		Id:     time.Now().UnixNano(),
+		Text:   "list feeds",
 	}
 	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
 	putU := false
