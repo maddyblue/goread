@@ -429,16 +429,12 @@ func MarkRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	read := make(Read)
 	var stories []readStory
-	if r.FormValue("stories") != "" {
-		json.Unmarshal([]byte(r.FormValue("stories")), &stories)
+	defer r.Body.Close()
+	b, _ := ioutil.ReadAll(r.Body)
+	if err := json.Unmarshal(b, &stories); err != nil {
+		serveError(w, err)
+		return
 	}
-	if r.FormValue("feed") != "" {
-		stories = append(stories, readStory{
-			Feed:  r.FormValue("feed"),
-			Story: r.FormValue("story"),
-		})
-	}
-
 	gn.RunInTransaction(func(gn *goon.Goon) error {
 		u := &User{Id: cu.ID}
 		ud := &UserData{

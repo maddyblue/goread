@@ -374,9 +374,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var ss = $scope.markReadStories;
 		$scope.markReadStories = [];
 		if (ss.length > 0) {
-			$scope.http('POST', $('#mark-all-read').attr('data-url-read'), {
-				stories: JSON.stringify(ss)
-			});
+			$http.post($('#mark-all-read').attr('data-url-read'), ss);
 			$scope.$apply();
 		}
 	}, 1000);
