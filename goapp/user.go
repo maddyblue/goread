@@ -233,9 +233,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				defer wg.Done()
 				var stories []*Story
 
-				if u.Read.Before(f.Date) {
+				if !f.Date.Before(u.Read) {
 					fk := gn.Key(f)
-					sq := q.Ancestor(fk).Filter(IDX_COL+" >", u.Read).KeysOnly().Order("-" + IDX_COL)
+					sq := q.Ancestor(fk).Filter(IDX_COL+" >=", u.Read).KeysOnly().Order("-" + IDX_COL)
 					keys, _ := gn.GetAll(sq, nil)
 					stories = make([]*Story, len(keys))
 					for j, key := range keys {
@@ -303,27 +303,28 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		close(tc)
 		<-done
 	})
-	if numStories > numStoriesLimit {
+	if numStories > 0 {
 		c.Step("numStories", func() {
-			c.Infof("too many stories: %v", numStories)
 			stories := make([]*Story, 0, numStories)
 			for _, v := range fl {
 				stories = append(stories, v...)
 			}
 			sort.Sort(sort.Reverse(Stories(stories)))
-			last := stories[numStoriesLimit].Created
-			stories = stories[:numStoriesLimit]
-			u.Read = last
-			putU = true
-			fixRead = true
-			l.Text += ", numStories"
-			fl = make(map[string][]*Story)
-			for _, s := range stories {
-				fk := s.Parent.StringID()
-				p := fl[fk]
-				fl[fk] = append(p, s)
+			if len(stories) > numStoriesLimit {
+				stories = stories[:numStoriesLimit]
+				fl = make(map[string][]*Story)
+				for _, s := range stories {
+					fk := s.Parent.StringID()
+					p := fl[fk]
+					fl[fk] = append(p, s)
+				}
 			}
-			c.Infof("filtered: %v, %v", len(stories), last)
+			last := stories[len(stories)-1].Created
+			if !u.Read.Equal(last) {
+				u.Read = last
+				putU = true
+				fixRead = true
+			}
 		})
 	}
 	if fixRead {
@@ -337,14 +338,17 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			read = nread
-			var b bytes.Buffer
-			gob.NewEncoder(&b).Encode(&read)
-			ud.Read = b.Bytes()
-			putUD = true
-			l.Text += ", fix read"
+			if len(nread) != len(read) {
+				read = nread
+				var b bytes.Buffer
+				gob.NewEncoder(&b).Encode(&read)
+				ud.Read = b.Bytes()
+				putUD = true
+				l.Text += ", fix read"
+			}
 		})
 	}
+	numStories = 0
 	for k, v := range fl {
 		newStories := make([]*Story, 0, len(v))
 		for _, s := range v {
@@ -352,7 +356,27 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				newStories = append(newStories, s)
 			}
 		}
+		numStories += len(newStories)
 		fl[k] = newStories
+	}
+	if numStories == 0 {
+		l.Text += ", clear read"
+		fixRead = false
+		if ud.Read != nil {
+			putUD = true
+			ud.Read = nil
+		}
+		last := u.Read
+		for _, v := range feeds {
+			if last.Before(v.Date) {
+				last = v.Date
+			}
+		}
+		c.Infof("nothing here, move up: %v -> %v", u.Read, last)
+		if !u.Read.Equal(last) {
+			putU = true
+			u.Read = last
+		}
 	}
 	if !hasStories {
 		var last time.Time
