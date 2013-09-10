@@ -192,14 +192,15 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 	read := make(Read)
 	var uf Opml
-	c.Step("unmarshal user data", func() {
+	c.Step("unmarshal user data", func(c mpg.Context) {
 		gob.NewDecoder(bytes.NewReader(ud.Read)).Decode(&read)
 		json.Unmarshal(ud.Opml, &uf)
 	})
 	var feeds []*Feed
 	opmlMap := make(map[string]*OpmlOutline)
 	var merr error
-	c.Step("fetch feeds", func() {
+	c.Step("fetch feeds", func(c mpg.Context) {
+		gn := goon.FromContext(c)
 		for _, outline := range uf.Outline {
 			if outline.XmlUrl == "" {
 				for _, so := range outline.Outline {
@@ -223,66 +224,69 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	numStories := 0
 
-	c.Step("feed fetch + wait", func() {
+	c.Step("feed fetch + wait", func(c mpg.Context) {
 		queue := make(chan *Feed)
 		tc := make(chan *taskqueue.Task)
 		done := make(chan bool)
 		wg := sync.WaitGroup{}
 		feedProc := func() {
 			for f := range queue {
-				defer wg.Done()
-				var stories []*Story
+				c.Step(f.Title, func(c mpg.Context) {
+					defer wg.Done()
+					var stories []*Story
+					gn := goon.FromContext(c)
 
-				if !f.Date.Before(u.Read) {
-					fk := gn.Key(f)
-					sq := q.Ancestor(fk).Filter(IDX_COL+" >=", u.Read).KeysOnly().Order("-" + IDX_COL)
-					keys, _ := gn.GetAll(sq, nil)
-					stories = make([]*Story, len(keys))
-					for j, key := range keys {
-						stories[j] = &Story{
-							Id:     key.StringID(),
-							Parent: fk,
+					if !f.Date.Before(u.Read) {
+						fk := gn.Key(f)
+						sq := q.Ancestor(fk).Filter(IDX_COL+" >=", u.Read).KeysOnly().Order("-" + IDX_COL)
+						keys, _ := gn.GetAll(sq, nil)
+						stories = make([]*Story, len(keys))
+						for j, key := range keys {
+							stories[j] = &Story{
+								Id:     key.StringID(),
+								Parent: fk,
+							}
+						}
+						gn.GetMulti(stories)
+					}
+					if f.Link != opmlMap[f.Url].HtmlUrl {
+						l.Text += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
+						updatedLinks = true
+						opmlMap[f.Url].HtmlUrl = f.Link
+					}
+					manualDone := false
+					if time.Since(f.LastViewed) > time.Hour*24*2 {
+						if f.NextUpdate.Equal(timeMax) {
+							tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
+								"feed": {f.Url},
+								"last": {"1"},
+							})
+							manualDone = true
+						} else {
+							tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-last"), url.Values{
+								"feed": {f.Url},
+							})
 						}
 					}
-					gn.GetMulti(stories)
-				}
-				if f.Link != opmlMap[f.Url].HtmlUrl {
-					l.Text += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
-					updatedLinks = true
-					opmlMap[f.Url].HtmlUrl = f.Link
-				}
-				manualDone := false
-				if time.Since(f.LastViewed) > time.Hour*24*2 {
-					if f.NextUpdate.Equal(timeMax) {
+					if !manualDone && now.Sub(f.NextUpdate) >= 0 {
 						tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
-							"feed": {f.Url},
-							"last": {"1"},
-						})
-						manualDone = true
-					} else {
-						tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-last"), url.Values{
 							"feed": {f.Url},
 						})
 					}
-				}
-				if !manualDone && now.Sub(f.NextUpdate) >= 0 {
-					tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
-						"feed": {f.Url},
-					})
-				}
-				lock.Lock()
-				fl[f.Url] = stories
-				numStories += len(stories)
-				if len(stories) > 0 {
-					hasStories = true
-				}
-				if f.Image != "" {
-					icons[f.Url] = f.Image
-				}
-				if f.NoAds {
-					noads[f.Url] = true
-				}
-				lock.Unlock()
+					lock.Lock()
+					fl[f.Url] = stories
+					numStories += len(stories)
+					if len(stories) > 0 {
+						hasStories = true
+					}
+					if f.Image != "" {
+						icons[f.Url] = f.Image
+					}
+					if f.NoAds {
+						noads[f.Url] = true
+					}
+					lock.Unlock()
+				})
 			}
 		}
 		go taskSender(c, "update-manual", tc, done)
@@ -304,7 +308,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		<-done
 	})
 	if numStories > 0 {
-		c.Step("numStories", func() {
+		c.Step("numStories", func(c mpg.Context) {
 			stories := make([]*Story, 0, numStories)
 			for _, v := range fl {
 				stories = append(stories, v...)
@@ -328,7 +332,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	if fixRead {
-		c.Step("fix read", func() {
+		c.Step("fix read", func(c mpg.Context) {
 			nread := make(Read)
 			for k, v := range fl {
 				for _, s := range v {
@@ -414,7 +418,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
 	gn.Put(l)
-	c.Step("json marshal", func() {
+	c.Step("json marshal", func(c mpg.Context) {
+		gn := goon.FromContext(c)
 		o := struct {
 			Opml    []*OpmlOutline
 			Stories map[string][]*Story
