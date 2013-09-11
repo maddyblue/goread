@@ -86,7 +86,7 @@ var (
 )
 
 func init() {
-	angular_ver := "1.2.0rc1"
+	angular_ver := "1.2.0rc2"
 	bootstrap_ver := "3.0.0"
 	font_awesome_ver := "3.2.1"
 	jquery_ver := "2.0.3"
