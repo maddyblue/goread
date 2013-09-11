@@ -91,9 +91,8 @@ func init() {
 
 	http.Handle("/", router)
 
-	miniprofiler.ShowControls = true
-	miniprofiler.StartHidden = true
 	miniprofiler.ToggleShortcut = "Alt+C"
+	miniprofiler.Position = "right"
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
