@@ -513,7 +513,7 @@
 					<li class="all-subs" ng-show="loading">loading...</li>
 				</ul>
 				{{if .StripeKey}}
-				<ul class="list-unstyled" ng-hide="accountType">
+				<ul class="list-unstyled" ng-hide="accountType || trialRemaining == undefined">
 					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
 					<li>{{`{{trialRemaining}}`}} days remaining of free trial</li>
 				</ul>
