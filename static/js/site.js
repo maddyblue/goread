@@ -615,7 +615,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.unsubscribe = function(feed) {
-		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + '?')) return;
+		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + ' (' + feed + ')?')) return;
 		for (var i = 0; i < $scope.feeds.length; i++) {
 			var f = $scope.feeds[i];
 			if (f.Outline) {
