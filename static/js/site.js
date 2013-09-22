@@ -139,9 +139,17 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$http.get($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.clear();
+				if (data.ErrorSubscription) {
+					$timeout(function() {
+						alert('Free trial ended. Please subscribe.');
+					});
+					$scope.shown = 'account';
+					return;
+				}
 				$scope.feeds = data.Opml || $scope.feeds;
 				$scope.icons = data.Icons;
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
+				$scope.trialRemaining = data.TrialRemaining;
 
 				var loadStories = function(feed) {
 					$scope.numfeeds++;

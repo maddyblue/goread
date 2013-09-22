@@ -37,6 +37,7 @@ type User struct {
 	Read     time.Time `datastore:"r,noindex"`
 	Options  string    `datastore:"o,noindex"`
 	Account  int       `datastore:"a,noindex"`
+	Created  time.Time `datastore:"d,noindex"`
 }
 
 const (

@@ -332,8 +332,8 @@
 			>
 			<div class="col-md-offset-3 col-md-6">
 				<h1>Account</h1>
-				<p>Go Read is supported by user subscriptions. Without them, we cannot pay for our servers.</p>
 				<div ng-hide="accountType">
+					<p>Go Read's <a href="https://github.com/mjibson/goread">software</a> is free, but its servers are not. A 30-day free trial is provided, after which we require a paid subscription.</p>
 					<div>
 						{{range .StripePlans}}
 						<button
@@ -346,21 +346,6 @@
 					</div>
 					<br>
 					<a href="https://stripe.com" target="_blank"><img src="/static/img/stripe.png"></a>
-					<h3>Reasons to subscribe</h3>
-					<ul>
-						<li>no story ads</li>
-						<li>higher feed update frequency</li>
-						<li>funding for new features:
-							<ul>
-								<li>search</li>
-								<li>all items mode for everything, not just one feed</li>
-								<li>HTTPS</li>
-								<li>others</li>
-							</ul>
-						</li>
-						<li>Go Read servers cost money - without subscriptions we cannot stay online</li>
-						<li>Some future features will be subscriber-only</li>
-					</ul>
 				</div>
 				<div ng-show="accountType">
 					<h3>Subscribed on <span ng-bind="date(account.Created)"></span></h3>
@@ -411,6 +396,13 @@
 					Or submit to <code>http://www.goread.io/user/add-subscription?url=%s</code> where <code>%s</code> is the feed URL.
 					Firefox users can <a href="#" ng-click="registerHandler()">register go read as an RSS reader</a>.
 				</p>
+				{{if .StripeKey}}
+				<p>
+					<strong>How much does a paid subscription cost?</strong>
+					Either $3/month or $30/year. A 30-day free trial is provided. Please contact support if you have questions.
+					If you are not able to pay, setting up your own server is not difficult (and free for a few hundred feeds). Follow the instructions on the <a href="https://github.com/mjibson/goread">GitHub page</a>. 
+				</p>
+				{{end}}
 			</div>
 		</div>
 
@@ -523,8 +515,7 @@
 				{{if .StripeKey}}
 				<ul class="list-unstyled" ng-hide="accountType">
 					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
-					<li>to remove ads and</li>
-					<li>keep go read alive</li>
+					<li>{{`{{trialRemaining}}`}} days remaining of free trial</li>
 				</ul>
 				{{end}}
 				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="feeds">

@@ -164,6 +164,7 @@ func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
 
 const oldDuration = time.Hour * 24 * 7 * 2 // two weeks
 const numStoriesLimit = 1000
+const accountFreeDuration = 30 * time.Hour * 24 // 30 days
 
 func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
@@ -189,7 +190,22 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fixRead = true
 		l.Text += ", u.Read"
 	}
-
+	trialRemaining := 0
+	if STRIPE_KEY != "" && ud.Opml != nil {
+		if u.Created.IsZero() {
+			u.Created = time.Now()
+			putU = true
+		} else if time.Since(u.Created) > accountFreeDuration {
+			b, _ := json.Marshal(struct {
+				ErrorSubscription bool
+			}{
+				true,
+			})
+			w.Write(b)
+			return
+		}
+		trialRemaining = int((accountFreeDuration-time.Since(u.Created))/time.Hour/24) + 1
+	}
 	read := make(Read)
 	var uf Opml
 	c.Step("unmarshal user data", func(c mpg.Context) {
@@ -417,15 +433,17 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Step("json marshal", func(c mpg.Context) {
 		gn := goon.FromContext(c)
 		o := struct {
-			Opml    []*OpmlOutline
-			Stories map[string][]*Story
-			Icons   map[string]string
-			Options string
+			Opml           []*OpmlOutline
+			Stories        map[string][]*Story
+			Icons          map[string]string
+			Options        string
+			TrialRemaining int
 		}{
-			Opml:    uf.Outline,
-			Stories: fl,
-			Icons:   icons,
-			Options: u.Options,
+			Opml:           uf.Outline,
+			Stories:        fl,
+			Icons:          icons,
+			Options:        u.Options,
+			TrialRemaining: trialRemaining,
 		}
 		b, err := json.Marshal(o)
 		if err != nil {
