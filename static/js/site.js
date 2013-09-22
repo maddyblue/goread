@@ -141,7 +141,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				$scope.clear();
 				$scope.feeds = data.Opml || $scope.feeds;
 				$scope.icons = data.Icons;
-				$scope.noads = data.NoAds;
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 
 				var loadStories = function(feed) {

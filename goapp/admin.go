@@ -72,10 +72,6 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	if len(r.FormValue("noads")) > 0 {
-		f.NoAds = !f.NoAds
-		gn.Put(&f)
-	}
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).KeysOnly()
 	fk := gn.Key(&f)
 	q = q.Ancestor(fk)
