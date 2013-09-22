@@ -826,7 +826,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.shown = 'add-subscription';
 		// need to wait for the keypress to finish before focusing
 		setTimeout(function() {
-			$('#add-subscription-form input').focus();
+			$('#add-subscription-form input[type="text"]').focus();
 		});
 	};
 
