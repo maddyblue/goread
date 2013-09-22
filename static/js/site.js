@@ -167,16 +167,16 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 						}
 					}
 				}
-
+			})
+			.error(function() {
+				alert('Error during refresh: try again.');
+			})
+			.finally(function() {
 				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				$scope.update();
 				$scope.resetLimit();
 				setTimeout($scope.applyGetFeed);
-			})
-			.error(function() {
-				if (typeof cb === 'function') cb();
-				$scope.loaded();
 			});
 	};
 
