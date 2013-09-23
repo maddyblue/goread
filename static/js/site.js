@@ -819,6 +819,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (sdt > slh) {
 					i--;
 				}
+				for (var j = $scope.currentStory + 1; j < i; j++) {
+					$scope.markAllRead($scope.dispStories[j]);
+				}
 				$scope.setCurrent(i, {noScroll: true});
 				break;
 			}
