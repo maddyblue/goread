@@ -194,9 +194,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	/* options dictionary:
-	 *  - noOpen: don't open or jump
-	 *  - noMarkRead: don't mark as read
 	 *  - collapse: can be true, false, or 'toggle'
+	 *  - noMarkRead: don't mark as read
+	 *  - noOpen: don't open or jump
+	 *  - noScroll: don't scrollIntoView
 	 * ways to call this function:
 	 *  - j/k
 	 *  - n/p
@@ -779,7 +780,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.collapsed = $(window).width() <= 768;
 			$scope.checkLoadNextPage();
 		});
-	}, 300);
+	}, 100);
 
 	$scope.checkLoadNextPage = function() {
 		if(!sl.length) return;
@@ -809,16 +810,17 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.scrollRead = function() {
 		if (!$scope.opts.scrollRead || !$scope.opts.expanded) return;
 		var slh = $('#story-list').height();
+		// find the first visible item
 		for (var i = 0; i < $scope.dispStories.length; i++) {
-			var s = $scope.dispStories[i];
-			if (!$scope.unreadStories[s.guid]) continue;
-			if (!$scope.contents[s.guid]) continue;
-			var sd = $('#storydiv' + i);
-			var sth = $('.story-title', sd).height();
+			var sd = $('#storydiv' + i + ' .story-content');
 			var sdt = sd.position().top;
-			var sdb = sdt + sth;
-			if (sdb < slh) {
-				$scope.markAllRead(s);
+			if (sdt >= 0) {
+				// first item is long, second item is below window scroll
+				if (sdt > slh) {
+					i--;
+				}
+				$scope.setCurrent(i, {noScroll: true});
+				break;
 			}
 		}
 	};
