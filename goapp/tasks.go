@@ -391,7 +391,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 		}
 	}
 	if fromSub {
-		f.NextUpdate = time.Now().Add(time.Hour * 24)
+		f.NextUpdate = time.Now().Add(time.Hour * 6)
 	} else {
 		scheduleNextUpdate(&f)
 	}
