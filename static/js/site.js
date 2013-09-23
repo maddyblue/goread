@@ -193,18 +193,41 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
 	};
 
-	$scope.setCurrent = function(i, noClose, isClick, $event, noOpen) {
+	/* options dictionary:
+	 *  - noOpen: don't open or jump
+	 *  - noMarkRead: don't mark as read
+	 *  - collapse: can be true, false, or 'toggle'
+	 * ways to call this function:
+	 *  - j/k
+	 *  - n/p
+	 *  - expanded mode click on item
+	 *  - click on title: if open and list mode: collapse
+	 *  - middle click title: open new tab, mark read, don't open
+	 *  - click right arrow: open new tab, mark read, don't open
+	 *  - mark read on scroll: expanded mode only, don't jump
+	 *  - NOT: o/enter: these have their own logic
+	 */
+	$scope.setCurrent = function(i, opts, $event) {
+		opts = opts || {};
 		var middleClick = $event && $event.which == 2;
 		if ($event && !middleClick) {
 			$event.preventDefault();
 		}
-		if (isClick && $scope.storyCollapse) {
+		var setCurrent = !opts.noOpen && !middleClick;
+		var jumpStory = setCurrent && $scope.currentStory != i && !opts.noScroll;
+		var collapse = opts.collapse; // undefined is falsy, so no collapse
+		if ($scope.opts.expanded) {
 			$scope.storyCollapse = false;
+		} else if (collapse === 'toggle') {
+			if ($scope.currentStory == i) {
+				$scope.storyCollapse = !$scope.storyCollapse;
+			} else {
+				$scope.storyCollapse = false;
+			}
+		} else {
+			$scope.storyCollapse = collapse ? true : false;
 		}
-		else if (!middleClick && !noClose && i == $scope.currentStory) {
-			delete $scope.currentStory;
-			return;
-		}
+		var markRead = !opts.noMarkRead && !$scope.storyCollapse;
 		var story = $scope.dispStories[i];
 		$scope.getContents(story);
 		if (i > 0) {
@@ -216,26 +239,23 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if (i == $scope.dispLimit - 1) {
 			$scope.loadNextPage();
 		}
-		if ($scope.currentStory != i) {
+		if (jumpStory) {
 			$timeout(function() {
 				se = $('#storydiv' + i);
-				var eTop = se.offset().top;
-				if (!isClick || eTop < 0 || eTop > $('#story-list').height() || (isClick && !middleClick && !noOpen && $scope.opts.expanded)) {
-					setTimeout(function() { se[0].scrollIntoView(); });
-				}
+				setTimeout(function() { se[0].scrollIntoView(); });
 			});
 		}
-		if (!middleClick && !noOpen) {
+		if (setCurrent) {
 			$scope.currentStory = i;
 		}
-		if ($scope.opts.expanded || !$scope.storyCollapse) {
+		if (markRead) {
 			$scope.markAllRead(story);
 		}
 	};
 
-	$scope.prev = function() {
+	$scope.prev = function(opts) {
 		if ($scope.currentStory > 0) {
-			$scope.setCurrent($scope.currentStory - 1);
+			$scope.setCurrent($scope.currentStory - 1, opts);
 		}
 	};
 
@@ -255,9 +275,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		return cnt == 0;
 	};
 
-	$scope.next = function(page) {
+	$scope.next = function(page, opts) {
 		if ($scope.dispStories && typeof $scope.currentStory === 'undefined') {
-			$scope.setCurrent(0);
+			$scope.setCurrent(0, opts);
 			return;
 		}
 		if (page) {
@@ -273,7 +293,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			}
 		}
 		if ($scope.dispStories && $scope.currentStory < $scope.dispStories.length - 1) {
-			$scope.setCurrent($scope.currentStory + 1);
+			$scope.setCurrent($scope.currentStory + 1, opts);
 		}
 	};
 
@@ -957,15 +977,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	});
 	Mousetrap.bind('n', function() {
 		$scope.$apply(function() {
-			$scope.storyCollapse = true;
-			$scope.next();
+			$scope.next(null, {collapse: true});
 		});
 		return false;
 	});
 	Mousetrap.bind('j', function() {
 		$scope.$apply(function() {
-			$scope.storyCollapse = false;
-			$scope.next();
+			$scope.next(null, {collapse: false});
 		});
 		return false;
 	});
@@ -975,15 +993,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	});
 	Mousetrap.bind('p', function() {
 		$scope.$apply(function() {
-			$scope.storyCollapse = true;
-			$scope.prev();
+			$scope.prev({collapse: true});
 		});
 		return false;
 	});
 	Mousetrap.bind(['k', 'shift+space'], function() {
 		$scope.$apply(function() {
-			$scope.storyCollapse = false;
-			$scope.prev();
+			$scope.prev({collapse: false});
 		});
 		return false;
 	});
