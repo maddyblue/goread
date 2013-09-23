@@ -809,7 +809,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.scrollRead = function() {
 		if (!$scope.opts.scrollRead || !$scope.opts.expanded) return;
-		var slh = $('#story-list').height();
+		var sl = $('#story-list');
+		var slh = sl.height();
+		var sle = sl[0];
+		if (sle.scrollHeight == sle.scrollTop + slh) {
+			$scope.markAllRead();
+			$scope.setCurrent($scope.dispStories.length - 1);
+			return;
+		}
 		// find the first visible item
 		for (var i = 0; i < $scope.dispStories.length; i++) {
 			var sd = $('#storydiv' + i + ' .story-content');
