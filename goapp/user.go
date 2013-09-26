@@ -239,7 +239,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	numStories := 0
 
-	c.Step("feed fetch + wait", func(c mpg.Context) {
+	c.Step(fmt.Sprintf("feed unreads: %v", u.Read), func(c mpg.Context) {
 		queue := make(chan *Feed)
 		tc := make(chan *taskqueue.Task)
 		done := make(chan bool)
