@@ -148,6 +148,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				}
 				$scope.feeds = data.Opml || $scope.feeds;
 				$scope.icons = data.Icons;
+				_.each($scope.icons, function(val, key) {
+					if (val.slice(0, 5) === "http:") {
+						$scope.icons[key] = val.slice(5);
+					}
+				});
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				$scope.trialRemaining = data.TrialRemaining;
 
