@@ -332,7 +332,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			last := stories[len(stories)-1].Created
-			if !u.Read.Equal(last) {
+			if u.Read.Before(last) {
 				u.Read = last
 				putU = true
 				fixRead = true
