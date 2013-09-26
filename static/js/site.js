@@ -394,7 +394,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$http.post($('#mark-all-read').attr('data-url-read'), ss);
 			$scope.$apply();
 		}
-	}, 250);
+	}, 500);
 
 	$scope.active = function() {
 		if ($scope.activeFolder) return $scope.activeFolder;
