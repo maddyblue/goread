@@ -233,7 +233,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	lock := sync.Mutex{}
 	fl := make(map[string][]*Story)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
-	hasStories := false
 	updatedLinks := false
 	icons := make(map[string]string)
 	now := time.Now()
@@ -291,9 +290,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					lock.Lock()
 					fl[f.Url] = stories
 					numStories += len(stories)
-					if len(stories) > 0 {
-						hasStories = true
-					}
 					if f.Image != "" {
 						icons[f.Url] = f.Image
 					}
@@ -389,25 +385,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		c.Infof("nothing here, move up: %v -> %v", u.Read, last)
-		if !u.Read.Equal(last) {
-			putU = true
-			u.Read = last
-		}
-	}
-	if !hasStories {
-		var last time.Time
-		for _, f := range feeds {
-			if last.Before(f.Date) {
-				last = f.Date
-			}
-		}
 		if u.Read.Before(last) {
-			c.Debugf("setting %v read to %v", cu.ID, last)
 			putU = true
-			putUD = true
 			u.Read = last
-			ud.Read = nil
-			l.Text += ", read last"
 		}
 	}
 	if updatedLinks {
