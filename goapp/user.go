@@ -69,6 +69,11 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Value:   "",
 			Expires: time.Time{},
 		})
+		http.SetCookie(w, &http.Cookie{
+			Name:    "SACSID",
+			Value:   "",
+			Expires: time.Time{},
+		})
 	}
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
