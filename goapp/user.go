@@ -239,7 +239,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fl := make(map[string][]*Story)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind())
 	updatedLinks := false
-	icons := make(map[string]string)
 	now := time.Now()
 	numStories := 0
 
@@ -295,9 +294,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					lock.Lock()
 					fl[f.Url] = stories
 					numStories += len(stories)
-					if f.Image != "" {
-						icons[f.Url] = f.Image
-					}
 					lock.Unlock()
 				})
 			}
@@ -420,15 +416,15 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		o := struct {
 			Opml           []*OpmlOutline
 			Stories        map[string][]*Story
-			Icons          map[string]string
 			Options        string
 			TrialRemaining int
+			Feeds          []*Feed
 		}{
 			Opml:           uf.Outline,
 			Stories:        fl,
-			Icons:          icons,
 			Options:        u.Options,
 			TrialRemaining: trialRemaining,
+			Feeds:          feeds,
 		}
 		b, err := json.Marshal(o)
 		if err != nil {

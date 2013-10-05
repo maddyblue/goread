@@ -147,11 +147,18 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					return;
 				}
 				$scope.feeds = data.Opml || $scope.feeds;
-				$scope.icons = data.Icons;
-				_.each($scope.icons, function(val, key) {
-					if (val.slice(0, 5) === "http:") {
-						$scope.icons[key] = val.slice(5);
+				$scope.icons = {};
+				$scope.feedData = {};
+				_.each(data.Feeds, function(e) {
+					if(e.Image) {
+						if (e.Image.slice(0, 5) === "http:") {
+							e.Image = e.Image.slice(5);
+						}
+						$scope.icons[e.Url] = e.Image;
 					}
+					e.Checked = moment(e.Checked).fromNow();
+					e.NextUpdate = moment(e.NextUpdate).fromNow();
+					$scope.feedData[e.Url] = e;
 				});
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				$scope.trialRemaining = data.TrialRemaining;

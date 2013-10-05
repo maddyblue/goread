@@ -90,18 +90,18 @@ type Read map[readStory]bool
 type Feed struct {
 	_kind      string        `goon:"kind,F"`
 	Url        string        `datastore:"-" goon:"id"`
-	Title      string        `datastore:"t,noindex"`
-	Updated    time.Time     `datastore:"u,noindex"`
-	Date       time.Time     `datastore:"d,noindex"`
+	Title      string        `datastore:"t,noindex" json:"-"`
+	Updated    time.Time     `datastore:"u,noindex" json:"-"`
+	Date       time.Time     `datastore:"d,noindex" json:"-"`
 	Checked    time.Time     `datastore:"c,noindex"`
 	NextUpdate time.Time     `datastore:"n"`
-	Link       string        `datastore:"l,noindex"`
+	Link       string        `datastore:"l,noindex" json:"-"`
 	Errors     int           `datastore:"e,noindex"`
 	Image      string        `datastore:"i,noindex"`
-	Subscribed time.Time     `datastore:"s,noindex"`
-	Average    time.Duration `datastore:"a,noindex"`
-	LastViewed time.Time     `datastore:"v,noindex"`
-	NoAds      bool          `datastore:"o,noindex"`
+	Subscribed time.Time     `datastore:"s,noindex" json:"-"`
+	Average    time.Duration `datastore:"a,noindex" json:"-"`
+	LastViewed time.Time     `datastore:"v,noindex" json:"-"`
+	NoAds      bool          `datastore:"o,noindex" json:"-"`
 }
 
 func (f Feed) Subscribe(c appengine.Context) {
