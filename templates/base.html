@@ -519,6 +519,7 @@
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
 						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+							<span class="label label-danger" ng-show="feedData[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 							<span ng-class="{bold: unread.feeds[f.XmlUrl]}" ng-bind="f.Title" dir="auto"></span>
 							<span ng-show="unread.feeds[f.XmlUrl]">
 								({{`{{unread.feeds[f.XmlUrl]}}`}})
@@ -537,6 +538,7 @@
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
 									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)" title="{{`{{o.Title}}`}}">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
+										<span class="label label-danger" ng-show="feedData[o.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 										<span ng-class="{bold: unread.feeds[o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread.feeds[o.XmlUrl]">
 											({{`{{unread.feeds[o.XmlUrl]}}`}})
