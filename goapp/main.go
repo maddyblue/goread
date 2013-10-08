@@ -92,7 +92,7 @@ func init() {
 	http.Handle("/", router)
 
 	miniprofiler.ToggleShortcut = "Alt+C"
-	miniprofiler.Position = "right"
+	miniprofiler.Position = "bottomleft"
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
