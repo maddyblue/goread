@@ -38,7 +38,6 @@ var templates *template.Template
 
 func init() {
 	var err error
-
 	if templates, err = template.New("").Funcs(funcs).
 		ParseFiles(
 		"templates/base.html",
@@ -50,7 +49,6 @@ func init() {
 	); err != nil {
 		log.Fatal(err)
 	}
-
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
@@ -90,6 +88,16 @@ func init() {
 	router.Handle("/user/uncheckout", mpg.NewHandler(Uncheckout)).Name("uncheckout")
 
 	http.Handle("/", router)
+
+	if len(PUBSUBHUBBUB_HOST) > 0 {
+		u := url.URL{
+			Scheme:   "http",
+			Host:     PUBSUBHUBBUB_HOST,
+			Path:     routeUrl("add-subscription"),
+			RawQuery: url.Values{"url": {"{url}"}}.Encode(),
+		}
+		subURL = u.String()
+	}
 
 	miniprofiler.ToggleShortcut = "Alt+C"
 	miniprofiler.Position = "bottomleft"

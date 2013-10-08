@@ -43,10 +43,11 @@ import (
 	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
-	"goapp/atom"
-	"goapp/rdf"
-	"goapp/rss"
-	"goapp/sanitizer"
+
+	"atom"
+	"rdf"
+	"rss"
+	"sanitizer"
 )
 
 func serveError(w http.ResponseWriter, err error) {
@@ -110,15 +111,6 @@ func init() {
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.min.js", jqueryui_ver)
 		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
-	}
-	if len(PUBSUBHUBBUB_HOST) > 0 {
-		u := url.URL{
-			Scheme:   "http",
-			Host:     PUBSUBHUBBUB_HOST,
-			Path:     routeUrl("add-subscription"),
-			RawQuery: url.Values{"url": {"{url}"}}.Encode(),
-		}
-		subURL = u.String()
 	}
 }
 

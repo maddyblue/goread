@@ -40,7 +40,8 @@ import (
 	"appengine/user"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
-	"goapp/sanitizer"
+
+	"sanitizer"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
