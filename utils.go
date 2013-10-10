@@ -351,8 +351,8 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
-func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error) {
-	f := Feed{Url: u}
+func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, []*Story, error) {
+	f := Feed{Url: origUrl}
 	var s []*Story
 
 	a := atom.Feed{}
@@ -411,7 +411,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error)
 			s = append(s, &st)
 		}
 
-		return parseFix(c, &f, s)
+		return parseFix(c, &f, s, fetchUrl)
 	}
 
 	r := rss.Rss{}
@@ -458,7 +458,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error)
 			s = append(s, &st)
 		}
 
-		return parseFix(c, &f, s)
+		return parseFix(c, &f, s, fetchUrl)
 	}
 
 	rd := rdf.RDF{}
@@ -492,7 +492,7 @@ func ParseFeed(c appengine.Context, u string, b []byte) (*Feed, []*Story, error)
 			s = append(s, &st)
 		}
 
-		return parseFix(c, &f, s)
+		return parseFix(c, &f, s, fetchUrl)
 	}
 
 	c.Warningf("atom parse error: %s", atomerr.Error())
@@ -530,7 +530,7 @@ func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
 	return bestlink
 }
 
-func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error) {
+func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed, []*Story, error) {
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	fk := g.Key(f)
@@ -547,6 +547,8 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 	if err != nil {
 		c.Warningf("unable to parse link: %v", f.Link)
 	}
+
+	c.Errorf("furl: %v", f.Url, f)
 
 	var nss []*Story
 	for _, s := range ss {
@@ -573,6 +575,9 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story) (*Feed, []*Story, error
 				c.Errorf("story has no id: %v", s)
 				return nil, nil, fmt.Errorf("Bad item data in feed")
 			}
+		}
+		if fetchUrl == "http://blogs.msdn.com/rss.aspx" {
+			s.Id = s.Link
 		}
 		// if a story doesn't have a link, see if its id is a URL
 		if s.Link == "" {
