@@ -112,6 +112,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.xmlurls = {};
 		$scope.icons = {};
 		$scope.feedData = {};
+		$scope.stars = {};
 	};
 
 	$scope.update = function() {
@@ -159,6 +160,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					e.Checked = moment(e.Checked).fromNow();
 					e.NextUpdate = moment(e.NextUpdate).fromNow();
 					$scope.feedData[e.Url] = e;
+				});
+				_.each(data.Stars, function(s) {
+					$scope.stars[s] = true;
 				});
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				$scope.trialRemaining = data.TrialRemaining;
@@ -751,7 +755,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			f: f,
 			c: $scope.cursors[f] || ''
 		})).success(function (data) {
-			if (!data || !data.Stories) return
+			if (!data) return;
+			if (data.Stars) {
+				_.each(data.Stars, function(s) {
+					$scope.stars[s] = true;
+				});
+			}
+			if (!data.Stories) return;
 			delete $scope.fetching[f]
 			$scope.cursors[$scope.activeFeed] = data.Cursor;
 			if (!$scope.readStories[f])
@@ -970,6 +980,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					});
 				}
 			});
+	};
+
+	$scope.toggleStar = function(story) {
+		$scope.stars[story.guid] = !$scope.stars[story.guid];
+		$scope.http('POST',  $('#mark-all-read').attr('data-url-star'), {
+			feed: story.feed.XmlUrl,
+			story: story.Id,
+			del: $scope.stars[story.guid] ? '' : '1'
+		});
 	};
 
 	$scope.encode = encodeURIComponent;

@@ -15,3 +15,9 @@ indexes:
   properties:
   - name: c
     direction: desc
+
+- kind: US
+  ancestor: yes
+  properties:
+  - name: c
+    direction: desc

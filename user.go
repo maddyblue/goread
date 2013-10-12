@@ -246,6 +246,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	updatedLinks := false
 	now := time.Now()
 	numStories := 0
+	var stars []string
 
 	c.Step(fmt.Sprintf("feed unreads: %v", u.Read), func(c mpg.Context) {
 		queue := make(chan *Feed)
@@ -315,6 +316,20 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			queue <- f
 		}
 		close(queue)
+		c.Step("stars", func(c mpg.Context) {
+			gn := goon.FromContext(c)
+			q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).
+				Ancestor(ud.Parent).
+				KeysOnly().
+				Filter("c >=", u.Read).
+				Order("-c")
+			keys, _ := gn.GetAll(q, nil)
+			stars = make([]string, len(keys))
+			for i, key := range keys {
+				stars[i] = starID(key)
+			}
+			c.Infof("star keys: %v", keys)
+		})
 		// wait for feeds to complete so there are no more tasks to queue
 		wg.Wait()
 		// then finish enqueuing tasks
@@ -424,12 +439,14 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Options        string
 			TrialRemaining int
 			Feeds          []*Feed
+			Stars          []string
 		}{
 			Opml:           uf.Outline,
 			Stories:        fl,
 			Options:        u.Options,
 			TrialRemaining: trialRemaining,
 			Feeds:          feeds,
+			Stars:          stars,
 		}
 		b, err := json.Marshal(o)
 		if err != nil {
@@ -733,13 +750,29 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	f := Feed{Url: r.FormValue("f")}
+	var stars []string
+	wg := sync.WaitGroup{}
 	fk := gn.Key(&f)
 	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
 	q = q.Order("-" + IDX_COL)
-	if c := r.FormValue("c"); c != "" {
-		if dc, err := datastore.DecodeCursor(c); err == nil {
+	if cur := r.FormValue("c"); cur != "" {
+		if dc, err := datastore.DecodeCursor(cur); err == nil {
 			q = q.Start(dc)
 		}
+	} else {
+		// grab the stars list on the first run
+		wg.Add(1)
+		go c.Step("stars", func(c mpg.Context) {
+			gn := goon.FromContext(c)
+			usk := starKey(c, f.Url, "")
+			q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).Ancestor(gn.Key(usk).Parent()).KeysOnly()
+			keys, _ := gn.GetAll(q, nil)
+			stars = make([]string, len(keys))
+			for i, key := range keys {
+				stars[i] = starID(key)
+			}
+			wg.Done()
+		})
 	}
 	iter := gn.Run(q)
 	var stories []*Story
@@ -761,12 +794,15 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		cursor = ic.String()
 	}
 	gn.GetMulti(&stories)
+	wg.Wait()
 	b, _ := json.Marshal(struct {
 		Cursor  string
 		Stories []*Story
+		Stars   []string `json:",omitempty"`
 	}{
 		Cursor:  cursor,
 		Stories: stories,
+		Stars:   stars,
 	})
 	w.Write(b)
 }
@@ -786,4 +822,25 @@ func DeleteAccount(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn.Delete(gn.Key(&ud))
 	gn.Delete(ud.Parent)
 	http.Redirect(w, r, routeUrl("logout"), http.StatusFound)
+}
+
+func SetStar(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	feed := r.FormValue("feed")
+	story := r.FormValue("story")
+	if len(feed) == 0 || len(story) == 0 {
+		return
+	}
+	del := r.FormValue("del") != ""
+	us := starKey(c, feed, story)
+	gn := goon.FromContext(c)
+	if del {
+		gn.Delete(gn.Key(us))
+	} else {
+		us.Created = time.Now()
+		_, err := gn.Put(us)
+		if err != nil {
+			c.Errorf("star put err: %v", err)
+			serveError(w, err)
+		}
+	}
 }

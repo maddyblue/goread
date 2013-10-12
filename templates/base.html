@@ -69,13 +69,21 @@
 		.story-header.read {
 			background-color: #f5f5f5;
 		}
+		.story-star {
+			position: absolute;
+			left: 5px;
+			color: rgba(0, 0, 0, 0.4);
+		}
+		.story-star:hover {
+			color: rgba(0, 0, 0, 1);
+		}
 		.story-feed {
-			width: 145px;
+			width: 130px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			position: absolute;
 			white-space: nowrap;
-			left: 5px;
+			left: 20px;
 		}
 		.story-date {
 			position: absolute;
@@ -239,6 +247,7 @@
 						data-url-read="{{url "mark-read"}}"
 						data-url-unread="{{url "mark-unread"}}"
 						data-url-contents="{{url "get-contents"}}"
+						data-url-star="{{url "set-star"}}"
 						>mark all read</button>
 					<button
 						id="refresh"
@@ -616,6 +625,9 @@
 					ng-class="{selected: $index == currentStory}"
 				>
 					<div class="story-header hand" ng-class="{read: s.read}" ng-click="setCurrent($index, {collapse: 'toggle'})">
+						<div class="story-star" ng-click="toggleStar(s); $event.stopPropagation()">
+							<i ng-class="stars[s.guid] ? 'icon-star' : 'icon-star-empty'"></i>
+						</div>
 						<div class="story-feed muted hidden-xs" ng-bind="s.feed.Title"></div>
 						<div class="story-title" title="{{`{{s.Title}}`}}" dir="auto">
 							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, null, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>

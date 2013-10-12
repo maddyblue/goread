@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"time"
@@ -27,6 +28,8 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/taskqueue"
+	"appengine/user"
+	"github.com/mjibson/goon"
 )
 
 type User struct {
@@ -79,6 +82,35 @@ func (uo *UserOpml) opml() []byte {
 		}
 	}
 	return uo.Opml
+}
+
+type UserStarFeed struct {
+	_kind  string         `goon:"kind,USF"`
+	Id     string         `datastore:"-" goon:"id"`
+	Parent *datastore.Key `datastore:"-" goon:"parent"`
+}
+
+// parent: UserStarFeed, key: Story.Key.Encode()
+type UserStar struct {
+	_kind   string         `goon:"kind,US"`
+	Id      string         `datastore:"-" goon:"id"`
+	Parent  *datastore.Key `datastore:"-" goon:"parent"`
+	Created time.Time      `datastore:"c"`
+}
+
+func starKey(c appengine.Context, feed, story string) *UserStar {
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := User{Id: cu.ID}
+	uk := gn.Key(&u)
+	return &UserStar{
+		Parent: datastore.NewKey(c, "USF", feed, 0, uk),
+		Id:     story,
+	}
+}
+
+func starID(key *datastore.Key) string {
+	return fmt.Sprintf("%s|%s", key.Parent().StringID(), key.StringID())
 }
 
 type readStory struct {
