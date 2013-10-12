@@ -548,8 +548,6 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 		c.Warningf("unable to parse link: %v", f.Link)
 	}
 
-	c.Errorf("furl: %v", f.Url, f)
-
 	var nss []*Story
 	for _, s := range ss {
 		s.Parent = fk
