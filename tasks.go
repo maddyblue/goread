@@ -38,7 +38,6 @@ import (
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/gorilla/mux"
 	"github.com/mjibson/goon"
 )
 
@@ -137,12 +136,6 @@ const IMPORT_LIMIT = 10
 func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	furl := r.FormValue("feed")
-	oldURL := false
-	if len(furl) == 0 {
-		vars := mux.Vars(r)
-		furl = vars["feed"]
-		oldURL = true
-	}
 	b, _ := base64.URLEncoding.DecodeString(furl)
 	f := Feed{Url: string(b)}
 	c.Infof("url: %v", f.Url)
@@ -151,11 +144,6 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "GET" {
-		if oldURL {
-			c.Warningf("old url")
-			http.Error(w, "", http.StatusNotFound)
-			return
-		}
 		if f.NotViewed() || r.FormValue("hub.mode") != "subscribe" || r.FormValue("hub.topic") != f.Url {
 			http.Error(w, "", http.StatusNotFound)
 			return

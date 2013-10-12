@@ -52,7 +52,6 @@ func init() {
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
-	router.Handle("/push/{feed}", mpg.NewHandler(SubscribeCallback))
 	router.Handle("/push", mpg.NewHandler(SubscribeCallback)).Name("subscribe-callback")
 	router.Handle("/tasks/import-opml", mpg.NewHandler(ImportOpmlTask)).Name("import-opml-task")
 	router.Handle("/tasks/subscribe-feed", mpg.NewHandler(SubscribeFeed)).Name("subscribe-feed")
