@@ -110,6 +110,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.stories = [];
 		$scope.unreadStories = {};
 		$scope.xmlurls = {};
+		$scope.icons = {};
+		$scope.feedData = {};
 	};
 
 	$scope.update = function() {
@@ -147,8 +149,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					return;
 				}
 				$scope.feeds = data.Opml || $scope.feeds;
-				$scope.icons = {};
-				$scope.feedData = {};
 				_.each(data.Feeds, function(e) {
 					if(e.Image) {
 						if (e.Image.slice(0, 5) === "http:") {
