@@ -80,7 +80,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$timeout(function() {
 				$scope.refresh(function() {
 					$scope.loaded();
-					$scope.setActiveFeed(_.last($scope.feeds).XmlUrl);
+					$scope.setActive('feed', _.last($scope.feeds).XmlUrl);
 				});
 			}, 250);
 		}, function(data) {
@@ -510,20 +510,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.checkLoadNextPage();
 	}
 
-	$scope.setActiveFeed = function(feed) {
-		delete $scope.activeFolder;
-		$scope.activeFeed = feed;
-		delete $scope.currentStory;
-		$scope.updateStories();
-		$scope.applyGetFeed();
-		$scope.updateUnreadCurrent();
-		$scope.resetScroll();
-		$scope.resetLimit();
-	};
-
-	$scope.setActiveFolder = function(folder) {
+	$scope.setActive = function(type, value) {
 		delete $scope.activeFeed;
-		$scope.activeFolder = folder;
+		delete $scope.activeFolder;
+		if (type == 'feed') $scope.activeFeed = value;
+		if (type == 'folder') $scope.activeFolder = value;
 		delete $scope.currentStory;
 		$scope.updateStories();
 		$scope.applyGetFeed();
@@ -642,7 +633,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				break;
 			}
 		}
-		$scope.setActiveFeed();
+		$scope.setActive();
 		$scope.uploadOpml();
 		$scope.update();
 	};
@@ -671,7 +662,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.stories = $scope.stories.filter(function(e) {
 			return e.feed.XmlUrl != feed;
 		});
-		$scope.setActiveFeed();
+		$scope.setActive();
 		$scope.uploadOpml();
 		$scope.update();
 	};
@@ -1062,7 +1053,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($scope.nouser) {
 			return;
 		}
-		$scope.$apply("shown = 'feeds'; setActiveFeed();");
+		$scope.$apply("shown = 'feeds'; setActive();");
 		return false;
 	});
 	Mousetrap.bind('u', function() {

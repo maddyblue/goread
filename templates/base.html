@@ -218,7 +218,7 @@
 			<ul class="nav navbar-nav">
 				<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
 			{{if .User}}
-				<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'; setActiveFeed();">feeds</a></li>
+				<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'; setActive();">feeds</a></li>
 				<li ng-click="shown = 'feeds'" class="dropdown">
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						<span ng-show="opts.mode == 'unread'">{{`{{unread.current || 'no'}}`}} unread items</span>
@@ -505,7 +505,7 @@
 					<li>
 						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<li>
-					<li class="all-subs hand" ng-click="setActiveFeed()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
+					<li class="all-subs hand" ng-click="setActive()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
 						all items ({{`{{unread.all || 0}}`}})
 					</li>
 					<li class="all-subs" ng-show="loading">loading...</li>
@@ -518,7 +518,7 @@
 				{{end}}
 				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="feeds">
 					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
-						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActiveFeed(f.XmlUrl)" title="{{`{{f.Title}}`}}">
+						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActive('feed', f.XmlUrl)" title="{{`{{f.Title}}`}}">
 							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
 							<span class="label label-danger" ng-show="feedData[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 							<span ng-class="{bold: unread.feeds[f.XmlUrl]}" ng-bind="f.Title" dir="auto"></span>
@@ -527,7 +527,7 @@
 							</span>
 						</div>
 						<div ng-show="f.Outline">
-							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActiveFolder(f.Title)" title="{{`{{f.Title}}`}}">
+							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActive('folder', f.Title)" title="{{`{{f.Title}}`}}">
 								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
 								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
 								<span ng-class="{bold: unread.folders[f.Title]}" ng-bind="f.Title"></span>
@@ -537,7 +537,7 @@
 							</div>
 							<ul class="list-unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
-									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActiveFeed(o.XmlUrl)" title="{{`{{o.Title}}`}}">
+									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActive('feed', o.XmlUrl)" title="{{`{{o.Title}}`}}">
 										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
 										<span class="label label-danger" ng-show="feedData[o.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 										<span ng-class="{bold: unread.feeds[o.XmlUrl]}" ng-bind="o.Title"></span>
