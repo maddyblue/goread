@@ -175,7 +175,7 @@ type Story struct {
 	Parent       *datastore.Key `datastore:"-" goon:"parent" json:"-"`
 	Title        string         `datastore:"t,noindex"`
 	Link         string         `datastore:"l,noindex"`
-	Created      time.Time      `datastore:"c" json:"-"`
+	Created      time.Time      `datastore:"c"`
 	Published    time.Time      `datastore:"p,noindex" json:"-"`
 	Updated      time.Time      `datastore:"u,noindex" json:"-"`
 	Date         int64          `datastore:"e,noindex"`

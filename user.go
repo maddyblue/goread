@@ -439,6 +439,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			TrialRemaining int
 			Feeds          []*Feed
 			Stars          []string
+			UnreadDate     time.Time
 		}{
 			Opml:           uf.Outline,
 			Stories:        fl,
@@ -446,6 +447,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			TrialRemaining: trialRemaining,
 			Feeds:          feeds,
 			Stars:          stars,
+			UnreadDate:     u.Read,
 		}
 		b, err := json.Marshal(o)
 		if err != nil {

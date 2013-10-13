@@ -102,6 +102,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var today = new Date().toDateString();
 		var d = new Date(story.Date * 1000);
 		story.dispdate = moment(d).format(d.toDateString() == today ? "h:mm a" : "MMM D, YYYY");
+		story.canUnread = story.Created >= $scope.unreadDate;
 	};
 
 	$scope.clear = function() {
@@ -149,6 +150,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					$scope.shown = 'account';
 					return;
 				}
+				$scope.unreadDate = data.UnreadDate;
 				$scope.feeds = data.Opml || $scope.feeds;
 				_.each(data.Feeds, function(e) {
 					if(e.Image) {
@@ -173,7 +175,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					var stories = data.Stories[feed.XmlUrl] || [];
 					for(var i = 0; i < stories.length; i++) {
 						$scope.procStory(feed.XmlUrl, stories[i], false);
-						stories[i].canUnread = true;
 						$scope.stories.push(stories[i]);
 						$scope.unreadStories[stories[i].guid] = true;
 					}
