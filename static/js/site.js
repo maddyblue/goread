@@ -791,7 +791,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				});
 				_.each(data.Stories, function(stories, f) {
 					_.each(stories, function(s) {
-						$scope.procStory(f, s, true);
+						$scope.procStory(f, s);
+						s.read = !$scope.unreadStories[s.guid];
 						$scope.starStories[s.guid] = s;
 					});
 				});
