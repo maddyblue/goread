@@ -328,7 +328,6 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			for i, key := range keys {
 				stars[i] = starID(key)
 			}
-			c.Infof("star keys: %v", keys)
 		})
 		// wait for feeds to complete so there are no more tasks to queue
 		wg.Wait()
