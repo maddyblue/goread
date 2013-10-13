@@ -843,3 +843,59 @@ func SetStar(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func GetStars(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	cu := user.Current(c)
+	u := User{Id: cu.ID}
+	q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).
+		Ancestor(gn.Key(&u)).
+		Order("-c").
+		Limit(20)
+	if cur := r.FormValue("c"); cur != "" {
+		if dc, err := datastore.DecodeCursor(cur); err == nil {
+			q = q.Start(dc)
+		}
+	}
+	iter := gn.Run(q)
+	stars := make(map[string]int64)
+	var us UserStar
+	var stories []*Story
+	for {
+		if k, err := iter.Next(&us); err == nil {
+			stars[starID(k)] = us.Created.Unix()
+			stories = append(stories, &Story{
+				Id:     k.StringID(),
+				Parent: gn.Key(&Feed{Url: k.Parent().StringID()}),
+			})
+		} else if err == datastore.Done {
+			break
+		} else {
+			serveError(w, err)
+			return
+		}
+	}
+	cursor := ""
+	if ic, err := iter.Cursor(); err == nil {
+		cursor = ic.String()
+	}
+	var smap map[string][]*Story
+	if len(stories) > 0 {
+		gn.GetMulti(&stories)
+		smap = make(map[string][]*Story)
+		for _, s := range stories {
+			f := s.Parent.StringID()
+			smap[f] = append(smap[f], s)
+		}
+	}
+	b, _ := json.Marshal(struct {
+		Cursor  string
+		Stories map[string][]*Story
+		Stars   map[string]int64
+	}{
+		Cursor:  cursor,
+		Stories: smap,
+		Stars:   stars,
+	})
+	w.Write(b)
+}

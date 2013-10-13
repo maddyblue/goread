@@ -508,14 +508,17 @@
 	</div>
 
 	{{if .User}}
-		<div ng-init="refresh()">
+		<div ng-init="clear(); update(); setActive(); refresh()">
 			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
 				<ul class="list-unstyled">
 					<li>
 						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
 					<li>
-					<li class="all-subs hand" ng-click="setActive()" ng-class="{active: !activeFeed && !activeFolder}" ng-hide="loading">
+					<li class="all-subs hand" ng-click="setActive()" ng-class="{active: activeAll}" ng-hide="loading">
 						all items ({{`{{unread.all || 0}}`}})
+					</li>
+					<li class="all-subs hand" ng-click="setActive('star')" ng-class="{active: activeStar}" ng-hide="loading">
+						starred items
 					</li>
 					<li class="all-subs" ng-show="loading">loading...</li>
 				</ul>
@@ -569,9 +572,10 @@
 				data-url-upload="{{url "upload-opml"}}"
 				data-url-options="{{url "save-options"}}"
 				data-url-get-feed="{{url "get-feed"}}"
+				data-url-get-stars="{{url "get-stars"}}"
 			>
 				<div class="active-name story">
-					<span ng-hide="activeFeed || activeFolder" ng-bind="active()"></span>
+					<span ng-show="activeAll || activeStar" ng-bind="active()"></span>
 					<div ng-show="activeFolder">
 						<span ng-bind="activeFolder"></span>
 						<div class="pull-right btn-group config">
