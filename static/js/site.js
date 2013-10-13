@@ -1134,7 +1134,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	});
 	Mousetrap.bind('m', function() {
 		var s = $scope.dispStories[$scope.currentStory];
-		if (s) {
+		if (s && s.canUnread) {
 			$scope.$apply(function() {
 				s.Unread = !s.Unread;
 				$scope.markUnread(s);
