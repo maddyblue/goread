@@ -571,7 +571,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				});
 			} else {
 				_.each($scope.stories, function(s) {
-					var s = $scope.stories[i];
 					if (s.feed.XmlUrl == $scope.activeFeed) {
 						$scope.dispStories.push(s);
 					}
