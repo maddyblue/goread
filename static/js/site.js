@@ -563,19 +563,19 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			}
 		} else if ($scope.activeFeed) {
 			if ($scope.opts.mode != 'unread') {
-				angular.forEach($scope.readStories[$scope.activeFeed], function(s) {
+				_.each($scope.readStories[$scope.activeFeed], function(s) {
 					if ($scope.unreadStories[s.guid]) {
 						s.read = false;
 					}
 					$scope.dispStories.push(s);
 				});
 			} else {
-				for (var i = 0; i < $scope.stories.length; i++) {
+				_.each($scope.stories, function(s) {
 					var s = $scope.stories[i];
 					if (s.feed.XmlUrl == $scope.activeFeed) {
 						$scope.dispStories.push(s);
 					}
-				}
+				});
 			}
 		} else if ($scope.activeStar) {
 			$scope.dispStories = _.values($scope.starStories);
