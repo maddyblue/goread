@@ -378,10 +378,12 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 			f.Updated = f.Date
 		}
 	}
+	scheduleNextUpdate(&f)
 	if fromSub {
-		f.NextUpdate = time.Now().Add(time.Hour * 6)
-	} else {
-		scheduleNextUpdate(&f)
+		wait := time.Now().Add(time.Hour * 6)
+		if f.NextUpdate.Before(wait) {
+			f.NextUpdate = time.Now().Add(time.Hour * 6)
+		}
 	}
 	delay := f.NextUpdate.Sub(time.Now())
 	c.Infof("next update scheduled for %v from now", delay-delay%time.Second)
