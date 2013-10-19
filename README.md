@@ -27,4 +27,4 @@ a google reader clone built with go on app engine and angularjs
 1. Set up a local dev environment as described above.
 1. Create a [new app engine application](https://cloud.google.com/console?getstarted=https://appengine.google.com).
 1. In `app.yaml`, change the first line to contain the name of the application you just created.
-1. From the `goread` directory, deploy with `appcfg.py update .`.
+1. From the `goread` directory, deploy with `appcfg.py update .`. (On Windows, you may need to do this instead: `python C:\go_appengine\appcfg.py update .`)
