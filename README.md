@@ -8,7 +8,7 @@ a google reader clone built with go on app engine and angularjs
 1. Install [Git](http://gitscm.com/) and [Mercurial](http://mercurial.selenic.com/wiki/Download) and make sure `git` and `hg` are in your `PATH`.
 1. Install the [Go App Engine SDK](https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Go).
 1. Set your `GOPATH` (to something like `/home/user/mygo`), and make sure it's a directory that exists. (Note: set this on your machine's environment, not in the go.bat file.)
-1. Further commands that use `go`, `dev_appserver.py`, and `appcfg.py` all live in the `google_appengine` directory from the SDK. Make sure it's in your `PATH`.
+1. Further commands that use `go`, `dev_appserver.py`, and `appcfg.py` all live in the `go_appengine` directory from the SDK. Make sure it's in your `PATH`.
 1. Download dependencies by running: `go get -d github.com/mjibson/goread`. This will download goread and all of its dependencies, and will stick them in your `GOPATH`.
 1. `cd $GOPATH/src/github.com/mjibson/goread`.
 1. `git checkout master` (bug in `go get`).
