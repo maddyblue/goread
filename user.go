@@ -815,13 +815,18 @@ func DeleteAccount(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
-	ud := UserData{Id: "data", Parent: gn.Key(&u)}
-	if err := gn.Get(&u); err != nil {
+	uk := gn.Key(&u)
+	q := datastore.NewQuery("").KeysOnly().Ancestor(uk)
+	keys, err := gn.GetAll(q, nil)
+	if err != nil {
 		serveError(w, err)
 		return
 	}
-	gn.Delete(gn.Key(&ud))
-	gn.Delete(ud.Parent)
+	err = gn.DeleteMulti(keys)
+	if err != nil {
+		serveError(w, err)
+		return
+	}
 	http.Redirect(w, r, routeUrl("logout"), http.StatusFound)
 }
 
