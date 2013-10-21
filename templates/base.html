@@ -643,7 +643,7 @@
 						</div>
 					</div>
 					<div ng-if="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
-						<div class="story-content" ng-click="setCurrent($index, null, $event)" ng-class="{short: opts.nav}">
+						<div class="story-content" ng-click="setCurrent($index)" ng-class="{short: opts.nav}">
 							<div class="story-content-switch" ng-class="{tall: $index == currentStory && opts.nav && adTall}">
 								<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 								<p><small>
