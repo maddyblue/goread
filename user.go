@@ -197,7 +197,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		l.Text += ", u.Read"
 	}
 	trialRemaining := 0
-	if STRIPE_KEY != "" && ud.Opml != nil {
+	if STRIPE_KEY != "" && ud.Opml != nil && u.Account == AFree {
 		if u.Created.IsZero() {
 			u.Created = time.Now()
 			putU = true
