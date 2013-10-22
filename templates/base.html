@@ -634,7 +634,7 @@
 						</div>
 						<div class="story-feed muted hidden-xs" ng-bind="s.feed.Title"></div>
 						<div class="story-title" title="{{`{{s.Title}}`}}" dir="auto">
-							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, null, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>
+							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, {preventDefault: true}, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>
 							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
 						</div>
 						<div class="story-date muted hidden-xs">
@@ -643,7 +643,7 @@
 						</div>
 					</div>
 					<div ng-if="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
-						<div class="story-content" ng-click="setCurrent($index)" ng-class="{short: opts.nav}">
+						<div class="story-content" ng-click="setCurrent($index, null, $event)" ng-class="{short: opts.nav}">
 							<div class="story-content-switch" ng-class="{tall: $index == currentStory && opts.nav && adTall}">
 								<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
 								<p><small>

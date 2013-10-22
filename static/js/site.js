@@ -215,20 +215,21 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	 *  - noMarkRead: don't mark as read
 	 *  - noOpen: don't open or jump
 	 *  - noScroll: don't scrollIntoView
+	 *  - preventDefault: on middle/ctrl click, preventDefault
 	 * ways to call this function:
 	 *  - j/k
 	 *  - n/p
 	 *  - expanded mode click on item
 	 *  - click on title: if open and list mode: collapse
-	 *  - middle click title: open new tab, mark read, don't open
+	 *  - middle/ctrl click title: open new tab, mark read, don't open
 	 *  - click right arrow: open new tab, mark read, don't open
 	 *  - mark read on scroll: expanded mode only, don't jump
 	 *  - NOT: o/enter: these have their own logic
 	 */
 	$scope.setCurrent = function(i, opts, $event) {
 		opts = opts || {};
-		var middleClick = $event && $event.which == 2;
-		if ($event && !middleClick) {
+		var middleClick = $event && ($event.which == 2 || $event.ctrlKey);
+		if (opts.preventDefault && $event && !middleClick) {
 			$event.preventDefault();
 		}
 		var setCurrent = !opts.noOpen && !middleClick;
