@@ -7,8 +7,14 @@
 	<tr><td>id</td><td>{{.User.Id}}</td></tr>
 	<tr><td>email</td><td>{{.User.Email}}</td></tr>
 	<tr><td>read</td><td>{{.User.Read}}</td></tr>
+	<tr><td>created</td><td>{{.User.Created}}</td></tr>
 	<tr><td>account</td><td>{{.User.Account}}</td></tr>
 </table>
+OPML {{len .Data.Opml}}:
+<br>
+<textarea rows="20" cols="80">
+{{printf "%s" .Data.Opml}}
+</textarea>
 <table>
 {{range .Log}}
 	<tr>

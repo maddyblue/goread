@@ -17,11 +17,12 @@
 package goapp
 
 import (
-	"appengine/datastore"
 	"encoding/xml"
 	"fmt"
 	"net/http"
 	"time"
+
+	"appengine/datastore"
 
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -135,18 +136,23 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	q = q.Filter("e =", r.FormValue("u"))
 	it := gn.Run(q)
 	var u User
+	ud := UserData{Id: "data"}
 	var h []Log
 	k, err := it.Next(&u)
 	if err == nil {
 		q = datastore.NewQuery(gn.Key(&Log{}).Kind()).Ancestor(k)
 		_, err = gn.GetAll(q, &h)
+		ud.Parent = gn.Key(&u)
+		gn.Get(&ud)
 	}
 	if err := templates.ExecuteTemplate(w, "admin-user.html", struct {
 		User  User
+		Data  UserData
 		Log   []Log
 		Error error
 	}{
 		u,
+		ud,
 		h,
 		err,
 	}); err != nil {
