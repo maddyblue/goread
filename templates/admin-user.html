@@ -18,6 +18,7 @@ OPML {{len .Data.Opml}}:
 <table>
 {{range .Log}}
 	<tr>
+		<td>{{nanotime .Id | since}}</td>
 		<td>{{nanotime .Id}}</td>
 		<td>{{.Text}}</td>
 	</tr>
