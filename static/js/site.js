@@ -140,7 +140,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.shown = 'feeds';
 		$scope.resetScroll();
 		delete $scope.currentStory;
-		$http.get($('#refresh').attr('data-url-feeds'))
+		$http.post($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				$scope.clear();
 				if (data.ErrorSubscription) {
@@ -932,7 +932,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		$scope.loadCheckout();
 		$scope.shown = 'account';
 		if ($scope.account) return;
-		$http.get($('#account').attr('data-url-account'))
+		$http.post($('#account').attr('data-url-account'))
 			.success(function(data) {
 				$scope.account = data;
 			});
@@ -1006,7 +1006,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.getFeedHistory = function() {
-		$http.get($('#feed-history').attr('data-url'))
+		$http.post($('#feed-history').attr('data-url'))
 			.success(function(data) {
 				$scope.shown = 'feed-history';
 				$scope.feedHistory = [];
