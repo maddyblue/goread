@@ -251,7 +251,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		}
 		if (jumpStory) {
 			$timeout(function() {
-				se = $('#storydiv' + i);
+				var se = $('#storydiv' + i);
 				setTimeout(function() { se[0].scrollIntoView(); });
 			});
 		}
@@ -501,7 +501,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			});
 	};
 
-	limitInc = 20;
+	var limitInc = 20;
 	$scope.dispLimit = limitInc;
 	$scope.resetLimit = function() {
 		$scope.dispLimit = limitInc;
@@ -623,8 +623,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			src.Title = name;
 		} else {
 			dst.Outline.push.apply(dst.Outline, src.Outline);
-			var i = $scope.feeds.indexOf(src);
-			$scope.feeds.splice(i, 1);
+			var idx = $scope.feeds.indexOf(src);
+			$scope.feeds.splice(idx, 1);
 		}
 		$scope.activeFolder = name;
 		$scope.uploadOpml();
@@ -989,7 +989,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				button.button('reset');
 				alert('Unsubscribed');
 			})
-			.error(function() {
+			.error(function(data) {
 				button.button('reset');
 				console.log(data);
 				alert('Error');
