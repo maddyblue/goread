@@ -868,13 +868,17 @@ func GetStars(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	stars := make(map[string]int64)
 	var us UserStar
 	var stories []*Story
+	var feeds []*Feed
+	feedm := make(map[string]*Feed)
 	for {
 		if k, err := iter.Next(&us); err == nil {
 			stars[starID(k)] = us.Created.Unix()
+			feed := &Feed{Url: k.Parent().StringID()}
 			stories = append(stories, &Story{
 				Id:     k.StringID(),
-				Parent: gn.Key(&Feed{Url: k.Parent().StringID()}),
+				Parent: gn.Key(feed),
 			})
+			feedm[feed.Url] = feed
 		} else if err == datastore.Done {
 			break
 		} else {
@@ -895,14 +899,22 @@ func GetStars(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			smap[f] = append(smap[f], s)
 		}
 	}
+	if len(feedm) > 0 {
+		for _, v := range feedm {
+			feeds = append(feeds, v)
+		}
+		gn.GetMulti(&feeds)
+	}
 	b, _ := json.Marshal(struct {
 		Cursor  string
 		Stories map[string][]*Story
 		Stars   map[string]int64
+		Feeds   []*Feed
 	}{
 		Cursor:  cursor,
 		Stories: smap,
 		Stars:   stars,
+		Feeds:   feeds,
 	})
 	w.Write(b)
 }

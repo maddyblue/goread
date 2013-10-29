@@ -122,7 +122,7 @@ type Read map[readStory]bool
 type Feed struct {
 	_kind      string        `goon:"kind,F"`
 	Url        string        `datastore:"-" goon:"id"`
-	Title      string        `datastore:"t,noindex" json:"-"`
+	Title      string        `datastore:"t,noindex"`
 	Updated    time.Time     `datastore:"u,noindex" json:"-"`
 	Date       time.Time     `datastore:"d,noindex" json:"-"`
 	Checked    time.Time     `datastore:"c,noindex"`
