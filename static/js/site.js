@@ -4,15 +4,6 @@ if ($('#messages').attr('data-show')) {
 	$('#messages').modal();
 }
 
-function countProperties(obj) {
-	var count = 0;
-	for(var prop in obj) {
-		if(obj.hasOwnProperty(prop))
-			++count;
-	}
-	return count;
-}
-
 var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
 	.config(function($sceDelegateProvider) {
 		$sceDelegateProvider.resourceUrlWhitelist(['.*']);
