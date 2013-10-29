@@ -13,7 +13,9 @@ var goReadAppModule = angular.module('goReadApp', ['ui.sortable'])
 	});
 goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $window, $sce) {
 	$scope.loading = 0;
-	$scope.contents = {};
+	$scope.feeds = {};
+	$scope.stories = {};
+
 	$scope.opts = {
 		folderClose: {},
 		nav: true,
@@ -84,9 +86,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.procStory = function(xmlurl, story, read) {
-		story.read = read;
-		story.feed = $scope.xmlurls[xmlurl];
 		story.guid = xmlurl + '|' + story.Id;
+		if ($scope.stories[story.guid]) return;
+		story.read = !!read;
+		story.feed = $scope.feeds[xmlurl];
 		if (!story.Title) {
 			story.Title = '(title unknown)';
 		}
@@ -94,23 +97,17 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var d = new Date(story.Date * 1000);
 		story.dispdate = moment(d).format(d.toDateString() == today ? "h:mm a" : "MMM D, YYYY");
 		story.canUnread = story.Created >= $scope.unreadDate;
-	};
-
-	$scope.clear = function() {
-		$scope.feeds = [];
-		$scope.numfeeds = 0;
-		$scope.stories = [];
-		$scope.unreadStories = {};
-		$scope.xmlurls = {};
-		$scope.icons = {};
-		$scope.feedData = {};
-		$scope.stars = {};
+		$scope.stories[story.guid] = story;
 	};
 
 	$scope.update = function() {
 		$scope.updateFolders();
-		$scope.updateUnread();
+		$scope.updateCounts();
 		$scope.updateStories();
+	};
+
+	$scope.updateCounts = function() {
+		$scope.updateUnread();
 		$scope.updateTitle();
 	};
 
@@ -128,12 +125,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.refresh = function(cb) {
 		$scope.loading++;
+		$scope.numfeeds = 0;
 		$scope.shown = 'feeds';
 		$scope.resetScroll();
 		delete $scope.currentStory;
 		$http.post($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
-				$scope.clear();
 				if (data.ErrorSubscription) {
 					$timeout(function() {
 						alert('Free trial ended. Please subscribe.');
@@ -143,47 +140,43 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				}
 				$scope.unreadDate = data.UnreadDate;
 				$scope.untilDays = data.UntilDate ? moment.unix(data.UntilDate).diff(moment(), 'days') : 0;
-				$scope.feeds = data.Opml || $scope.feeds;
+				$scope.opml = data.Opml || $scope.opml;
 				_.each(data.Feeds, function(e) {
 					if(e.Image) {
 						if (e.Image.slice(0, 5) === "http:") {
 							e.Image = e.Image.slice(5);
 						}
-						$scope.icons[e.Url] = e.Image;
 					}
 					e.Checked = moment(e.Checked).fromNow();
 					e.NextUpdate = moment(e.NextUpdate).fromNow();
-					$scope.feedData[e.Url] = e;
+					$scope.feeds[e.Url] = e;
 				});
-				_.each(data.Stars, function(s) {
-					$scope.stars[s] = Date.now();
+				var mapFeed = function(o) {
+					var f = $scope.feeds[o.XmlUrl];
+					f.opml = o;
+					_.each(o, function(value, key) {
+						f[key] = value;
+					});
+				};
+				_.each(data.Opml, function(o) {
+					if (o.Outline) {
+						_.each(o.Outline, mapFeed);
+					} else {
+						mapFeed(o);
+					}
 				});
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				$scope.trialRemaining = data.TrialRemaining;
-
-				var loadStories = function(feed) {
-					$scope.numfeeds++;
-					$scope.xmlurls[feed.XmlUrl] = feed;
-					var stories = data.Stories[feed.XmlUrl] || [];
-					for(var i = 0; i < stories.length; i++) {
-						$scope.procStory(feed.XmlUrl, stories[i], false);
-						$scope.stories.push(stories[i]);
-						$scope.unreadStories[stories[i].guid] = true;
-					}
-				};
-
-				for(var i = 0; i < $scope.feeds.length; i++) {
-					var f = $scope.feeds[i];
-
-					if (f.XmlUrl) {
-						loadStories(f);
-					} else if (f.Outline) {  // check for empty groups
-						for(var j = 0; j < f.Outline.length; j++) {
-							loadStories(f.Outline[j]);
-							$scope.xmlurls[f.Outline[j].XmlUrl].folder = f.Title;
-						}
-					}
-				}
+				_.each(data.Stories, function(stories, feed) {
+					$scope.numfeeds = 1;
+					_.each(stories, function(story) {
+						$scope.procStory(feed, story, false);
+					});
+				});
+				_.each(data.Stars, function(s) {
+					if ($scope.stories[s])
+						$scope.stories[s].star = Date.now();
+				});
 			})
 			.error(function() {
 				alert('Error during refresh: try again.');
@@ -315,29 +308,27 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			'folders': {}
 		};
 
-		for (var i = 0; i < $scope.feeds.length; i++) {
-			var f = $scope.feeds[i];
+		_.each($scope.opml, function(f) {
 			if (f.Outline) {
 				$scope.unread['folders'][f.Title] = 0;
-				for (var j = 0; j < f.Outline.length; j++) {
-					$scope.unread['feeds'][f.Outline[j].XmlUrl] = 0;
-				}
+				_.each(f.Outline, function(subf) {
+					$scope.unread['feeds'][subf.XmlUrl] = 0;
+				});
 			} else {
 				$scope.unread['feeds'][f.XmlUrl] = 0;
 			}
-		}
+		});
 
-		for (var i = 0; i < $scope.stories.length; i++) {
-			var s = $scope.stories[i];
-			if ($scope.unreadStories[s.guid]) {
+		_.each($scope.stories, function(s) {
+			if (!s.read) {
 				$scope.unread['all']++;
 				$scope.unread['feeds'][s.feed.XmlUrl]++;
-				var folder = $scope.xmlurls[s.feed.XmlUrl].folder;
+				var folder = s.feed.folder;
 				if (folder) {
 					$scope.unread['folders'][folder]++;
 				}
 			}
-		}
+		});
 		$scope.updateUnreadCurrent();
 	};
 
@@ -351,45 +342,27 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.markAllRead = function(story) {
 		if (!$scope.dispStories.length) return;
 		var checkStories = story ? [story] : $scope.dispStories;
-		for (var i = 0; i < checkStories.length; i++) {
-			var s = checkStories[i];
+		_.each(checkStories, function(s) {
 			if (!s.read) {
-				if ($scope.opts.mode == 'unread') s.remove = true;
 				s.read = true;
-				delete s.Unread;
 				$scope.markReadStories.push({
 					Feed: s.feed.XmlUrl,
 					Story: s.Id
 				});
-				delete $scope.unreadStories[s.guid];
 			}
-		}
+		});
 		$scope.sendReadStories();
-		$scope.update();
+		$scope.updateCounts();
 	};
 
 	$scope.markUnread = function(s) {
-		var uc = !s.Unread;
-		var attr = uc ? '' : 'un';
+		s.read = !s.read;
+		var attr = s.read ? '' : 'un';
 		$scope.http('POST', $('#mark-all-read').attr('data-url-' + attr + 'read'), {
 			feed: s.feed.XmlUrl,
 			story: s.Id
 		});
-		if (uc) {
-			delete $scope.unreadStories[s.guid];
-			delete s.Unread;
-			s.read = true;
-			s.remove = true;
-		} else {
-			$scope.unreadStories[s.guid] = true;
-			s.Unread = true;
-			delete s.read;
-			delete s.remove;
-		}
-		if ($scope.stories.indexOf(s) == -1) {
-			$scope.stories.push(s);
-		}
-		$scope.update();
+		$scope.updateCounts();
 	};
 
 	$scope.sendReadStories = _.debounce(function() {
@@ -403,7 +376,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.active = function() {
 		if ($scope.activeFolder) return $scope.activeFolder;
-		if ($scope.activeFeed) return $scope.xmlurls[$scope.activeFeed].Title;
+		if ($scope.activeFeed) return $scope.feeds[$scope.activeFeed].Title;
 		if ($scope.activeStar) return 'starred items';
 		return 'all items';
 	};
@@ -449,7 +422,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	}, 1000);
 
 	$scope.overContents = function(s) {
-		if (typeof $scope.contents[s.guid] !== 'undefined') {
+		if (typeof s.contents !== 'undefined') {
 			return;
 		}
 		s.getTimeout = $timeout(function() {
@@ -464,9 +437,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.toFetch = [];
 	$scope.getContents = function(s) {
-		if (typeof $scope.contents[s.guid] !== 'undefined') {
-			return;
-		}
+		if (typeof s.contents !== 'undefined') return;
 		$scope.toFetch.push(s);
 		if (!$scope.fetchPromise) {
 			$scope.fetchPromise = $timeout($scope.fetchContents);
@@ -481,24 +452,20 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var tofetch = $scope.toFetch;
 		$scope.toFetch = [];
 		var data = [];
-		for (var i = 0; i < tofetch.length; i++) {
-			$scope.contents[tofetch[i].guid] = '';
+		_.each(tofetch, function(s) {
+			s.contents = '';
 			data.push({
-				Feed: tofetch[i].feed.XmlUrl,
-				Story: tofetch[i].Id
+				Feed: s.feed.XmlUrl,
+				Story: s.Id
 			});
-		}
+		});
 		$http.post($('#mark-all-read').attr('data-url-contents'), data)
 			.success(function(data) {
-				var current = '';
-				if ($scope.dispStories[$scope.currentStory]) {
-					current = $scope.dispStories[$scope.currentStory].guid;
-				}
-				for (var i = 0; i < data.length; i++) {
-					var d = $('<div>' + data[i] + '</div>');
-					$('a', d).attr('target', '_blank');
-					$scope.contents[tofetch[i].guid] = $sce.trustAsHtml(d.html());
-				}
+				_.each(data, function(d, i) {
+					var div = $('<div>' + d + '</div>');
+					$('a', div).attr('target', '_blank');
+					tofetch[i].contents = $sce.trustAsHtml(div.html());
+				});
 			});
 	};
 
@@ -547,37 +514,24 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.updateStories = function() {
 		$scope.dispStories = [];
-		if ($scope.activeFolder) {
-			for (var i = 0; i < $scope.stories.length; i++) {
-				var s = $scope.stories[i];
-				if ($scope.xmlurls[s.feed.XmlUrl].folder == $scope.activeFolder) {
-					$scope.dispStories.push(s);
+		_.each($scope.stories, function(s) {
+			if ($scope.opts.mode == 'unread' && s.read) {
+				return;
+			} else if ($scope.activeFolder) {
+				if (s.feed.folder != $scope.activeFolder) {
+					return;
+				}
+			} else if ($scope.activeFeed) {
+				if (s.feed.XmlUrl != $scope.activeFeed) {
+					return;
+				}
+			} else if ($scope.activeStar) {
+				if (!s.star) {
+					return;
 				}
 			}
-		} else if ($scope.activeFeed) {
-			if ($scope.opts.mode != 'unread') {
-				_.each($scope.readStories[$scope.activeFeed], function(s) {
-					if ($scope.unreadStories[s.guid]) {
-						s.read = false;
-					}
-					$scope.dispStories.push(s);
-				});
-			} else {
-				_.each($scope.stories, function(s) {
-					if (s.feed.XmlUrl == $scope.activeFeed) {
-						$scope.dispStories.push(s);
-					}
-				});
-			}
-		} else if ($scope.activeStar) {
-			$scope.dispStories = _.values($scope.starStories);
-			$scope.dispStories.sort(function(a, b) {
-				return $scope.stars[b.guid] - $scope.stars[a.guid];
-			});
-			return;
-		} else {
-			$scope.dispStories = $scope.stories;
-		}
+			$scope.dispStories.push(s);
+		});
 
 		var swap = $scope.opts.sort == 'oldest'
 		if (swap) {
@@ -603,9 +557,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.rename = function(feed) {
-		var name = prompt('Rename to', $scope.xmlurls[feed].Title);
+		var name = prompt('Rename to', $scope.feeds[feed].Title);
 		if (!name) return;
-		$scope.xmlurls[feed].Title = name;
+		$scope.feeds[feed].Title = name;
+		$scope.feeds[feed].opml.Title = name;
 		$scope.uploadOpml();
 	};
 
@@ -613,8 +568,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		var name = prompt('Rename to', folder);
 		if (!name) return;
 		var src, dst;
-		for (var i = 0; i < $scope.feeds.length; i++) {
-			var f = $scope.feeds[i];
+		for (var i = 0; i < $scope.opml.length; i++) {
+			var f = $scope.opml[i];
 			if (f.Outline) {
 				if (f.Title == folder) src = f;
 				else if (f.Title == name) dst = f;
@@ -634,10 +589,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.deleteFolder = function(folder) {
 		if (!confirm('Delete ' + folder + ' and unsubscribe from all feeds in it?')) return;
-		for (var i = 0; i < $scope.feeds.length; i++) {
-			var f = $scope.feeds[i];
+		for (var i = 0; i < $scope.opml.length; i++) {
+			var f = $scope.opml[i];
 			if (f.Outline && f.Title == folder) {
-				$scope.feeds.splice(i, 1);
+				$scope.opml.splice(i, 1);
 				break;
 			}
 		}
@@ -647,9 +602,9 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.unsubscribe = function(feed) {
-		if (!confirm('Unsubscribe from ' + $scope.xmlurls[feed].Title + ' (' + feed + ')?')) return;
-		for (var i = 0; i < $scope.feeds.length; i++) {
-			var f = $scope.feeds[i];
+		if (!confirm('Unsubscribe from ' + $scope.feeds[feed].Title + ' (' + feed + ')?')) return;
+		for (var i = 0; i < $scope.opml.length; i++) {
+			var f = $scope.opml[i];
 			if (f.Outline) {
 				for (var j = 0; j < f.Outline.length; j++) {
 					if (f.Outline[j].XmlUrl == feed) {
@@ -658,12 +613,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					}
 				}
 				if (!f.Outline.length) {
-					$scope.feeds.splice(i, 1);
+					$scope.opml.splice(i, 1);
 					break;
 				}
 			}
 			if (f.XmlUrl == feed) {
-				$scope.feeds.splice(i, 1);
+				$scope.opml.splice(i, 1);
 				break;
 			}
 		}
@@ -678,8 +633,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.moveFeed = function(url, folder) {
 		var feed;
 		var found = false;
-		for (var i = $scope.feeds.length - 1; i >= 0; i--) {
-			var f = $scope.feeds[i];
+		for (var i = $scope.opml.length - 1; i >= 0; i--) {
+			var f = $scope.opml[i];
 			if (f.Outline) {
 				for (var j = 0; j < f.Outline.length; j++) {
 					var o = f.Outline[j];
@@ -689,7 +644,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 						feed = f.Outline[j];
 						f.Outline.splice(j, 1);
 						if (!f.Outline.length)
-							$scope.feeds.splice(i, 1);
+							$scope.opml.splice(i, 1);
 						break;
 					}
 				}
@@ -699,23 +654,23 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (!folder)
 					return;
 				feed = f;
-				$scope.feeds.splice(i, 1)
+				$scope.opml.splice(i, 1)
 			}
 		}
 		if (!feed) return;
 		if (!folder) {
-			$scope.feeds.push(feed);
+			$scope.opml.push(feed);
 		} else {
 			if (!found) {
-				$scope.feeds.push({
+				$scope.opml.push({
 					Outline: [],
 					Title: folder
 				});
 			}
-			for (var i = 0; i < $scope.feeds.length; i++) {
-				var f = $scope.feeds[i];
+			for (var i = 0; i < $scope.opml.length; i++) {
+				var f = $scope.opml[i];
 				if (f.Outline && f.Title == folder) {
-					$scope.feeds[i].Outline.push(feed);
+					$scope.opml[i].Outline.push(feed);
 				}
 			}
 		}
@@ -731,7 +686,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	var prevOpml;
 	$scope.uploadOpml = _.debounce(function() {
-		var opml = JSON.stringify($scope.feeds);
+		var opml = JSON.stringify($scope.opml);
 		if (opml == prevOpml) return;
 		prevOpml = opml;
 		$scope.http('POST', $('#story-list').attr('data-url-upload'), {
@@ -741,8 +696,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	}, 1000);
 
 	var sl = $('#story-list');
-	$scope.readStories = {};
-	$scope.starStories = {};
 	$scope.cursors = {};
 	$scope.fetching = {};
 	$scope.getFeed = function() {
@@ -757,17 +710,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			var success = function (data) {
 				if (!data.Stories) return;
 				delete $scope.fetching[f];
-				if (data.Stars) {
-					_.each(data.Stars, function(s) {
-						$scope.stars[s] = true;
-					});
-				}
-				$scope.cursors[$scope.activeFeed] = data.Cursor;
-				if (!$scope.readStories[f]) $scope.readStories[f] = [];
-				for (var i = 0; i < data.Stories.length; i++) {
-					$scope.procStory(f, data.Stories[i], true);
-					$scope.readStories[f].push(data.Stories[i]);
-				}
+				$scope.cursors[f] = data.Cursor;
+				_.each(data.Stories, function(s) {
+					$scope.procStory(f, s, true);
+				});
+				_.each(data.Stars, function(s) {
+					$scope.stories[s].star = Date.now();
+				});
 			};
 		} else if ($scope.activeStar) {
 			if ($scope.fetching['stars']) return;
@@ -779,15 +728,18 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (!data.Stories) return;
 				delete $scope.fetching['stars'];
 				$scope.cursors['stars'] = data.Cursor;
-				_.each(data.Stars, function(v, k) {
-					$scope.stars[k] = v * 1000;
+				_.each(data.Feeds, function(f) {
+					if (!$scope.feeds[f.Url]) {
+						$scope.feeds[f.Url] = f;
+					}
 				});
 				_.each(data.Stories, function(stories, f) {
 					_.each(stories, function(s) {
-						$scope.procStory(f, s);
-						s.read = !$scope.unreadStories[s.guid];
-						$scope.starStories[s.guid] = s;
+						$scope.procStory(f, s, true);
 					});
+				});
+				_.each(data.Stars, function(v, k) {
+					$scope.stories[k].star = v * 1000;
 				});
 			};
 		} else {
@@ -1015,17 +967,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.toggleStar = function(story) {
-		if ($scope.stars[story.guid]) {
-			delete $scope.stars[story.guid];
-			delete $scope.starStories[story.guid];
+		if ($scope.stories[story.guid].star) {
+			delete $scope.stories[story.guid].star;
 		} else {
-			$scope.stars[story.guid] = Date.now();
-			$scope.starStories[story.guid] = story;
+			$scope.stories[story.guid].star = Date.now();
 		}
 		$scope.http('POST',  $('#mark-all-read').attr('data-url-star'), {
 			feed: story.feed.XmlUrl,
 			story: story.Id,
-			del: $scope.stars[story.guid] ? '' : '1'
+			del: $scope.stories[story.guid].star ? '' : '1'
 		});
 	};
 

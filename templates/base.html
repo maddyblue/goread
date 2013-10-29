@@ -533,10 +533,10 @@
 					<li ng-show="untilDays > 0">{{`{{untilDays}}`}} days remaining of subscription</li>
 				</ul>
 				{{end}}
-				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="feeds">
-					<li ng-repeat="f in feeds" ng-hide="shouldHideEmpty(f)">
+				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="opml">
+					<li ng-repeat="f in opml" ng-hide="shouldHideEmpty(f)">
 						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActive('feed', f.XmlUrl)" title="{{`{{f.Title}}`}}">
-							<img {{htmlattr `ng-src="{{icons[f.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon">
+							<img {{htmlattr `ng-src="{{feeds[f.XmlUrl].Image || '/static/img/feed.png'}}"`}} class="feed-icon">
 							<span class="label label-danger" ng-show="feedData[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 							<span ng-class="{bold: unread.feeds[f.XmlUrl]}" ng-bind="f.Title" dir="auto"></span>
 							<span ng-show="unread.feeds[f.XmlUrl]">
@@ -555,8 +555,8 @@
 							<ul class="list-unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
 								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
 									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActive('feed', o.XmlUrl)" title="{{`{{o.Title}}`}}">
-										<img {{htmlattr `ng-src="{{icons[o.XmlUrl] || '/static/img/feed.png'}}"`}} class="feed-icon hand">
-										<span class="label label-danger" ng-show="feedData[o.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
+										<img {{htmlattr `ng-src="{{feeds[o.XmlUrl].Image || '/static/img/feed.png'}}"`}} class="feed-icon hand">
+										<span class="label label-danger" ng-show="feeds[o.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 										<span ng-class="{bold: unread.feeds[o.XmlUrl]}" ng-bind="o.Title"></span>
 										<span ng-show="unread.feeds[o.XmlUrl]">
 											({{`{{unread.feeds[o.XmlUrl]}}`}})
@@ -595,7 +595,7 @@
 						</div>
 					</div>
 					<div ng-show="activeFeed">
-						<a ng-href="{{`{{xmlurls[activeFeed].HtmlUrl || ''}}`}}" style="color: #333" target="_blank">
+						<a ng-href="{{`{{feeds[activeFeed].HtmlUrl || ''}}`}}" style="color: #333" target="_blank">
 							{{`{{active()}}`}} »
 						</a>
 						<div class="pull-right btn-group config">
@@ -635,7 +635,7 @@
 				>
 					<div class="story-header hand" ng-class="{read: s.read}" ng-click="setCurrent($index, {collapse: 'toggle'})">
 						<div class="story-star" ng-click="toggleStar(s); $event.stopPropagation()">
-							<i ng-class="stars[s.guid] ? 'fa fa-star' : 'fa fa-star-o'"></i>
+							<i ng-class="s.star ? 'fa fa-star' : 'fa fa-star-o'"></i>
 						</div>
 						<div class="story-feed muted hidden-xs" ng-bind="s.feed.Title"></div>
 						<div class="story-title" title="{{`{{s.Title}}`}}" dir="auto">
@@ -655,7 +655,7 @@
 									from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
 									<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
 								</small></p>
-								<div ng-bind-html="contents[s.guid]" class="clearfix" dir="auto"></div>
+								<div ng-bind-html="s.contents" class="clearfix" dir="auto"></div>
 								<div ng-if="s.MediaContent">
 									<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
 									<a ng-href="{{`{{s.MediaContent}}`}}" target="_blank">Original audio source</a>
@@ -716,7 +716,7 @@
 							<p class="text-center" ng-show="!activeFeed && !activeFolder">Your reading list has no unread items.</p>
 							<p class="text-center" ng-show="activeFolder">You have no unread &quot;{{`{{activeFolder}}`}}&quot; items.</p>
 							<div ng-show="activeFeed">
-								<p class="text-center">&quot;{{`{{xmlurls[activeFeed].Title}}`}}&quot; has no unread items.</p>
+								<p class="text-center">&quot;{{`{{feeds[activeFeed].Title}}`}}&quot; has no unread items.</p>
 								<p class="text-center"><a href="#" ng-click="setMode('all')"><small>View all items</small></a></p>
 							</div>
 						</div>
