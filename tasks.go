@@ -434,7 +434,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}()
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
-		c.Errorf("no such entity")
+		c.Errorf("no such entity - " + url)
 		s += "NSE"
 		return
 	} else if err != nil {
