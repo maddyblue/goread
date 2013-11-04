@@ -422,6 +422,10 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(appengine.Timeout(c, time.Minute))
 	url := r.FormValue("feed")
+	if url == "" {
+		c.Errorf("empty update feed")
+		return
+	}
 	c.Debugf("update feed %s", url)
 	last := len(r.FormValue("last")) > 0
 	f := Feed{Url: url}
