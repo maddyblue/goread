@@ -151,11 +151,20 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(r.FormValue("hub.challenge")))
 		i, _ := strconv.Atoi(r.FormValue("hub.lease_seconds"))
 		f.Subscribed = time.Now().Add(time.Second * time.Duration(i))
-		gn.Put(&f)
+		gn.PutMany(&f, &Log{
+			Parent: gn.Key(&f),
+			Id:     time.Now().UnixNano(),
+			Text:   "subscribed",
+		})
 		c.Debugf("subscribed: %v - %v", f.Url, f.Subscribed)
 		return
 	} else if !f.NotViewed() {
 		c.Infof("push: %v", f.Url)
+		gn.Put(&Log{
+			Parent: gn.Key(&f),
+			Id:     time.Now().UnixNano(),
+			Text:   "push update",
+		})
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
 		nf, ss, err := ParseFeed(c, f.Url, f.Url, b)
@@ -299,6 +308,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	if err := gn.Get(&f); err != nil {
 		return fmt.Errorf("feed not found: %s", url)
 	}
+	gn.Put(&Log{
+		Parent: gn.Key(&f),
+		Id:     time.Now().UnixNano(),
+		Text:   "feed update",
+	})
 
 	// Compare the feed's listed update to the story's update.
 	// Note: these may not be accurate, hence, only compare them to each other,
@@ -404,7 +418,13 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else if last {
 		// noop
-	} else if time.Now().Before(f.NextUpdate) {
+	}
+	gn.Put(&Log{
+		Parent: gn.Key(&f),
+		Id:     time.Now().UnixNano(),
+		Text:   "UpdateFeed",
+	})
+	if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
 		return
 	}

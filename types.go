@@ -138,6 +138,12 @@ type Feed struct {
 
 func (f Feed) Subscribe(c appengine.Context) {
 	if !f.IsSubscribed() {
+		gn := goon.FromContext(c)
+		gn.Put(&Log{
+			Parent: gn.Key(&f),
+			Id:     time.Now().UnixNano(),
+			Text:   "Subscribe",
+		})
 		t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
 			"feed": {f.Url},
 		})

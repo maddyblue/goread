@@ -87,14 +87,27 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	gn.GetMulti(stories)
+	q = datastore.NewQuery(gn.Key(&Log{}).Kind()).KeysOnly()
+	q = q.Ancestor(fk)
+	keys, _ = gn.GetAll(q, nil)
+	logs := make([]*Log, len(keys))
+	for j, key := range keys {
+		logs[j] = &Log{
+			Id:     key.IntID(),
+			Parent: fk,
+		}
+	}
+	gn.GetMulti(logs)
 	f.Subscribe(c)
 
 	templates.ExecuteTemplate(w, "admin-feed.html", struct {
 		Feed    *Feed
+		Logs    []*Log
 		Stories []*Story
 		Now     time.Time
 	}{
 		&f,
+		logs,
 		stories,
 		time.Now(),
 	})

@@ -23,6 +23,17 @@
 	<tr><td><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></td></tr>
 </table>
 
+logs:
+<ul>
+{{range .Logs}}
+	<li>
+		{{nanotime .Id | since}}
+		{{nanotime .Id}}
+		{{.Text}}
+	</li>
+{{end}}
+</ul>
+
 stories:
 <ul>
 {{range .Stories}}
