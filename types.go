@@ -142,7 +142,7 @@ func (f Feed) Subscribe(c appengine.Context) {
 		gn.Put(&Log{
 			Parent: gn.Key(&f),
 			Id:     time.Now().UnixNano(),
-			Text:   "Subscribe",
+			Text:   fmt.Sprintf("Subscribe %v", f.Subscribed.String()),
 		})
 		t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
 			"feed": {f.Url},

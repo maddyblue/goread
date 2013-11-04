@@ -154,7 +154,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.PutMany(&f, &Log{
 			Parent: gn.Key(&f),
 			Id:     time.Now().UnixNano(),
-			Text:   "subscribed",
+			Text:   "SubscribeCallback - subscribed - " + f.Subscribed.String(),
 		})
 		c.Debugf("subscribed: %v - %v", f.Url, f.Subscribed)
 		return
@@ -163,7 +163,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		gn.Put(&Log{
 			Parent: gn.Key(&f),
 			Id:     time.Now().UnixNano(),
-			Text:   "push update",
+			Text:   "SubscribeCallback - push update",
 		})
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
@@ -181,13 +181,25 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	gn := goon.FromContext(c)
 	f := Feed{Url: r.FormValue("feed")}
+	fk := gn.Key(&f)
+	s := ""
+	defer func() {
+		gn.Put(&Log{
+			Parent: fk,
+			Id:     time.Now().UnixNano(),
+			Text:   "SubscribeFeed - start " + start.String() + " - f.sub " + f.Subscribed.String() + " - " + s,
+		})
+	}()
 	if err := gn.Get(&f); err != nil {
 		c.Errorf("%v: %v", err, f.Url)
 		serveError(w, err)
+		s += "err"
 		return
 	} else if f.IsSubscribed() {
+		s += "is subscribed"
 		return
 	}
 	u := url.Values{}
@@ -215,8 +227,10 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			c.Errorf("resp: %v - %v", f.Url, resp.Status)
 			c.Errorf("%s", resp.Body)
 		}
+		s += "resp err"
 	} else {
 		c.Infof("subscribed: %v", f.Url)
+		s += "success"
 	}
 }
 
@@ -411,26 +425,33 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Debugf("update feed %s", url)
 	last := len(r.FormValue("last")) > 0
 	f := Feed{Url: url}
+	s := ""
+	defer func() {
+		gn.Put(&Log{
+			Parent: gn.Key(&f),
+			Id:     time.Now().UnixNano(),
+			Text:   "UpdateFeed - " + s,
+		})
+	}()
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
 		c.Errorf("no such entity")
+		s += "NSE"
 		return
 	} else if err != nil {
+		s += "err - " + err.Error()
 		return
 	} else if last {
 		// noop
 	}
-	gn.Put(&Log{
-		Parent: gn.Key(&f),
-		Id:     time.Now().UnixNano(),
-		Text:   "UpdateFeed",
-	})
 	if time.Now().Before(f.NextUpdate) {
 		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
+		s += "already updated"
 		return
 	}
 	f.Subscribe(c)
 
 	feedError := func(err error) {
+		s += "feed err - " + err.Error()
 		f.Errors++
 		v := f.Errors + 1
 		const max = 24 * 7
@@ -447,6 +468,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if feed, stories, err := fetchFeed(c, f.Url, f.Url); err == nil {
 		if err := updateFeed(c, f.Url, feed, stories, false, false, last); err != nil {
 			feedError(err)
+		} else {
+			s += "success"
 		}
 	} else {
 		feedError(err)
