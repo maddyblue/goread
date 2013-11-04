@@ -347,7 +347,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	}
 
 	if hasUpdated && isFeedUpdated && !updateAll && !fromSub {
-		c.Errorf("feed %s already updated to %v, putting", url, feed.Updated)
+		c.Infof("feed %s already updated to %v, putting", url, feed.Updated)
 		f.Updated = time.Now()
 		scheduleNextUpdate(&f)
 		gn.Put(&f)
@@ -444,7 +444,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		// noop
 	}
 	if time.Now().Before(f.NextUpdate) {
-		c.Infof("feed %v already updated: %v", url, f.NextUpdate)
+		c.Errorf("feed %v already updated: %v", url, f.NextUpdate)
 		s += "already updated"
 		return
 	}
