@@ -420,7 +420,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 }
 
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	gn := goon.FromContext(c)
+	gn := goon.FromContext(appengine.Timeout(c, time.Minute))
 	url := r.FormValue("feed")
 	c.Debugf("update feed %s", url)
 	last := len(r.FormValue("last")) > 0
