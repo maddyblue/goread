@@ -453,7 +453,6 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		s += "already updated"
 		return
 	}
-	f.Subscribe(c)
 
 	feedError := func(err error) {
 		s += "feed err - " + err.Error()
@@ -479,6 +478,7 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		feedError(err)
 	}
+	f.Subscribe(c)
 }
 
 func UpdateFeedLast(c mpg.Context, w http.ResponseWriter, r *http.Request) {
