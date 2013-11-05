@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -291,8 +292,9 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 		},
 	}
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
+		reader := io.LimitReader(resp.Body, 1<<21)
 		defer resp.Body.Close()
-		b, _ := ioutil.ReadAll(resp.Body)
+		b, _ := ioutil.ReadAll(reader)
 		if autoUrl, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
 			if autoU, err := url.Parse(autoUrl); err == nil {
 				if autoU.Scheme == "" {
