@@ -136,7 +136,7 @@ type Feed struct {
 	NoAds      bool          `datastore:"o,noindex" json:"-"`
 }
 
-func (f Feed) Subscribe(c appengine.Context) {
+func (f *Feed) Subscribe(c appengine.Context) {
 	if !f.IsSubscribed() {
 		gn := goon.FromContext(c)
 		gn.Put(&Log{
@@ -155,11 +155,11 @@ func (f Feed) Subscribe(c appengine.Context) {
 	}
 }
 
-func (f Feed) IsSubscribed() bool {
+func (f *Feed) IsSubscribed() bool {
 	return !ENABLE_PUBSUBHUBBUB || time.Now().Before(f.Subscribed)
 }
 
-func (f Feed) PubSubURL() string {
+func (f *Feed) PubSubURL() string {
 	b := base64.URLEncoding.EncodeToString([]byte(f.Url))
 	ru, _ := router.Get("subscribe-callback").URL()
 	ru.Scheme = "http"
@@ -170,7 +170,7 @@ func (f Feed) PubSubURL() string {
 	return ru.String()
 }
 
-func (f Feed) NotViewed() bool {
+func (f *Feed) NotViewed() bool {
 	return time.Since(f.LastViewed) > notViewedDisabled
 }
 
