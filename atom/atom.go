@@ -13,14 +13,14 @@ import (
 )
 
 type Feed struct {
-	XMLName xml.Name `xml:"http://www.w3.org/2005/Atom feed"`
+	XMLName xml.Name `xml:"feed"`
 	Title   string   `xml:"title"`
 	ID      string   `xml:"id"`
 	Link    []Link   `xml:"link"`
 	Updated TimeStr  `xml:"updated"`
 	Author  *Person  `xml:"author"`
 	Entry   []*Entry `xml:"entry"`
-	XMLBase string   `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
+	XMLBase string   `xml:"base,attr"`
 }
 
 type Entry struct {
@@ -32,7 +32,7 @@ type Entry struct {
 	Author    *Person `xml:"author"`
 	Summary   *Text   `xml:"summary"`
 	Content   *Text   `xml:"content"`
-	XMLBase   string  `xml:"http://www.w3.org/XML/1998/namespace base,attr"`
+	XMLBase   string  `xml:"base,attr"`
 }
 
 type Link struct {
