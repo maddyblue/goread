@@ -180,6 +180,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Task used to subscribe a feed to push.
 func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	gn := goon.FromContext(c)
