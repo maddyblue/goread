@@ -87,8 +87,10 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	gn.GetMulti(stories)
-	q = datastore.NewQuery(gn.Key(&Log{}).Kind()).KeysOnly()
+	lk := gn.Key(&Log{Parent: fk, Id: time.Now().Add(-time.Hour * 6).UnixNano()})
+	q = datastore.NewQuery(lk.Kind()).KeysOnly()
 	q = q.Ancestor(fk)
+	q = q.Filter("__key__ >", lk)
 	keys, _ = gn.GetAll(q, nil)
 	logs := make([]*Log, len(keys))
 	for j, key := range keys {
