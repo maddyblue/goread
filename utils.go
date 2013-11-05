@@ -662,6 +662,9 @@ func loadImage(c appengine.Context, f *Feed) string {
 	i.Blob, _ = w.Key()
 	su, err := aimage.ServingURL(c, i.Blob, &aimage.ServingURLOptions{Size: 16})
 	if err != nil {
+		if err = blobstore.Delete(c, i.Blob); err != nil {
+			c.Errorf("blob delete err: %v", err)
+		}
 		return ""
 	}
 	i.Url = su.String()
