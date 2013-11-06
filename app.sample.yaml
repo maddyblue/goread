@@ -21,18 +21,26 @@ handlers:
 - url: /login/google
   login: required
   script: _go_app
+  secure: always
 
 - url: /user/.*
   login: required
   script: _go_app
+  secure: always
 
 - url: /task/.*
   login: admin
   script: _go_app
+  secure: always
 
 - url: /admin/.*
   login: admin
   script: _go_app
+  secure: always
+
+- url: /push
+  script: _go_app
 
 - url: /.*
   script: _go_app
+  secure: always
