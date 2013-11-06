@@ -3,6 +3,13 @@ version: 1
 runtime: go
 api_version: go1
 
+automatic_scaling:
+  min_idle_instances: 1
+  max_idle_instances: 1
+  min_pending_latency: 500ms
+  max_pending_latency: 5s
+  max_concurrent_requests: 100
+
 handlers:
 - url: /favicon.ico
   static_files: static/favicon.png
