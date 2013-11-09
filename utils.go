@@ -574,7 +574,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 				s.Id = s.Title
 			} else {
 				c.Errorf("story has no id: %v", s)
-				return nil, nil, fmt.Errorf("Bad item data in feed")
+				continue
 			}
 		}
 		if fetchUrl == "http://blogs.msdn.com/rss.aspx" {
