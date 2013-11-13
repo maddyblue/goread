@@ -126,7 +126,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 	o := &OpmlOutline{
 		Outline: []*OpmlOutline{
-			&OpmlOutline{XmlUrl: url},
+			{XmlUrl: url},
 		},
 	}
 	if err := addFeed(c, cu.ID, o); err != nil {
