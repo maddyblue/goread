@@ -659,6 +659,11 @@
 						</div>
 						<div class="story-footer">
 							<ul class="list-inline">
+								<li style="vertial-align: middle;">
+									<a href="#" ng-click="toggleStar(s); $event.stopPropagation()">
+										<i ng-class="stars[s.guid] ? 'icon-star' : 'icon-star-empty'"></i>
+									</a>
+								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="mailto:?subject={{`{{s.Title | encodeURI}}`}}&body={{`{{s.Link | encodeURI}}`}}">
 										<i class="icon-envelope"></i>
