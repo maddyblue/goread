@@ -87,7 +87,7 @@ var (
 )
 
 func init() {
-	angular_ver := "1.2.0-rc.2"
+	angular_ver := "1.2.1"
 	bootstrap_ver := "3.0.0"
 	font_awesome_ver := "3.2.1"
 	jquery_ver := "2.0.3"
@@ -96,7 +96,7 @@ func init() {
 	isDevServer = appengine.IsDevAppServer()
 
 	if appengine.IsDevAppServer() {
-		Angular = fmt.Sprintf("/static/js/angular-%v.js", angular_ver)
+		Angular = "/static/js/angular.js"
 		BootstrapCss = fmt.Sprintf("/static/css/bootstrap.css")
 		BootstrapJs = fmt.Sprintf("/static/js/bootstrap.js")
 		FontAwesome = fmt.Sprintf("/static/css/font-awesome-%v.css", font_awesome_ver)
