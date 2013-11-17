@@ -97,8 +97,8 @@ func init() {
 
 	if appengine.IsDevAppServer() {
 		Angular = "/static/js/angular.js"
-		BootstrapCss = fmt.Sprintf("/static/css/bootstrap.css")
-		BootstrapJs = fmt.Sprintf("/static/js/bootstrap.js")
+		BootstrapCss = "/static/css/bootstrap.css"
+		BootstrapJs = "/static/js/bootstrap.js"
 		FontAwesome = fmt.Sprintf("/static/css/font-awesome-%v.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.js", jqueryui_ver)
