@@ -92,7 +92,6 @@ func init() {
 	font_awesome_ver := "3.2.1"
 	jquery_ver := "2.0.3"
 	jqueryui_ver := "1.10.3.sortable"
-	underscore_ver := "1.5.1"
 	isDevServer = appengine.IsDevAppServer()
 
 	if appengine.IsDevAppServer() {
@@ -102,7 +101,7 @@ func init() {
 		FontAwesome = fmt.Sprintf("/static/css/font-awesome-%v.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.js", jqueryui_ver)
-		Underscore = fmt.Sprintf("/static/js/underscore-%v.js", underscore_ver)
+		Underscore = "/static/js/underscore.js"
 	} else {
 		Angular = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/angularjs/%v/angular.min.js", angular_ver)
 		BootstrapCss = fmt.Sprintf("//netdna.bootstrapcdn.com/bootstrap/%v/css/bootstrap.min.css", bootstrap_ver)
@@ -110,7 +109,7 @@ func init() {
 		FontAwesome = fmt.Sprintf("//netdna.bootstrapcdn.com/font-awesome/%v/css/font-awesome.min.css", font_awesome_ver)
 		Jquery = fmt.Sprintf("//ajax.googleapis.com/ajax/libs/jquery/%v/jquery.min.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.min.js", jqueryui_ver)
-		Underscore = fmt.Sprintf("/static/js/underscore-%v.min.js", underscore_ver)
+		Underscore = "/static/js/underscore-min.js"
 	}
 }
 
