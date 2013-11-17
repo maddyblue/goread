@@ -89,7 +89,7 @@ var (
 func init() {
 	angular_ver := "1.2.1"
 	bootstrap_ver := "3.0.2"
-	font_awesome_ver := "3.2.1"
+	font_awesome_ver := "4.0.3"
 	jquery_ver := "2.0.3"
 	jqueryui_ver := "1.10.3.sortable"
 	isDevServer = appengine.IsDevAppServer()
@@ -98,7 +98,7 @@ func init() {
 		Angular = "/static/js/angular.js"
 		BootstrapCss = "/static/css/bootstrap.css"
 		BootstrapJs = "/static/js/bootstrap.js"
-		FontAwesome = fmt.Sprintf("/static/css/font-awesome-%v.css", font_awesome_ver)
+		FontAwesome = "/static/css/font-awesome.css"
 		Jquery = fmt.Sprintf("/static/js/jquery-%v.js", jquery_ver)
 		JqueryUI = fmt.Sprintf("/static/js/jquery-ui-%v.js", jqueryui_ver)
 		Underscore = "/static/js/underscore.js"

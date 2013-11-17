@@ -173,7 +173,7 @@
 		.bold {
 			font-weight: bold;
 		}
-		.story-header i.icon-share-alt {
+		.story-header i.fa-share {
 			color: #333;
 		}
 		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
@@ -254,10 +254,10 @@
 						class="btn btn-default navbar-btn btn-sm"
 						ng-click="refresh()"
 						data-url-feeds="{{url "list-feeds"}}"
-						><i class="icon-refresh"></i></button>
+						><i class="fa fa-refresh"></i></button>
 					<div class="btn-group">
-						<button class="btn btn-default navbar-btn btn-sm" ng-click="next()" ng-disabled="stories.length == 0"><i class="icon-chevron-down"></i></button>
-						<button class="btn btn-default navbar-btn btn-sm" ng-click="prev()" ng-disabled="stories.length == 0"><i class="icon-chevron-up"></i></button>
+						<button class="btn btn-default navbar-btn btn-sm" ng-click="next()" ng-disabled="stories.length == 0"><i class="fa fa-chevron-down"></i></button>
+						<button class="btn btn-default navbar-btn btn-sm" ng-click="prev()" ng-disabled="stories.length == 0"><i class="fa fa-chevron-up"></i></button>
 					</div>
 					<div class="btn-group">
 						<a href="#" class="btn btn-default navbar-btn btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -267,30 +267,30 @@
 						<ul class="dropdown-menu">
 							<li><a href="#" ng-click="toggleExpanded()">
 								expanded view
-								<i class="icon-ok" ng-show="opts.expanded"></i>
+								<i class="fa fa-check" ng-show="opts.expanded"></i>
 							</a></li>
 							<li><a href="#" ng-click="toggleExpanded()">
 								list view
-								<i class="icon-ok" ng-show="!opts.expanded"></i>
+								<i class="fa fa-check" ng-show="!opts.expanded"></i>
 							</a></li>
 							<li class="divider"></li>
 							<li><a href="#" ng-click="setSort('newest')">
 								sort by newest
-								<i class="icon-ok" ng-show="opts.sort != 'oldest'"></i>
+								<i class="fa fa-check" ng-show="opts.sort != 'oldest'"></i>
 							</a></li>
 							<li><a href="#" ng-click="setSort('oldest')">
 								sort by oldest
-								<i class="icon-ok" ng-show="opts.sort == 'oldest'"></i>
+								<i class="fa fa-check" ng-show="opts.sort == 'oldest'"></i>
 							</a></li>
 							<li class="divider"></li>
 							<li><a href="#" ng-click="toggleHideEmpty()">
-								hide empty feeds/folders <i ng-show="opts.hideEmpty" class="icon-ok"></i></a>
+								hide empty feeds/folders <i ng-show="opts.hideEmpty" class="fa fa-check"></i></a>
 							</li>
 							<li><a href="#" ng-click="toggleScrollRead()">
-								mark as read on scroll <i ng-show="opts.scrollRead" class="icon-ok"></i></a>
+								mark as read on scroll <i ng-show="opts.scrollRead" class="fa fa-check"></i></a>
 							</li>
 							<li><a href="#" ng-click="toggleNav()">
-								show left hand side module <i ng-show="opts.nav" class="icon-ok"></i></a>
+								show left hand side module <i ng-show="opts.nav" class="fa fa-check"></i></a>
 							</li>
 						</ul>
 					</div>
@@ -540,8 +540,8 @@
 						</div>
 						<div ng-show="f.Outline">
 							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActive('folder', f.Title)" title="{{`{{f.Title}}`}}">
-								<i class="icon-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
-								<i class="icon-folder-close hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
+								<i class="fa fa-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
+								<i class="fa fa-folder hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
 								<span ng-class="{bold: unread.folders[f.Title]}" ng-bind="f.Title"></span>
 								<span ng-show="unread.folders[f.Title]">
 									({{`{{unread.folders[f.Title]}}`}})
@@ -580,7 +580,7 @@
 						<span ng-bind="activeFolder"></span>
 						<div class="pull-right btn-group config">
 							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
-								<i class="icon-cog"></i>
+								<i class="fa fa-cog"></i>
 								<span class="caret"></span>
 							</a>
 							<ul class="dropdown-menu">
@@ -595,7 +595,7 @@
 						</a>
 						<div class="pull-right btn-group config">
 							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
-								<i class="icon-cog"></i>
+								<i class="fa fa-cog"></i>
 								<span class="caret"></span>
 							</a>
 							<ul class="dropdown-menu">
@@ -630,7 +630,7 @@
 				>
 					<div class="story-header hand" ng-class="{read: s.read}" ng-click="setCurrent($index, {collapse: 'toggle'})">
 						<div class="story-star" ng-click="toggleStar(s); $event.stopPropagation()">
-							<i ng-class="stars[s.guid] ? 'icon-star' : 'icon-star-empty'"></i>
+							<i ng-class="stars[s.guid] ? 'fa fa-star' : 'fa fa-star-o'"></i>
 						</div>
 						<div class="story-feed muted hidden-xs" ng-bind="s.feed.Title"></div>
 						<div class="story-title" title="{{`{{s.Title}}`}}" dir="auto">
@@ -639,7 +639,7 @@
 						</div>
 						<div class="story-date muted hidden-xs">
 							<span ng-bind="s.dispdate"></span>
-							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, {noOpen: true}); $event.stopPropagation()"><i class="icon-share-alt"></i></a>
+							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, {noOpen: true}); $event.stopPropagation()"><i class="fa fa-share"></i></a>
 						</div>
 					</div>
 					<div ng-if="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
@@ -661,30 +661,30 @@
 							<ul class="list-inline">
 								<li style="vertial-align: middle;">
 									<a href="#" ng-click="toggleStar(s); $event.stopPropagation()">
-										<i ng-class="stars[s.guid] ? 'icon-star' : 'icon-star-empty'"></i>
+										<i ng-class="stars[s.guid] ? 'fa fa-star' : 'fa fa-star-o'"></i>
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="mailto:?subject={{`{{s.Title | encodeURI}}`}}&body={{`{{s.Link | encodeURI}}`}}">
-										<i class="icon-envelope"></i>
+										<i class="fa fa-envelope"></i>
 										email
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="https://twitter.com/intent/tweet?text={{`{{s.Title | encodeURI}}`}}&url={{`{{s.Link | encodeURI}}`}}&via=GoReadRss">
-										<i class="icon-twitter"></i>
+										<i class="fa fa-twitter"></i>
 										tweet
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="https://plus.google.com/share?url={{`{{s.Link | encodeURI}}`}}">
-										<i class="icon-google-plus"></i>
+										<i class="fa fa-google-plus"></i>
 										google
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="http://www.tumblr.com/share/link?url={{`{{s.Link | encodeURI}}`}}&name={{`{{s.Title | encodeURI}}`}}">
-										<i class="icon-tumblr"></i>
+										<i class="fa fa-tumblr"></i>
 										tumblr
 									</a>
 								</li>
