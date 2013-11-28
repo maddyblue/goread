@@ -122,7 +122,7 @@ func includes(c mpg.Context, w http.ResponseWriter, r *http.Request) *Includes {
 		Jquery:              Jquery,
 		JqueryUI:            JqueryUI,
 		Underscore:          Underscore,
-		MiniProfiler:        c.Includes(r),
+		MiniProfiler:        c.Includes(),
 		GoogleAnalyticsId:   GOOGLE_ANALYTICS_ID,
 		GoogleAnalyticsHost: GOOGLE_ANALYTICS_HOST,
 		SubURL:              subURL,
