@@ -433,9 +433,6 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 			c.Warningf("no rss feed date: %v", f.Link)
 		}
 		f.Link = r.BaseLink()
-		if l, err := fb.Parse(f.Link); err == nil {
-			f.Link = l.String()
-		}
 		f.Hub = r.Hub()
 
 		for _, i := range r.Items {
