@@ -133,6 +133,7 @@ func AdminSubHub(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	f.Subscribed = time.Time{}
 	f.Subscribe(c)
 	fmt.Fprintf(w, "subscribed")
 }
