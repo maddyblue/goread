@@ -24,6 +24,30 @@ import (
 	"code.google.com/p/go-charset/charset"
 )
 
+func TestCDATALink(t *testing.T) {
+	r := Rss{}
+	d := xml.NewDecoder(strings.NewReader(ATALSOFT_FEED))
+	d.CharsetReader = charset.NewReader
+	d.DefaultSpace = "DefaultSpace"
+	if err := d.Decode(&r); err != nil {
+		t.Fatal(err)
+	}
+	if r.BaseLink() != "http://www.atalasoft.com/blogs/blogsrss.aspx?rss=loufranco" {
+		t.Error("bad link", r.BaseLink())
+	}
+}
+
+const ATALSOFT_FEED = `
+<?xml version="1.0" encoding="utf-8"?><rss version="2.0">
+<channel>
+<title><![CDATA[Lou Franco]]></title>
+<link><![CDATA[http://www.atalasoft.com/blogs/blogsrss.aspx?rss=loufranco]]></link>
+<description><![CDATA[Lou Franco Atalasoft RSS]]></description>
+<language><![CDATA[en-US]]></language>
+</channel>
+</rss>
+`
+
 func TestParseHub(t *testing.T) {
 	r := Rss{}
 	d := xml.NewDecoder(strings.NewReader(WP_FEED))

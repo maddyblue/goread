@@ -25,8 +25,8 @@ func (r *Rss) Hub() string {
 
 func (r *Rss) BaseLink() string {
 	for _, l := range r.Link {
-		if l.Rel == "" && l.Type == "" && l.Href == "" && l.InnerXML != "" {
-			return l.InnerXML
+		if l.Rel == "" && l.Type == "" && l.Href == "" && l.Chardata != "" {
+			return l.Chardata
 		}
 	}
 	return ""
@@ -36,7 +36,7 @@ type Link struct {
 	Rel      string `xml:"rel,attr"`
 	Href     string `xml:"href,attr"`
 	Type     string `xml:"type,attr"`
-	InnerXML string `xml:",innerxml"`
+	Chardata string `xml:",chardata"`
 }
 
 type Item struct {
