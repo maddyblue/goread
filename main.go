@@ -80,6 +80,7 @@ func init() {
 	router.Handle("/admin/user", mpg.NewHandler(AdminUser)).Name("admin-user")
 	router.Handle("/date-formats", mpg.NewHandler(AdminDateFormats)).Name("admin-date-formats")
 	router.Handle("/admin/feed", mpg.NewHandler(AdminFeed)).Name("admin-feed")
+	router.Handle("/admin/subhub", mpg.NewHandler(AdminSubHub)).Name("admin-subhub-feed")
 	router.Handle("/admin/stats", mpg.NewHandler(AdminStats)).Name("admin-stats")
 	router.Handle("/admin/update-feed", mpg.NewHandler(AdminUpdateFeed)).Name("admin-update-feed")
 	router.Handle("/user/charge", mpg.NewHandler(Charge)).Name("charge")

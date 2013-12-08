@@ -2,6 +2,7 @@
 <body>
 
 <a href="{{url "admin-update-feed"}}?f={{.Feed.Url}}">update</a>
+<a href="{{url "admin-subhub-feed"}}?f={{.Feed.Url}}">pubsub subscribe</a>
 
 <table>
 	<tr><td>url</td><td>{{.Feed.Url}}</td></tr>
@@ -20,7 +21,8 @@
 	<tr><td>subscribed</td><td>{{.Feed.Subscribed}}</td><td>{{since .Feed.Subscribed}}</td></tr>
 	<tr><td>last view</td><td>{{.Feed.LastViewed}}</td><td>{{since .Feed.LastViewed}}</td></tr>
 	<tr><td>average</td><td>{{.Feed.Average}}</td></tr>
-	<tr><td><a href="https://pubsubhubbub.appspot.com/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></td></tr>
+	<tr><td>is subbed</td><td>{{.Feed.IsSubscribed}}</td></tr>
+	<tr><td><a href="{{.Feed.Hub}}/subscription-details?hub.callback={{.Feed.PubSubURL}}&hub.topic={{.Feed.Url}}">pubsub</a></td></tr>
 </table>
 
 logs:

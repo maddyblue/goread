@@ -157,7 +157,7 @@ func (f *Feed) Subscribe(c appengine.Context) {
 }
 
 func (f *Feed) IsSubscribed() bool {
-	return !ENABLE_PUBSUBHUBBUB || time.Now().Before(f.Subscribed)
+	return !ENABLE_PUBSUBHUBBUB || f.Hub == "" || time.Now().Before(f.Subscribed)
 }
 
 func (f *Feed) PubSubURL() string {

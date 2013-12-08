@@ -126,6 +126,17 @@ func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func AdminSubHub(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	gn := goon.FromContext(c)
+	f := Feed{Url: r.FormValue("f")}
+	if err := gn.Get(&f); err != nil {
+		serveError(w, err)
+		return
+	}
+	f.Subscribe(c)
+	fmt.Fprintf(w, "subscribed")
+}
+
 func AdminDateFormats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	type df struct {
 		URL, Format string

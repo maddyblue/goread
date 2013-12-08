@@ -211,7 +211,7 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	fu, _ := url.Parse(f.Url)
 	fu.Fragment = ""
 	u.Add("hub.topic", fu.String())
-	req, err := http.NewRequest("POST", PUBSUBHUBBUB_HUB, strings.NewReader(u.Encode()))
+	req, err := http.NewRequest("POST", f.Hub, strings.NewReader(u.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	cl := &http.Client{
 		Transport: &urlfetch.Transport{
