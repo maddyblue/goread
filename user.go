@@ -17,7 +17,6 @@
 package goapp
 
 import (
-	"appengine"
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
@@ -34,12 +33,13 @@ import (
 	"sync"
 	"time"
 
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
+	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/user"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 
 	"sanitizer"
 )
