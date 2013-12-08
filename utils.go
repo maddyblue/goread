@@ -372,7 +372,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 			fb, _ = url.Parse("")
 		}
 		if len(a.Link) > 0 {
-			f.Link = findBestAtomLink(c, a.Link).Href
+			f.Link = findBestAtomLink(c, a.Link)
 			if l, err := fb.Parse(f.Link); err == nil {
 				f.Link = l.String()
 			}
@@ -393,7 +393,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 				st.Published = t
 			}
 			if len(i.Link) > 0 {
-				st.Link = findBestAtomLink(c, i.Link).Href
+				st.Link = findBestAtomLink(c, i.Link)
 				if l, err := eb.Parse(st.Link); err == nil {
 					st.Link = l.String()
 				}
@@ -503,28 +503,30 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 	return nil, nil, fmt.Errorf("Could not parse feed data")
 }
 
-func findBestAtomLink(c appengine.Context, links []atom.Link) atom.Link {
+func findBestAtomLink(c appengine.Context, links []atom.Link) string {
 	getScore := func(l atom.Link) int {
 		switch {
 		case l.Rel == "hub":
 			return 0
 		case l.Rel == "alternate" && l.Type == "text/html":
-			return 4
+			return 5
 		case l.Type == "text/html":
-			return 3
-		case l.Rel != "self":
+			return 4
+		case l.Rel == "self":
 			return 2
+		case l.Rel == "":
+			return 3
 		default:
 			return 1
 		}
 	}
 
-	var bestlink atom.Link
+	var bestlink string
 	bestscore := -1
 	for _, l := range links {
 		score := getScore(l)
 		if score > bestscore {
-			bestlink = l
+			bestlink = l.Href
 			bestscore = score
 		}
 	}
