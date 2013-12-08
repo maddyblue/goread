@@ -546,7 +546,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 	fk := g.Key(f)
 	f.Image = loadImage(c, f)
 	f.Link = strings.TrimSpace(f.Link)
-	f.Title = html.UnescapeString(f.Title)
+	f.Title = html.UnescapeString(strings.TrimSpace(f.Title))
 
 	if u, err := url.Parse(f.Url); err == nil {
 		if ul, err := u.Parse(f.Link); err == nil {
