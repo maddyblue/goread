@@ -594,7 +594,6 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		&Feed{},
 		&Story{},
 		&StoryContent{},
-		&DateFormat{},
 		&Log{},
 		&UserOpml{},
 	}

@@ -40,6 +40,7 @@ import (
 	"appengine"
 	"appengine/blobstore"
 	aimage "appengine/image"
+	"appengine/memcache"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"appengine/user"
@@ -341,13 +342,11 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 				return
 			}
 		}
-		gn := goon.FromContext(c)
-		df := &DateFormat{
-			Id:    rand.Int63n(dateFormatCount),
-			Feed:  feed.Url,
-			Value: d,
+		df := memcache.Item{
+			Key:   fmt.Sprintf("_dateformat-%v", rand.Int63n(dateFormatCount)),
+			Value: []byte(fmt.Sprintf("%v|%v", d, feed.Url)),
 		}
-		gn.Put(df)
+		memcache.Add(c, &df)
 	}
 	err = fmt.Errorf("could not parse date: %v", strings.Join(ds, ", "))
 	return

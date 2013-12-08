@@ -233,13 +233,6 @@ type Opml struct {
 	Outline []*OpmlOutline `xml:"body>outline"`
 }
 
-type DateFormat struct {
-	Id    int64  `datastore:"-" goon:"id"`
-	_kind string `goon:"kind,DF"`
-	Value string `datastore:"v"`
-	Feed  string `datastore:"f"`
-}
-
 type Image struct {
 	Id   string            `datastore:"-" goon:"id"`
 	Blob appengine.BlobKey `datastore:"b,noindex"`

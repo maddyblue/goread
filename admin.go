@@ -20,9 +20,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"appengine/datastore"
+	"appengine/memcache"
 
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
@@ -125,10 +127,19 @@ func AdminUpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func AdminDateFormats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	gn := goon.FromContext(c)
-	var dfs []*DateFormat
-	q := datastore.NewQuery(gn.Key(&DateFormat{}).Kind()).Limit(dateFormatCount)
-	gn.GetAll(q, &dfs)
+	type df struct {
+		URL, Format string
+	}
+	keys := make([]string, dateFormatCount)
+	for i := range keys {
+		keys[i] = fmt.Sprintf("_dateformat-%v", i)
+	}
+	items, _ := memcache.GetMulti(c, keys)
+	dfs := make(map[string]df)
+	for k, v := range items {
+		sp := strings.Split(string(v.Value), "|")
+		dfs[k] = df{sp[1], sp[0]}
+	}
 	if err := templates.ExecuteTemplate(w, "admin-date-formats.html", dfs); err != nil {
 		serveError(w, err)
 	}
