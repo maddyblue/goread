@@ -376,6 +376,12 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 			if l, err := fb.Parse(f.Link); err == nil {
 				f.Link = l.String()
 			}
+			for _, l := range a.Link {
+				if l.Rel == "hub" {
+					f.Hub = l.Href
+					break
+				}
+			}
 		}
 
 		for _, i := range a.Entry {
@@ -422,12 +428,16 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 	d.DefaultSpace = "DefaultSpace"
 	if rsserr = d.Decode(&r); rsserr == nil {
 		f.Title = r.Title
-		f.Link = r.Link
 		if t, err := parseDate(c, &f, r.LastBuildDate, r.PubDate); err == nil {
 			f.Updated = t
 		} else {
 			c.Warningf("no rss feed date: %v", f.Link)
 		}
+		f.Link = r.BaseLink()
+		if l, err := fb.Parse(f.Link); err == nil {
+			f.Link = l.String()
+		}
+		f.Hub = r.Hub()
 
 		for _, i := range r.Items {
 			st := Story{
