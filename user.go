@@ -197,7 +197,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		l.Text += ", u.Read"
 	}
 	trialRemaining := 0
-	if STRIPE_KEY != "" && ud.Opml != nil && u.Account == AFree {
+	if STRIPE_KEY != "" && ud.Opml != nil && u.Account == AFree && u.Until.Before(time.Now()) {
 		if u.Created.IsZero() {
 			u.Created = time.Now()
 			putU = true
@@ -440,6 +440,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Feeds          []*Feed
 			Stars          []string
 			UnreadDate     time.Time
+			UntilDate      int64
 		}{
 			Opml:           uf.Outline,
 			Stories:        fl,
@@ -448,6 +449,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Feeds:          feeds,
 			Stars:          stars,
 			UnreadDate:     u.Read,
+			UntilDate:      u.Until.Unix(),
 		}
 		b, err := json.Marshal(o)
 		if err != nil {

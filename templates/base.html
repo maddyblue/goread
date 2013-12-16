@@ -524,9 +524,10 @@
 					<li class="all-subs" ng-show="loading">loading...</li>
 				</ul>
 				{{if .StripeKey}}
-				<ul class="list-unstyled" ng-hide="accountType || trialRemaining == undefined">
+				<ul class="list-unstyled" ng-show="accountType == 0">
 					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
-					<li>{{`{{trialRemaining}}`}} days remaining of free trial</li>
+					<li ng-show="trialRemaining > 0">{{`{{trialRemaining}}`}} days remaining of free trial</li>
+					<li ng-show="untilDays > 0">{{`{{untilDays}}`}} days remaining of subscription</li>
 				</ul>
 				{{end}}
 				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="feeds">

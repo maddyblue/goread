@@ -142,6 +142,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					return;
 				}
 				$scope.unreadDate = data.UnreadDate;
+				$scope.untilDays = data.UntilDate ? moment.unix(data.UntilDate).diff(moment(), 'days') : 0;
 				$scope.feeds = data.Opml || $scope.feeds;
 				_.each(data.Feeds, function(e) {
 					if(e.Image) {

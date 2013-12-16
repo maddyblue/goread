@@ -37,10 +37,11 @@ type User struct {
 	Id       string    `datastore:"-" goon:"id"`
 	Email    string    `datastore:"e"`
 	Messages []string  `datastore:"m,noindex"`
-	Read     time.Time `datastore:"r,noindex"`
+	Read     time.Time `datastore:"r"`
 	Options  string    `datastore:"o,noindex"`
-	Account  int       `datastore:"a,noindex"`
-	Created  time.Time `datastore:"d,noindex"`
+	Account  int       `datastore:"a"`
+	Created  time.Time `datastore:"d"`
+	Until    time.Time `datastore:"u"`
 }
 
 const (
