@@ -176,22 +176,27 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data"}
 	var h []Log
 	k, err := it.Next(&u)
-	if err == nil {
-		q = datastore.NewQuery(gn.Key(&Log{}).Kind()).Ancestor(k)
-		_, err = gn.GetAll(q, &h)
-		ud.Parent = gn.Key(&u)
-		gn.Get(&ud)
+	if err != nil {
+		serveError(w, err)
+		return
 	}
+	until := r.FormValue("until")
+	if d, err := time.Parse("2006-01-02", until); err == nil {
+		u.Until = d
+		gn.Put(&u)
+	}
+	q = datastore.NewQuery(gn.Key(&Log{}).Kind()).Ancestor(k)
+	_, err = gn.GetAll(q, &h)
+	ud.Parent = gn.Key(&u)
+	gn.Get(&ud)
 	if err := templates.ExecuteTemplate(w, "admin-user.html", struct {
-		User  User
-		Data  UserData
-		Log   []Log
-		Error error
+		User User
+		Data UserData
+		Log  []Log
 	}{
 		u,
 		ud,
 		h,
-		err,
 	}); err != nil {
 		serveError(w, err)
 	}
