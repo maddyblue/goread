@@ -235,9 +235,10 @@ type Opml struct {
 }
 
 type Image struct {
-	Id   string            `datastore:"-" goon:"id"`
-	Blob appengine.BlobKey `datastore:"b,noindex"`
-	Url  string            `datastore:"u,noindex"`
+	_kind string            `goon:"kind,I"`
+	Id    string            `datastore:"-" goon:"id"`
+	Blob  appengine.BlobKey `datastore:"b,noindex"`
+	Url   string            `datastore:"u,noindex"`
 }
 
 type Stories []*Story
