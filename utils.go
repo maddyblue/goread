@@ -547,7 +547,7 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	fk := g.Key(f)
-	f.Image = loadImage(c, f)
+	loadImage(c, f)
 	f.Link = strings.TrimSpace(f.Link)
 	f.Title = html.UnescapeString(strings.TrimSpace(f.Title))
 
@@ -624,14 +624,19 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 	return f, nss, nil
 }
 
-func loadImage(c appengine.Context, f *Feed) string {
+func loadImage(c appengine.Context, f *Feed) {
+	if f.ImageDate.After(time.Now()) {
+		return
+	}
+	f.ImageDate = time.Now().Add(time.Hour * 24 * 7)
+
 	s := f.Link
 	if s == "" {
 		s = f.Url
 	}
 	u, err := url.Parse(s)
 	if err != nil {
-		return ""
+		return
 	}
 	u.Path = "/favicon.ico"
 	u.RawQuery = ""
@@ -640,17 +645,17 @@ func loadImage(c appengine.Context, f *Feed) string {
 	g := goon.FromContext(c)
 	i := &Image{Id: u.String()}
 	if err := g.Get(i); err == nil {
-		return i.Url
+		blobstore.Delete(c, i.Blob)
 	}
 	client := urlfetch.Client(c)
 	r, err := client.Get(u.String())
 	if err != nil || r.StatusCode != http.StatusOK || r.ContentLength == 0 {
-		return ""
+		return
 	}
 	b, err := ioutil.ReadAll(r.Body)
 	r.Body.Close()
 	if err != nil {
-		return ""
+		return
 	}
 	buf := bytes.NewBuffer(b)
 	_, t, err := image.DecodeConfig(buf)
@@ -661,13 +666,13 @@ func loadImage(c appengine.Context, f *Feed) string {
 	}
 	w, err := blobstore.Create(c, t)
 	if err != nil {
-		return ""
+		return
 	}
 	if _, err := w.Write(b); err != nil {
-		return ""
+		return
 	}
 	if w.Close() != nil {
-		return ""
+		return
 	}
 	i.Blob, _ = w.Key()
 	su, err := aimage.ServingURL(c, i.Blob, &aimage.ServingURLOptions{Size: 16})
@@ -675,11 +680,11 @@ func loadImage(c appengine.Context, f *Feed) string {
 		if err = blobstore.Delete(c, i.Blob); err != nil {
 			c.Errorf("blob delete err: %v", err)
 		}
-		return ""
+		return
 	}
 	i.Url = su.String()
 	g.Put(i)
-	return i.Url
+	f.Image = i.Url
 }
 
 func updateAverage(f *Feed, previousUpdate time.Time, updateCount int) {

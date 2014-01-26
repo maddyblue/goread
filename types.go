@@ -132,6 +132,7 @@ type Feed struct {
 	Hub        string        `datastore:"h,noindex" json:"-"`
 	Errors     int           `datastore:"e,noindex"`
 	Image      string        `datastore:"i,noindex"`
+	ImageDate  time.Time     `datastore:"g,noindex"`
 	Subscribed time.Time     `datastore:"s,noindex" json:"-"`
 	Average    time.Duration `datastore:"a,noindex" json:"-"`
 	LastViewed time.Time     `datastore:"v,noindex" json:"-"`
