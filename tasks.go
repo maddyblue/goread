@@ -31,15 +31,15 @@ import (
 	"sync"
 	"time"
 
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 )
 
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
