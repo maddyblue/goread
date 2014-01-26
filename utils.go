@@ -33,10 +33,6 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 	"appengine"
 	"appengine/blobstore"
 	aimage "appengine/image"
@@ -44,6 +40,10 @@ import (
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"appengine/user"
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 
 	"atom"
 	"rdf"
