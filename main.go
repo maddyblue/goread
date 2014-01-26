@@ -59,6 +59,8 @@ func init() {
 	router.Handle("/tasks/update-feed-manual", mpg.NewHandler(UpdateFeed)).Name("update-feed-manual")
 	router.Handle("/tasks/update-feed", mpg.NewHandler(UpdateFeed)).Name("update-feed")
 	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
+	router.Handle("/tasks/delete-old-feeds", mpg.NewHandler(DeleteOldFeeds)).Name("delete-old-feeds")
+	router.Handle("/tasks/delete-old-feed", mpg.NewHandler(DeleteOldFeed)).Name("delete-old-feed")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
 	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
 	router.Handle("/user/delete-account", mpg.NewHandler(DeleteAccount)).Name("delete-account")

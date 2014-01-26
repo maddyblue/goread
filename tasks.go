@@ -531,3 +531,75 @@ func DeleteBlobs(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		taskqueue.Add(c, taskqueue.NewPOSTTask("/tasks/delete-blobs", nil), "")
 	}
 }
+
+func DeleteOldFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.Timeout(c, time.Minute)
+	gn := goon.FromContext(c)
+	q := datastore.NewQuery(gn.Kind(&Feed{})).Filter("n=", timeMax).KeysOnly()
+	if cur, err := datastore.DecodeCursor(r.FormValue("c")); err == nil {
+		q = q.Start(cur)
+	}
+	it := q.Run(ctx)
+	done := false
+	var tasks []*taskqueue.Task
+	for i := 0; i < 10000 && len(tasks) < 100; i++ {
+		k, err := it.Next(nil)
+		if err == datastore.Done {
+			c.Criticalf("done")
+			done = true
+			break
+		} else if err != nil {
+			c.Errorf("err: %v", err)
+			continue
+		}
+		values := make(url.Values)
+		values.Add("f", k.StringID())
+		tasks = append(tasks, taskqueue.NewPOSTTask("/tasks/delete-old-feed", values))
+	}
+	if len(tasks) > 0 {
+		c.Errorf("deleting %v feeds", len(tasks))
+		if _, err := taskqueue.AddMulti(c, tasks, ""); err != nil {
+			c.Errorf("err: %v", err)
+		}
+	}
+	if !done {
+		if cur, err := it.Cursor(); err == nil {
+			values := make(url.Values)
+			values.Add("c", cur.String())
+			taskqueue.Add(c, taskqueue.NewPOSTTask("/tasks/delete-old-feeds", values), "")
+		} else {
+			c.Errorf("err: %v", err)
+		}
+	}
+}
+
+func DeleteOldFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	g := goon.FromContext(c)
+	oldDate := time.Now().Add(-time.Hour * 24 * 90)
+	feed := Feed{Url: r.FormValue("f")}
+	if err := g.Get(&feed); err != nil {
+		c.Criticalf("err: %v", err)
+		return
+	}
+	if feed.LastViewed.After(oldDate) {
+		return
+	}
+	q := datastore.NewQuery(g.Kind(&Story{})).Ancestor(g.Key(&feed)).KeysOnly()
+	keys, err := q.GetAll(c, nil)
+	if err != nil {
+		c.Criticalf("err: %v", err)
+		return
+	}
+	q = datastore.NewQuery(g.Kind(&StoryContent{})).Ancestor(g.Key(&feed)).KeysOnly()
+	sckeys, err := q.GetAll(c, nil)
+	if err != nil {
+		c.Criticalf("err: %v", err)
+		return
+	}
+	keys = append(keys, sckeys...)
+	c.Infof("delete: %v - %v", feed.Url, len(keys))
+	err = g.DeleteMulti(keys)
+	if err != nil {
+		c.Criticalf("err: %v", err)
+	}
+}
