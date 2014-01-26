@@ -493,3 +493,41 @@ func UpdateFeedLast(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	f.LastViewed = time.Now()
 	gn.Put(&f)
 }
+
+func DeleteBlobs(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.Timeout(c, time.Minute)
+	q := datastore.NewQuery("__BlobInfo__").KeysOnly()
+	it := q.Run(ctx)
+	wg := sync.WaitGroup{}
+	something := false
+	for _i := 0; _i < 20; _i++ {
+		var bk []appengine.BlobKey
+		for i := 0; i < 1000; i++ {
+			k, err := it.Next(nil)
+			if err == datastore.Done {
+				break
+			} else if err != nil {
+				c.Errorf("err: %v", err)
+				continue
+			}
+			bk = append(bk, appengine.BlobKey(k.StringID()))
+		}
+		if len(bk) == 0 {
+			break
+		}
+		go func(bk []appengine.BlobKey) {
+			something = true
+			c.Errorf("deleteing %v blobs", len(bk))
+			err := blobstore.DeleteMulti(ctx, bk)
+			if err != nil {
+				c.Errorf("blobstore delete err: %v", err)
+			}
+			wg.Done()
+		}(bk)
+		wg.Add(1)
+	}
+	wg.Wait()
+	if something {
+		taskqueue.Add(c, taskqueue.NewPOSTTask("/tasks/delete-blobs", nil), "")
+	}
+}
