@@ -135,7 +135,7 @@ type Feed struct {
 	ImageDate  time.Time     `datastore:"g,noindex"`
 	Subscribed time.Time     `datastore:"s,noindex" json:"-"`
 	Average    time.Duration `datastore:"a,noindex" json:"-"`
-	LastViewed time.Time     `datastore:"v,noindex" json:"-"`
+	LastViewed time.Time     `datastore:"v" json:"-"`
 	NoAds      bool          `datastore:"o,noindex" json:"-"`
 }
 
