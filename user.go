@@ -238,7 +238,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	})
 	lock := sync.Mutex{}
 	fl := make(map[string][]*Story)
-	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).
+	q := datastore.NewQuery(gn.Kind(&Story{})).
 		Filter(IDX_COL+" >=", u.Read).
 		KeysOnly().
 		Order("-" + IDX_COL).
@@ -318,7 +318,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		close(queue)
 		c.Step("stars", func(c mpg.Context) {
 			gn := goon.FromContext(c)
-			q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).
+			q := datastore.NewQuery(gn.Kind(&UserStar{})).
 				Ancestor(ud.Parent).
 				KeysOnly().
 				Filter("c >=", u.Read).
@@ -600,7 +600,7 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		&UserOpml{},
 	}
 	for _, i := range types {
-		k := gn.Key(i).Kind()
+		k := gn.Kind(i)
 		go del(k)
 	}
 
@@ -707,7 +707,7 @@ func FeedHistory(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	u := User{Id: cu.ID}
 	uk := gn.Key(&u)
 	if v := r.FormValue("v"); len(v) == 0 {
-		q := datastore.NewQuery(gn.Key(&UserOpml{}).Kind()).Ancestor(uk).KeysOnly()
+		q := datastore.NewQuery(gn.Kind(&UserOpml{})).Ancestor(uk).KeysOnly()
 		keys, err := gn.GetAll(q, nil)
 		if err != nil {
 			serveError(w, err)
@@ -755,7 +755,7 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	var stars []string
 	wg := sync.WaitGroup{}
 	fk := gn.Key(&f)
-	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).Ancestor(fk).KeysOnly()
+	q := datastore.NewQuery(gn.Kind(&Story{})).Ancestor(fk).KeysOnly()
 	q = q.Order("-" + IDX_COL)
 	if cur := r.FormValue("c"); cur != "" {
 		if dc, err := datastore.DecodeCursor(cur); err == nil {
@@ -767,7 +767,7 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		go c.Step("stars", func(c mpg.Context) {
 			gn := goon.FromContext(c)
 			usk := starKey(c, f.Url, "")
-			q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).Ancestor(gn.Key(usk).Parent()).KeysOnly()
+			q := datastore.NewQuery(gn.Kind(&UserStar{})).Ancestor(gn.Key(usk).Parent()).KeysOnly()
 			keys, _ := gn.GetAll(q, nil)
 			stars = make([]string, len(keys))
 			for i, key := range keys {
@@ -856,7 +856,7 @@ func GetStars(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	cu := user.Current(c)
 	u := User{Id: cu.ID}
-	q := datastore.NewQuery(gn.Key(&UserStar{}).Kind()).
+	q := datastore.NewQuery(gn.Kind(&UserStar{})).
 		Ancestor(gn.Key(&u)).
 		Order("-c").
 		Limit(20)

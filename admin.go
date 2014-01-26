@@ -32,7 +32,7 @@ import (
 
 func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
+	q := datastore.NewQuery(gn.Kind(&Feed{})).KeysOnly()
 	keys, _ := gn.GetAll(q, nil)
 	fs := make([]*Feed, len(keys))
 	for i, k := range keys {
@@ -63,7 +63,7 @@ func feedsToOpml(feeds []*Feed) []byte {
 
 func AllFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&Feed{}).Kind()).KeysOnly()
+	q := datastore.NewQuery(gn.Kind(&Feed{})).KeysOnly()
 	keys, _ := gn.GetAll(q, nil)
 	templates.ExecuteTemplate(w, "admin-all-feeds.html", keys)
 }
@@ -75,7 +75,7 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	q := datastore.NewQuery(gn.Key(&Story{}).Kind()).KeysOnly()
+	q := datastore.NewQuery(gn.Kind(&Story{})).KeysOnly()
 	fk := gn.Key(&f)
 	q = q.Ancestor(fk)
 	q = q.Limit(100)
@@ -159,7 +159,7 @@ func AdminDateFormats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminStats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	uc, _ := datastore.NewQuery(gn.Key(&User{}).Kind()).Count(c)
+	uc, _ := datastore.NewQuery(gn.Kind(&User{})).Count(c)
 	templates.ExecuteTemplate(w, "admin-stats.html", struct {
 		Users int
 	}{
@@ -169,7 +169,7 @@ func AdminStats(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
-	q := datastore.NewQuery(gn.Key(&User{}).Kind()).Limit(1)
+	q := datastore.NewQuery(gn.Kind(&User{})).Limit(1)
 	q = q.Filter("e =", r.FormValue("u"))
 	it := gn.Run(q)
 	var u User
@@ -185,7 +185,7 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		u.Until = d
 		gn.Put(&u)
 	}
-	q = datastore.NewQuery(gn.Key(&Log{}).Kind()).Ancestor(k)
+	q = datastore.NewQuery(gn.Kind(&Log{})).Ancestor(k)
 	_, err = gn.GetAll(q, &h)
 	ud.Parent = gn.Key(&u)
 	gn.Get(&ud)
