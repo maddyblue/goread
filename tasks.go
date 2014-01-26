@@ -598,6 +598,9 @@ func DeleteOldFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	keys = append(keys, sckeys...)
 	c.Infof("delete: %v - %v", feed.Url, len(keys))
+	if len(keys) == 0 {
+		return
+	}
 	err = g.DeleteMulti(keys)
 	if err != nil {
 		c.Criticalf("err: %v", err)
