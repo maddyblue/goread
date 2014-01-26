@@ -143,11 +143,11 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	gn.PutMany(&ud, &Log{
+	gn.PutMulti([]interface{}{&ud, &Log{
 		Parent: ud.Parent,
 		Id:     time.Now().UnixNano(),
 		Text:   fmt.Sprintf("add sub: %v", url),
-	})
+	}})
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
@@ -575,7 +575,7 @@ func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		u.Read = time.Time{}
 		ud.Read = nil
 		ud.Opml = nil
-		gn.PutMany(u, ud)
+		gn.PutMulti([]interface{}{u, ud})
 		c.Infof("%v cleared", u.Email)
 	}()
 	del := func(kind string) {
@@ -672,7 +672,7 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			Text:   fmt.Sprintf("upload opml: %v -> %v", len(ud.Opml), len(b)),
 		}
 		ud.Opml = b
-		if _, err := gn.PutMany(&ud, &l); err != nil {
+		if _, err := gn.PutMulti([]interface{}{&ud, &l}); err != nil {
 			serveError(w, err)
 			return
 		}
@@ -740,11 +740,11 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		u.Options = r.FormValue("options")
-		_, err := gn.PutMany(&u, &Log{
+		_, err := gn.PutMulti([]interface{}{&u, &Log{
 			Parent: gn.Key(&u),
 			Id:     time.Now().UnixNano(),
 			Text:   fmt.Sprintf("save options: %v", len(u.Options)),
-		})
+		}})
 		return err
 	}, nil)
 }

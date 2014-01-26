@@ -152,7 +152,7 @@ func setCharge(c mpg.Context, r *http.Response) (*UserCharge, error) {
 		uc.Amount = sc.Subscription.Plan.Amount
 		uc.Interval = sc.Subscription.Plan.Interval
 		uc.Plan = sc.Subscription.Plan.Id
-		_, err := gn.PutMany(&u, &uc)
+		_, err := gn.PutMulti([]interface{}{&u, &uc})
 		return err
 	}, nil); err != nil {
 		return nil, err

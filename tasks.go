@@ -152,11 +152,11 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(r.FormValue("hub.challenge")))
 		i, _ := strconv.Atoi(r.FormValue("hub.lease_seconds"))
 		f.Subscribed = time.Now().Add(time.Second * time.Duration(i))
-		gn.PutMany(&f, &Log{
+		gn.PutMulti([]interface{}{&f, &Log{
 			Parent: gn.Key(&f),
 			Id:     time.Now().UnixNano(),
 			Text:   "SubscribeCallback - subscribed - " + f.Subscribed.String(),
-		})
+		}})
 		c.Debugf("subscribed: %v - %v", f.Url, f.Subscribed)
 		return
 	} else if !f.NotViewed() {
