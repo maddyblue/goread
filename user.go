@@ -280,7 +280,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 					}
 					manualDone := false
 					if time.Since(f.LastViewed) > time.Hour*24*2 {
-						if f.NextUpdate.Equal(timeMax) {
+						if !f.NextUpdate.Before(timeMax) {
 							tc <- taskqueue.NewPOSTTask(routeUrl("update-feed-manual"), url.Values{
 								"feed": {f.Url},
 								"last": {"1"},

@@ -598,6 +598,10 @@ func DeleteOldFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	keys = append(keys, sckeys...)
 	c.Infof("delete: %v - %v", feed.Url, len(keys))
+	feed.NextUpdate = timeMax.Add(time.Hour)
+	if _, err := g.Put(&feed); err != nil {
+		c.Criticalf("put err: %v", err)
+	}
 	if len(keys) == 0 {
 		return
 	}
