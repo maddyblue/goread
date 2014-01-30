@@ -574,7 +574,8 @@ func DeleteOldFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteOldFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	g := goon.FromContext(c)
+	ctx := appengine.Timeout(c, time.Minute)
+	g := goon.FromContext(ctx)
 	oldDate := time.Now().Add(-time.Hour * 24 * 90)
 	feed := Feed{Url: r.FormValue("f")}
 	if err := g.Get(&feed); err != nil {
@@ -585,13 +586,13 @@ func DeleteOldFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := datastore.NewQuery(g.Kind(&Story{})).Ancestor(g.Key(&feed)).KeysOnly()
-	keys, err := q.GetAll(c, nil)
+	keys, err := q.GetAll(ctx, nil)
 	if err != nil {
 		c.Criticalf("err: %v", err)
 		return
 	}
 	q = datastore.NewQuery(g.Kind(&StoryContent{})).Ancestor(g.Key(&feed)).KeysOnly()
-	sckeys, err := q.GetAll(c, nil)
+	sckeys, err := q.GetAll(ctx, nil)
 	if err != nil {
 		c.Criticalf("err: %v", err)
 		return
