@@ -215,7 +215,9 @@ func doUncheckout(c mpg.Context) (*UserCharge, error) {
 			return err
 		}
 		u.Account = AFree
-		u.Until = uc.Next
+		if uc.Next.After(u.Until) {
+			u.Until = uc.Next
+		}
 		if err := gn.Delete(gn.Key(&uc)); err != nil {
 			return err
 		}
