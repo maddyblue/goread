@@ -398,7 +398,10 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 		if len(sc.Compressed) == 0 {
 			sc.Content = s.content
 		}
-		gn.Put(&sc)
+		if _, err := gn.Put(&sc); err != nil {
+			c.Errorf("put sc err: %v", err)
+			return err
+		}
 	}
 
 	c.Debugf("putting %v entities", len(puts))
@@ -418,8 +421,11 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	}
 	delay := f.NextUpdate.Sub(time.Now())
 	c.Infof("next update scheduled for %v from now", delay-delay%time.Second)
-	gn.PutMulti(puts)
-	return nil
+	_, err = gn.PutMulti(puts)
+	if err != nil {
+		c.Errorf("update put err: %v", err)
+	}
+	return err
 }
 
 func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
