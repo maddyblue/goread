@@ -519,10 +519,10 @@ func textTitle(t string) string {
 }
 
 func atomTitle(t *atom.Text) string {
-	if t.Type == "text" {
-		return textTitle(t.Body)
+	if t.Type == "html" {
+		return html.UnescapeString(sanitizer.StripTags(t.Body))
 	}
-	return t.Body
+	return textTitle(t.Body)
 }
 
 func findBestAtomLink(c appengine.Context, links []atom.Link) string {
