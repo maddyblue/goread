@@ -448,6 +448,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 				} else if i.Description != "" {
 					i.Title = i.Description
 				}
+				st.Title = textTitle(st.Title)
 				if i.Content != "" {
 					st.content = i.Content
 				} else if i.Title != "" && i.Description != "" {
@@ -488,7 +489,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 			for _, i := range rd.Item {
 				st := Story{
 					Id:     i.About,
-					Title:  i.Title,
+					Title:  textTitle(i.Title),
 					Link:   i.Link,
 					Author: i.Creator,
 				}
@@ -511,6 +512,10 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 	c.Warningf("xml parse error: %s", rsserr.Error())
 	c.Warningf("rdf parse error: %s", rdferr.Error())
 	return nil, nil, fmt.Errorf("Could not parse feed data")
+}
+
+func textTitle(t string) string {
+	return html.UnescapeString(t)
 }
 
 func findBestAtomLink(c appengine.Context, links []atom.Link) string {
