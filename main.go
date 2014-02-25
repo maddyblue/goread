@@ -25,12 +25,12 @@ import (
 	"net/url"
 	"time"
 
-	"appengine"
-	"appengine/datastore"
 	"github.com/MiniProfiler/go/miniprofiler"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/gorilla/mux"
 	"github.com/mjibson/goon"
+	"appengine"
+	"appengine/datastore"
 )
 
 var router = new(mux.Router)
@@ -62,7 +62,6 @@ func init() {
 	router.Handle("/tasks/delete-old-feeds", mpg.NewHandler(DeleteOldFeeds)).Name("delete-old-feeds")
 	router.Handle("/tasks/delete-old-feed", mpg.NewHandler(DeleteOldFeed)).Name("delete-old-feed")
 	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
-	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
 	router.Handle("/user/delete-account", mpg.NewHandler(DeleteAccount)).Name("delete-account")
 	router.Handle("/user/export-opml", mpg.NewHandler(ExportOpml)).Name("export-opml")
 	router.Handle("/user/feed-history", mpg.NewHandler(FeedHistory)).Name("feed-history")

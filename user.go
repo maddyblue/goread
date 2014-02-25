@@ -33,13 +33,13 @@ import (
 	"sync"
 	"time"
 
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/user"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 
 	"sanitizer"
 )
@@ -553,62 +553,6 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	b, _ = json.Marshal(&ret)
 	w.Write(b)
-}
-
-func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if !isDevServer {
-		return
-	}
-
-	cu := user.Current(c)
-	gn := goon.FromContext(c)
-	done := make(chan bool)
-	go func() {
-		u := &User{Id: cu.ID}
-		defer func() { done <- true }()
-		ud := &UserData{Id: "data", Parent: gn.Key(u)}
-		if err := gn.Get(u); err != nil {
-			c.Errorf("user del err: %v", err.Error())
-			return
-		}
-		gn.Get(ud)
-		u.Read = time.Time{}
-		ud.Read = nil
-		ud.Opml = nil
-		gn.PutMulti([]interface{}{u, ud})
-		c.Infof("%v cleared", u.Email)
-	}()
-	del := func(kind string) {
-		defer func() { done <- true }()
-		q := datastore.NewQuery(kind).KeysOnly()
-		keys, err := gn.GetAll(q, nil)
-		if err != nil {
-			c.Errorf("err: %v", err.Error())
-			return
-		}
-		if err := gn.DeleteMulti(keys); err != nil {
-			c.Errorf("err: %v", err.Error())
-			return
-		}
-		c.Infof("%v deleted", kind)
-	}
-	types := []interface{}{
-		&Feed{},
-		&Story{},
-		&StoryContent{},
-		&Log{},
-		&UserOpml{},
-	}
-	for _, i := range types {
-		k := gn.Kind(i)
-		go del(k)
-	}
-
-	for i := 0; i < len(types); i++ {
-		<-done
-	}
-
-	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
 func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
