@@ -446,7 +446,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 				if i.Title != "" {
 					st.Title = i.Title
 				} else if i.Description != "" {
-					i.Title = i.Description
+					st.Title = i.Description
 				}
 				st.Title = textTitle(st.Title)
 				if i.Content != "" {
