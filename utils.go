@@ -391,7 +391,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 				}
 				st := Story{
 					Id:    i.ID,
-					Title: i.Title,
+					Title: atomTitle(i.Title),
 				}
 				if t, err := parseDate(c, &f, string(i.Updated)); err == nil {
 					st.Updated = t
@@ -516,6 +516,13 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 
 func textTitle(t string) string {
 	return html.UnescapeString(t)
+}
+
+func atomTitle(t *atom.Text) string {
+	if t.Type == "text" {
+		return textTitle(t.Body)
+	}
+	return t.Body
 }
 
 func findBestAtomLink(c appengine.Context, links []atom.Link) string {
