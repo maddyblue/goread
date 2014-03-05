@@ -46,10 +46,10 @@ import (
 	"appengine/urlfetch"
 	"appengine/user"
 
-	"atom"
-	"rdf"
-	"rss"
-	"sanitizer"
+	"github.com/mjibson/goread/atom"
+	"github.com/mjibson/goread/rdf"
+	"github.com/mjibson/goread/rss"
+	"github.com/mjibson/goread/sanitizer"
 )
 
 func serveError(w http.ResponseWriter, err error) {

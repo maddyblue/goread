@@ -41,7 +41,7 @@ import (
 	"appengine/taskqueue"
 	"appengine/user"
 
-	"sanitizer"
+	"github.com/mjibson/goread/sanitizer"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
