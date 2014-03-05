@@ -519,6 +519,9 @@ func textTitle(t string) string {
 }
 
 func atomTitle(t *atom.Text) string {
+	if t == nil {
+		return ""
+	}
 	if t.Type == "html" {
 		return html.UnescapeString(sanitizer.StripTags(t.Body))
 	}
