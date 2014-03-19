@@ -443,17 +443,20 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 					Link:   i.Link,
 					Author: i.Author,
 				}
+				if i.Content != "" {
+					st.content = i.Content
+				} else if i.Description != "" {
+					st.content = i.Description
+				}
 				if i.Title != "" {
 					st.Title = i.Title
 				} else if i.Description != "" {
 					st.Title = i.Description
 				}
-				st.Title = textTitle(st.Title)
-				if i.Content != "" {
-					st.content = i.Content
-				} else if i.Title != "" && i.Description != "" {
-					st.content = i.Description
+				if st.content == st.Title {
+					st.Title = ""
 				}
+				st.Title = textTitle(st.Title)
 				if i.Guid != nil {
 					st.Id = i.Guid.Guid
 				}
