@@ -556,10 +556,15 @@ func GetContents(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ExportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	cu := user.Current(c)
 	gn := goon.FromContext(c)
-	u := User{Id: cu.ID}
-	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
+	var u User
+	if uid := r.FormValue("u"); len(uid) != 0 && user.IsAdmin(c) {
+		u = User{Id: uid}
+	} else {
+		cu := user.Current(c)
+		u = User{Id: cu.ID}
+	}
+	ud := UserData{Id: "data", Parent: gn.Key(&u)}
 	if err := gn.Get(&u); err != nil {
 		serveError(w, err)
 		return

@@ -17,7 +17,7 @@
 		</td>
 	</tr>
 </table>
-OPML {{len .Data.Opml}}:
+<a href="{{url "export-opml"}}?u={{.User.Id}}">OPML</a> {{len .Data.Opml}}:
 <br>
 <textarea rows="20" cols="80">
 {{printf "%s" .Data.Opml}}
