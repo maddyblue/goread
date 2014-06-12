@@ -652,7 +652,6 @@ func loadImage(c appengine.Context, f *Feed) {
 		return
 	}
 	f.ImageDate = time.Now().Add(time.Hour * 24 * 7)
-
 	s := f.Link
 	if s == "" {
 		s = f.Url
@@ -661,16 +660,24 @@ func loadImage(c appengine.Context, f *Feed) {
 	if err != nil {
 		return
 	}
-	u.Path = "/favicon.ico"
 	u.RawQuery = ""
 	u.Fragment = ""
-
-	g := goon.FromContext(c)
-	i := &Image{Id: u.String()}
-	if err := g.Get(i); err == nil {
-		blobstore.Delete(c, i.Blob)
-	}
+	p := "/favicon.ico"
 	client := urlfetch.Client(c)
+	if r, err := client.Get(u.String()); err == nil {
+		b, err := ioutil.ReadAll(r.Body)
+		r.Body.Close()
+		if err == nil {
+			i, err := FindIcon(b)
+			if err == nil {
+				p = i
+			}
+		}
+	}
+	u, err = u.Parse(p)
+	if err != nil {
+		return
+	}
 	r, err := client.Get(u.String())
 	if err != nil || r.StatusCode != http.StatusOK || r.ContentLength == 0 {
 		return
@@ -696,6 +703,11 @@ func loadImage(c appengine.Context, f *Feed) {
 	}
 	if w.Close() != nil {
 		return
+	}
+	g := goon.FromContext(c)
+	i := &Image{Id: u.String()}
+	if err := g.Get(i); err == nil {
+		blobstore.Delete(c, i.Blob)
 	}
 	i.Blob, _ = w.Key()
 	su, err := aimage.ServingURL(c, i.Blob, &aimage.ServingURLOptions{Size: 16})

@@ -18,13 +18,17 @@ package goapp
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/html"
-	"code.google.com/p/go.net/html/atom"
 	"errors"
 	"io"
+
+	"code.google.com/p/go.net/html"
+	"code.google.com/p/go.net/html/atom"
 )
 
-var ErrNoRssLink = errors.New("No rss link found")
+var (
+	ErrNoRssLink = errors.New("No rss link found")
+	ErrNoIcon    = errors.New("No icon found")
+)
 
 func Autodiscover(b []byte) (string, error) {
 	r := bytes.NewReader(b)
@@ -53,4 +57,33 @@ func Autodiscover(b []byte) (string, error) {
 		}
 	}
 	return "", ErrNoRssLink
+}
+
+// Returns the href attribute of a <link rel="shortcut icon"> tag or error if not found.
+func FindIcon(b []byte) (string, error) {
+	r := bytes.NewReader(b)
+	z := html.NewTokenizer(r)
+	for {
+		if z.Next() == html.ErrorToken {
+			if err := z.Err(); err == io.EOF {
+				break
+			} else {
+				return "", ErrNoIcon
+			}
+		}
+		t := z.Token()
+		switch t.DataAtom {
+		case atom.Link:
+			if t.Type == html.StartTagToken || t.Type == html.SelfClosingTagToken {
+				attrs := make(map[string]string)
+				for _, a := range t.Attr {
+					attrs[a.Key] = a.Val
+				}
+				if attrs["rel"] == "shortcut icon" && attrs["href"] != "" {
+					return attrs["href"], nil
+				}
+			}
+		}
+	}
+	return "", ErrNoIcon
 }
