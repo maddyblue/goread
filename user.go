@@ -600,6 +600,12 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	for _, o := range opml.Outline {
+		if o == nil {
+			serveError(w, fmt.Errorf("null in opml"))
+			return
+		}
+	}
 	backupOPML(c)
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
