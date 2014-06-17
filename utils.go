@@ -570,7 +570,6 @@ func parseFix(c appengine.Context, f *Feed, ss []*Story, fetchUrl string) (*Feed
 	g := goon.FromContext(c)
 	f.Checked = time.Now()
 	fk := g.Key(f)
-	loadImage(c, f)
 	f.Link = strings.TrimSpace(f.Link)
 	f.Title = html.UnescapeString(strings.TrimSpace(f.Title))
 
@@ -742,7 +741,8 @@ const notViewedDisabled = oldDuration + time.Hour*24*7
 
 var timeMax time.Time = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
 
-func scheduleNextUpdate(f *Feed) {
+func scheduleNextUpdate(c appengine.Context, f *Feed) {
+	loadImage(c, f)
 	if f.NotViewed() {
 		f.NextUpdate = timeMax
 		return
