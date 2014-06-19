@@ -81,7 +81,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			if (data.data) {
 				alert(data.data);
 			}
-			$scope.loading--;
+			$scope.loaded();
 			btn.button('reset')
 		});
 	};
