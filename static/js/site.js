@@ -862,7 +862,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.clearFeeds = function() {
 		if (!confirm('Remove all folders and subscriptions?')) return;
-		$scope.clear();
+		$scope.feeds = {};
+		$scope.stories = {};
+		$scope.opml = [];
+		$scope.setActive();
 		$scope.uploadOpml();
 		$scope.update();
 	};
