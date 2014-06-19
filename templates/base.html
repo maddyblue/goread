@@ -813,7 +813,7 @@
 	{{if .IsAdmin}}
 		<script type="text/javascript">
 			Mousetrap.bind('y', function() {
-				angular.element(document.body).scope().setYesterday();
+				window.location.replace("{{url "clear-read"}}");
 			});
 		</script>
 	{{end}}

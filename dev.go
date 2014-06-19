@@ -33,7 +33,28 @@ func init() {
 		return
 	}
 	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
+	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
 	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
+}
+
+func ClearRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	if !isDevServer {
+		return
+	}
+
+	cu := user.Current(c)
+	gn := goon.FromContext(c)
+	u := &User{Id: cu.ID}
+	ud := &UserData{Id: "data", Parent: gn.Key(u)}
+	if err := gn.Get(u); err != nil {
+		c.Errorf("err: %v", err.Error())
+		return
+	}
+	gn.Get(ud)
+	u.Read = time.Time{}
+	ud.Read = nil
+	gn.PutMulti([]interface{}{u, ud})
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func ClearFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
