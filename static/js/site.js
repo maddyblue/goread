@@ -995,7 +995,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		if ($scope.nouser) {
 			return;
 		}
-		$scope.$apply($scope.refresh());
+		$scope.refresh();
+		$scope.$apply();
 		return false;
 	});
 	Mousetrap.bind('n', function() {
