@@ -71,10 +71,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			// I think this is needed due to the datastore's eventual consistency.
 			// Without the delay we only get the feed data with no story data.
 			$timeout(function() {
-				$scope.refresh(function() {
-					$scope.loaded();
-					$scope.setActive('feed', _.last($scope.feeds).XmlUrl);
-				});
+				$scope.refresh()
+					.finally(function() {
+						$scope.loaded();
+						$scope.setActive('feed', _.last($scope.feeds).XmlUrl);
+					});
 			}, 250);
 		}, function(data) {
 			if (data.data) {
@@ -123,13 +124,13 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		});
 	};
 
-	$scope.refresh = function(cb) {
+	$scope.refresh = function() {
 		$scope.loading++;
 		$scope.numfeeds = 0;
 		$scope.shown = 'feeds';
 		$scope.resetScroll();
 		delete $scope.currentStory;
-		$http.post($('#refresh').attr('data-url-feeds'))
+		var promise = $http.post($('#refresh').attr('data-url-feeds'))
 			.success(function(data) {
 				if (data.ErrorSubscription) {
 					$timeout(function() {
@@ -182,12 +183,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				alert('Error during refresh: try again.');
 			})
 			.finally(function() {
-				if (typeof cb === 'function') cb();
 				$scope.loaded();
 				$scope.update();
 				$scope.resetLimit();
 				setTimeout($scope.applyGetFeed);
 			});
+		return promise;
 	};
 
 	$scope.updateTitle = function() {
