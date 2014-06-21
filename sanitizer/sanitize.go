@@ -59,7 +59,7 @@ func sanitizeAttributes(u *url.URL, t *html.Token) {
 			attrs = append(attrs, a)
 		} else if acceptableAttributes[a.Key] {
 			if a.Key == "href" || a.Key == "src" {
-				a.Val = sanitizeLink(u, a.Val)
+				a.Val = sanitizeLink(u, strings.TrimSpace(a.Val))
 			}
 			if a.Key == "href" {
 				isLink = true
