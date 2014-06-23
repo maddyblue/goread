@@ -113,13 +113,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.updateFolders = function() {
-		_.each($scope.feeds, function(f, i) {
+		_.each($scope.opml, function(f) {
 			if (f.Outline) {
 				_.each(f.Outline, function(s) {
-					s.folder = f.Title;
+					var feed = $scope.feeds[s.XmlUrl];
+					feed.folder = f.Title;
 				});
 			} else {
-				delete f.folder;
+				var feed = $scope.feeds[f.XmlUrl];
+				delete feed.folder;
 			}
 		});
 	};
