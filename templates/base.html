@@ -537,7 +537,7 @@
 					<li ng-repeat="f in opml" ng-hide="shouldHideEmpty(f)">
 						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActive('feed', f.XmlUrl)" title="{{`{{f.Title}}`}}">
 							<img {{htmlattr `ng-src="{{feeds[f.XmlUrl].Image || '/static/img/feed.png'}}"`}} class="feed-icon">
-							<span class="label label-danger" ng-show="feedData[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
+							<span class="label label-danger" ng-show="feeds[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
 							<span ng-class="{bold: unread.feeds[f.XmlUrl]}" ng-bind="f.Title" dir="auto"></span>
 							<span ng-show="unread.feeds[f.XmlUrl]">
 								({{`{{unread.feeds[f.XmlUrl]}}`}})
@@ -618,9 +618,9 @@
 								<li><a href="#" ng-click="moveFeedNew(activeFeed)">[new folder]</a></li>
 								<li class="divider"></li>
 								<li class="dropdown-header">last update</li>
-								<li><a href="#" ng-bind="feedData[activeFeed].Checked"></a></li>
+								<li><a href="#" ng-bind="feeds[activeFeed].Checked"></a></li>
 								<li class="dropdown-header">next update</li>
-								<li><a href="#" ng-bind="feedData[activeFeed].NextUpdate"></a></li>
+								<li><a href="#" ng-bind="feeds[activeFeed].NextUpdate"></a></li>
 							</ul>
 						</div>
 					</div>
