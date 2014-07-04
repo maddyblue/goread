@@ -22,10 +22,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -39,8 +35,6 @@ import (
 	"github.com/mjibson/goon"
 
 	"appengine"
-	"appengine/blobstore"
-	aimage "appengine/image"
 	"appengine/memcache"
 	"appengine/taskqueue"
 	"appengine/urlfetch"
@@ -677,48 +671,12 @@ func loadImage(c appengine.Context, f *Feed) {
 	if err != nil {
 		return
 	}
-	r, err := client.Get(u.String())
+	us := u.String()
+	r, err := client.Get(us)
 	if err != nil || r.StatusCode != http.StatusOK || r.ContentLength == 0 {
-		return
+		us = ""
 	}
-	b, err := ioutil.ReadAll(r.Body)
-	r.Body.Close()
-	if err != nil {
-		return
-	}
-	buf := bytes.NewBuffer(b)
-	_, t, err := image.DecodeConfig(buf)
-	if err != nil {
-		t = "application/octet-stream"
-	} else {
-		t = "image/" + t
-	}
-	w, err := blobstore.Create(c, t)
-	if err != nil {
-		return
-	}
-	if _, err := w.Write(b); err != nil {
-		return
-	}
-	if w.Close() != nil {
-		return
-	}
-	g := goon.FromContext(c)
-	i := &Image{Id: u.String()}
-	if err := g.Get(i); err == nil {
-		blobstore.Delete(c, i.Blob)
-	}
-	i.Blob, _ = w.Key()
-	su, err := aimage.ServingURL(c, i.Blob, &aimage.ServingURLOptions{Size: 16})
-	if err != nil {
-		if err = blobstore.Delete(c, i.Blob); err != nil {
-			c.Errorf("blob delete err: %v", err)
-		}
-		return
-	}
-	i.Url = su.String()
-	g.Put(i)
-	f.Image = i.Url
+	f.Image = us
 }
 
 func updateAverage(f *Feed, previousUpdate time.Time, updateCount int) {
