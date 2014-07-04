@@ -625,8 +625,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				break;
 			}
 		}
-		$scope.stories = $scope.stories.filter(function(e) {
-			return e.feed.XmlUrl != feed;
+		angular.forEach($scope.stories, function(v, k) {
+			if (v.feed.XmlUrl == feed) {
+				delete $scope.stories[k];
+			}
 		});
 		$scope.setActive();
 		$scope.uploadOpml();
