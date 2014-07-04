@@ -420,7 +420,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	if fromSub {
 		wait := time.Now().Add(time.Hour * 6)
 		if f.NextUpdate.Before(wait) {
-			f.NextUpdate = time.Now().Add(time.Hour * 6)
+			f.NextUpdate = wait
 		}
 	}
 	delay := f.NextUpdate.Sub(time.Now())
