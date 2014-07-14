@@ -17,6 +17,7 @@
 package goapp
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"net/http"
@@ -180,15 +181,28 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
+	ud.Parent = gn.Key(&u)
+	gn.Get(&ud)
 	until := r.FormValue("until")
 	if d, err := time.Parse("2006-01-02", until); err == nil {
 		u.Until = d
 		gn.Put(&u)
 	}
+	if o := []byte(r.FormValue("opml")); len(o) > 0 {
+		opml := Opml{}
+		if err := json.Unmarshal(o, &opml); err != nil {
+			serveError(w, err)
+			return
+		}
+		ud.Opml = o
+		if _, err := gn.Put(&ud); err != nil {
+			serveError(w, err)
+			return
+		}
+		c.Infof("opml updated")
+	}
 	q = datastore.NewQuery(gn.Kind(&Log{})).Ancestor(k)
 	_, err = gn.GetAll(q, &h)
-	ud.Parent = gn.Key(&u)
-	gn.Get(&ud)
 	if err := templates.ExecuteTemplate(w, "admin-user.html", struct {
 		User User
 		Data UserData

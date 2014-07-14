@@ -19,9 +19,12 @@
 </table>
 <a href="{{url "export-opml"}}?u={{.User.Id}}">OPML</a> {{len .Data.Opml}}:
 <br>
-<textarea rows="20" cols="80">
+<form method="post">
+<textarea rows="20" cols="80" name="opml">
 {{printf "%s" .Data.Opml}}
 </textarea>
+<br><input type="submit" value="save">
+</form>
 <table>
 {{range .Log}}
 	<tr>
