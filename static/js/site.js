@@ -161,13 +161,17 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 						f[key] = value;
 					});
 				};
-				_.each(data.Opml, function(o) {
+				for (var i = 0; i < $scope.opml.length; i++) {
+					var o = $scope.opml[i];
 					if (o.Outline) {
 						_.each(o.Outline, mapFeed);
-					} else {
+					} else if (o.XmlUrl) {
 						mapFeed(o);
+					} else {
+						$scope.opml.splice(i, 1);
+						i--;
 					}
-				});
+				}
 				$scope.opts = data.Options ? JSON.parse(data.Options) : $scope.opts;
 				$scope.trialRemaining = data.TrialRemaining;
 				_.each(data.Stories, function(stories, feed) {
