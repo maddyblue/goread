@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -29,8 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
+	"code.google.com/p/go.net/html/charset"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 
@@ -352,6 +352,10 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
+var charsetReader = func(contentType string, i io.Reader) (io.Reader, error) {
+	return charset.NewReader(i, contentType)
+}
+
 func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, []*Story, error) {
 	f := Feed{Url: origUrl}
 	var s []*Story
@@ -360,7 +364,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 		a := atom.Feed{}
 		var fb, eb *url.URL
 		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charset.NewReader
+		d.CharsetReader = charsetReader
 		if atomerr = d.Decode(&a); atomerr == nil {
 			f.Title = a.Title
 			if t, err := parseDate(c, &f, string(a.Updated)); err == nil {
@@ -424,7 +428,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 	{
 		r := rss.Rss{}
 		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charset.NewReader
+		d.CharsetReader = charsetReader
 		d.DefaultSpace = "DefaultSpace"
 		if rsserr = d.Decode(&r); rsserr == nil {
 			f.Title = r.Title
@@ -477,7 +481,7 @@ func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, 
 	{
 		rd := rdf.RDF{}
 		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charset.NewReader
+		d.CharsetReader = charsetReader
 		if rdferr = d.Decode(&rd); rdferr == nil {
 			if rd.Channel != nil {
 				f.Title = rd.Channel.Title
