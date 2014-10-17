@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -352,11 +351,15 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
-var charsetReader = func(contentType string, i io.Reader) (io.Reader, error) {
-	return charset.NewReader(i, contentType)
-}
-
 func ParseFeed(c appengine.Context, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
+	reader, err := charset.NewReader(bytes.NewReader(body), "text/xml")
+	if err != nil {
+		return nil, nil, err
+	}
+	body, err = ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, nil, err
+	}
 	var feed *Feed
 	var stories []*Story
 	var atomerr, rsserr, rdferr error
@@ -384,7 +387,6 @@ func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	a := atom.Feed{}
 	var fb, eb *url.URL
 	d := xml.NewDecoder(bytes.NewReader(body))
-	d.CharsetReader = charsetReader
 	if err := d.Decode(&a); err != nil {
 		return nil, nil, err
 	}
@@ -451,7 +453,6 @@ func parseRSS(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	var s []*Story
 	r := rss.Rss{}
 	d := xml.NewDecoder(bytes.NewReader(body))
-	d.CharsetReader = charsetReader
 	d.DefaultSpace = "DefaultSpace"
 	if err := d.Decode(&r); err != nil {
 		return nil, nil, err
@@ -507,7 +508,6 @@ func parseRDF(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	var s []*Story
 	rd := rdf.RDF{}
 	d := xml.NewDecoder(bytes.NewReader(body))
-	d.CharsetReader = charsetReader
 	if err := d.Decode(&rd); err != nil {
 		return nil, nil, err
 	}
