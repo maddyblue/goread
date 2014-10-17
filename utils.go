@@ -356,167 +356,188 @@ var charsetReader = func(contentType string, i io.Reader) (io.Reader, error) {
 	return charset.NewReader(i, contentType)
 }
 
-func ParseFeed(c appengine.Context, origUrl, fetchUrl string, b []byte) (*Feed, []*Story, error) {
-	f := Feed{Url: origUrl}
+func ParseFeed(c appengine.Context, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
+	var feed *Feed
+	var stories []*Story
+	var atomerr, rsserr, rdferr error
+	feed, stories, atomerr = parseAtom(c, body)
+	if feed == nil {
+		feed, stories, rsserr = parseRSS(c, body)
+	}
+	if feed == nil {
+		feed, stories, rdferr = parseRDF(c, body)
+	}
+	if feed == nil {
+		c.Warningf("atom parse error: %s", atomerr.Error())
+		c.Warningf("xml parse error: %s", rsserr.Error())
+		c.Warningf("rdf parse error: %s", rdferr.Error())
+		return nil, nil, fmt.Errorf("Could not parse feed data")
+	}
+	feed.Url = origUrl
+	return parseFix(c, feed, stories, fetchUrl)
+}
+
+func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+	var f Feed
 	var s []*Story
-	var atomerr, rsserr, rdferr, err error
-	{
-		a := atom.Feed{}
-		var fb, eb *url.URL
-		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charsetReader
-		if atomerr = d.Decode(&a); atomerr == nil {
-			f.Title = a.Title
-			if t, err := parseDate(c, &f, string(a.Updated)); err == nil {
-				f.Updated = t
-			}
+	var err error
+	a := atom.Feed{}
+	var fb, eb *url.URL
+	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
+	if err := d.Decode(&a); err != nil {
+		return nil, nil, err
+	}
+	f.Title = a.Title
+	if t, err := parseDate(c, &f, string(a.Updated)); err == nil {
+		f.Updated = t
+	}
 
-			if fb, err = url.Parse(a.XMLBase); err != nil {
-				fb, _ = url.Parse("")
+	if fb, err = url.Parse(a.XMLBase); err != nil {
+		fb, _ = url.Parse("")
+	}
+	if len(a.Link) > 0 {
+		f.Link = findBestAtomLink(c, a.Link)
+		if l, err := fb.Parse(f.Link); err == nil {
+			f.Link = l.String()
+		}
+		for _, l := range a.Link {
+			if l.Rel == "hub" {
+				f.Hub = l.Href
+				break
 			}
-			if len(a.Link) > 0 {
-				f.Link = findBestAtomLink(c, a.Link)
-				if l, err := fb.Parse(f.Link); err == nil {
-					f.Link = l.String()
-				}
-				for _, l := range a.Link {
-					if l.Rel == "hub" {
-						f.Hub = l.Href
-						break
-					}
-				}
-			}
-
-			for _, i := range a.Entry {
-				if eb, err = fb.Parse(i.XMLBase); err != nil {
-					eb = fb
-				}
-				st := Story{
-					Id:    i.ID,
-					Title: atomTitle(i.Title),
-				}
-				if t, err := parseDate(c, &f, string(i.Updated)); err == nil {
-					st.Updated = t
-				}
-				if t, err := parseDate(c, &f, string(i.Published)); err == nil {
-					st.Published = t
-				}
-				if len(i.Link) > 0 {
-					st.Link = findBestAtomLink(c, i.Link)
-					if l, err := eb.Parse(st.Link); err == nil {
-						st.Link = l.String()
-					}
-				}
-				if i.Author != nil {
-					st.Author = i.Author.Name
-				}
-				if i.Content != nil {
-					if len(strings.TrimSpace(i.Content.Body)) != 0 {
-						st.content = i.Content.Body
-					} else if len(i.Content.InnerXML) != 0 {
-						st.content = i.Content.InnerXML
-					}
-				} else if i.Summary != nil {
-					st.content = i.Summary.Body
-				}
-				s = append(s, &st)
-			}
-
-			return parseFix(c, &f, s, fetchUrl)
 		}
 	}
-	{
-		r := rss.Rss{}
-		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charsetReader
-		d.DefaultSpace = "DefaultSpace"
-		if rsserr = d.Decode(&r); rsserr == nil {
-			f.Title = r.Title
-			if t, err := parseDate(c, &f, r.LastBuildDate, r.PubDate); err == nil {
-				f.Updated = t
-			} else {
-				c.Warningf("no rss feed date: %v", f.Link)
+
+	for _, i := range a.Entry {
+		if eb, err = fb.Parse(i.XMLBase); err != nil {
+			eb = fb
+		}
+		st := Story{
+			Id:    i.ID,
+			Title: atomTitle(i.Title),
+		}
+		if t, err := parseDate(c, &f, string(i.Updated)); err == nil {
+			st.Updated = t
+		}
+		if t, err := parseDate(c, &f, string(i.Published)); err == nil {
+			st.Published = t
+		}
+		if len(i.Link) > 0 {
+			st.Link = findBestAtomLink(c, i.Link)
+			if l, err := eb.Parse(st.Link); err == nil {
+				st.Link = l.String()
 			}
-			f.Link = r.BaseLink()
-			f.Hub = r.Hub()
-
-			for _, i := range r.Items {
-				st := Story{
-					Link:   i.Link,
-					Author: i.Author,
-				}
-				if i.Content != "" {
-					st.content = i.Content
-				} else if i.Description != "" {
-					st.content = i.Description
-				}
-				if i.Title != "" {
-					st.Title = i.Title
-				} else if i.Description != "" {
-					st.Title = i.Description
-				}
-				if st.content == st.Title {
-					st.Title = ""
-				}
-				st.Title = textTitle(st.Title)
-				if i.Guid != nil {
-					st.Id = i.Guid.Guid
-				}
-				if i.Enclosure != nil && strings.HasPrefix(i.Enclosure.Type, "audio/") {
-					st.MediaContent = i.Enclosure.Url
-				} else if i.Media != nil && strings.HasPrefix(i.Media.Type, "audio/") {
-					st.MediaContent = i.Media.URL
-				}
-				if t, err := parseDate(c, &f, i.PubDate, i.Date, i.Published); err == nil {
-					st.Published = t
-					st.Updated = t
-				}
-
-				s = append(s, &st)
+		}
+		if i.Author != nil {
+			st.Author = i.Author.Name
+		}
+		if i.Content != nil {
+			if len(strings.TrimSpace(i.Content.Body)) != 0 {
+				st.content = i.Content.Body
+			} else if len(i.Content.InnerXML) != 0 {
+				st.content = i.Content.InnerXML
 			}
+		} else if i.Summary != nil {
+			st.content = i.Summary.Body
+		}
+		s = append(s, &st)
+	}
+	return &f, s, nil
+}
 
-			return parseFix(c, &f, s, fetchUrl)
+func parseRSS(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+	var f Feed
+	var s []*Story
+	r := rss.Rss{}
+	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
+	d.DefaultSpace = "DefaultSpace"
+	if err := d.Decode(&r); err != nil {
+		return nil, nil, err
+	}
+	f.Title = r.Title
+	if t, err := parseDate(c, &f, r.LastBuildDate, r.PubDate); err == nil {
+		f.Updated = t
+	} else {
+		c.Warningf("no rss feed date: %v", f.Link)
+	}
+	f.Link = r.BaseLink()
+	f.Hub = r.Hub()
+
+	for _, i := range r.Items {
+		st := Story{
+			Link:   i.Link,
+			Author: i.Author,
+		}
+		if i.Content != "" {
+			st.content = i.Content
+		} else if i.Description != "" {
+			st.content = i.Description
+		}
+		if i.Title != "" {
+			st.Title = i.Title
+		} else if i.Description != "" {
+			st.Title = i.Description
+		}
+		if st.content == st.Title {
+			st.Title = ""
+		}
+		st.Title = textTitle(st.Title)
+		if i.Guid != nil {
+			st.Id = i.Guid.Guid
+		}
+		if i.Enclosure != nil && strings.HasPrefix(i.Enclosure.Type, "audio/") {
+			st.MediaContent = i.Enclosure.Url
+		} else if i.Media != nil && strings.HasPrefix(i.Media.Type, "audio/") {
+			st.MediaContent = i.Media.URL
+		}
+		if t, err := parseDate(c, &f, i.PubDate, i.Date, i.Published); err == nil {
+			st.Published = t
+			st.Updated = t
+		}
+
+		s = append(s, &st)
+	}
+	return &f, s, nil
+}
+
+func parseRDF(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+	var f Feed
+	var s []*Story
+	rd := rdf.RDF{}
+	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
+	if err := d.Decode(&rd); err != nil {
+		return nil, nil, err
+	}
+	if rd.Channel != nil {
+		f.Title = rd.Channel.Title
+		f.Link = rd.Channel.Link
+		if t, err := parseDate(c, &f, rd.Channel.Date); err == nil {
+			f.Updated = t
 		}
 	}
-	{
-		rd := rdf.RDF{}
-		d := xml.NewDecoder(bytes.NewReader(b))
-		d.CharsetReader = charsetReader
-		if rdferr = d.Decode(&rd); rdferr == nil {
-			if rd.Channel != nil {
-				f.Title = rd.Channel.Title
-				f.Link = rd.Channel.Link
-				if t, err := parseDate(c, &f, rd.Channel.Date); err == nil {
-					f.Updated = t
-				}
-			}
 
-			for _, i := range rd.Item {
-				st := Story{
-					Id:     i.About,
-					Title:  textTitle(i.Title),
-					Link:   i.Link,
-					Author: i.Creator,
-				}
-				if len(i.Description) > 0 {
-					st.content = html.UnescapeString(i.Description)
-				} else if len(i.Content) > 0 {
-					st.content = html.UnescapeString(i.Content)
-				}
-				if t, err := parseDate(c, &f, i.Date); err == nil {
-					st.Published = t
-					st.Updated = t
-				}
-				s = append(s, &st)
-			}
-
-			return parseFix(c, &f, s, fetchUrl)
+	for _, i := range rd.Item {
+		st := Story{
+			Id:     i.About,
+			Title:  textTitle(i.Title),
+			Link:   i.Link,
+			Author: i.Creator,
 		}
+		if len(i.Description) > 0 {
+			st.content = html.UnescapeString(i.Description)
+		} else if len(i.Content) > 0 {
+			st.content = html.UnescapeString(i.Content)
+		}
+		if t, err := parseDate(c, &f, i.Date); err == nil {
+			st.Published = t
+			st.Updated = t
+		}
+		s = append(s, &st)
 	}
-	c.Warningf("atom parse error: %s", atomerr.Error())
-	c.Warningf("xml parse error: %s", rsserr.Error())
-	c.Warningf("rdf parse error: %s", rdferr.Error())
-	return nil, nil, fmt.Errorf("Could not parse feed data")
+	return &f, s, nil
 }
 
 func textTitle(t string) string {
