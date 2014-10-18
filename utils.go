@@ -351,8 +351,8 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
-func ParseFeed(c appengine.Context, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
-	reader, err := charset.NewReader(bytes.NewReader(body), "text/xml")
+func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
+	reader, err := charset.NewReader(bytes.NewReader(body), contentType)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -168,7 +168,7 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
-		nf, ss, err := ParseFeed(c, f.Url, f.Url, b)
+		nf, ss, err := ParseFeed(c, r.Header.Get("Content-Type"), f.Url, f.Url, b)
 		if err != nil {
 			c.Errorf("parse error: %v", err)
 			return
@@ -309,7 +309,7 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 				return fetchFeed(c, origUrl, autoUrl)
 			}
 		}
-		return ParseFeed(c, origUrl, fetchUrl, b)
+		return ParseFeed(c, resp.Header.Get("Content-Type"), origUrl, fetchUrl, b)
 	} else if err != nil {
 		c.Warningf("fetch feed error: %v", err)
 		return nil, nil, fmt.Errorf("Could not fetch feed")
