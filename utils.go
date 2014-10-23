@@ -381,13 +381,15 @@ func encodingReader(body []byte, contentType string) (io.Reader, error) {
 }
 
 func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
-	reader, err := encodingReader(body, contentType)
-	if err != nil {
-		return nil, nil, err
-	}
-	body, err = ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, nil, err
+	if !bytes.EqualFold(body[:len(xml.Header)], []byte(xml.Header)) {
+		reader, err := encodingReader(body, contentType)
+		if err != nil {
+			return nil, nil, err
+		}
+		body, err = ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	var feed *Feed
 	var stories []*Story
