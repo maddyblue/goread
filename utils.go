@@ -22,14 +22,19 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"code.google.com/p/go.net/html/charset"
+	"code.google.com/p/go.text/encoding"
+	"code.google.com/p/go.text/encoding/charmap"
+	"code.google.com/p/go.text/transform"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 
@@ -351,8 +356,32 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
+func encodingReader(body []byte, contentType string) (io.Reader, error) {
+	preview := make([]byte, 1024)
+	var r io.Reader = bytes.NewReader(body)
+	n, err := io.ReadFull(r, preview)
+	switch {
+	case err == io.ErrUnexpectedEOF:
+		preview = preview[:n]
+		r = bytes.NewReader(preview)
+	case err != nil:
+		return nil, err
+	default:
+		r = io.MultiReader(bytes.NewReader(preview), r)
+	}
+
+	e, _, certain := charset.DetermineEncoding(preview, contentType)
+	if !certain && e == charmap.Windows1252 && utf8.Valid(body) {
+		e = encoding.Nop
+	}
+	if e != encoding.Nop {
+		r = transform.NewReader(r, e.NewDecoder())
+	}
+	return r, nil
+}
+
 func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
-	reader, err := charset.NewReader(bytes.NewReader(body), contentType)
+	reader, err := encodingReader(body, contentType)
 	if err != nil {
 		return nil, nil, err
 	}
