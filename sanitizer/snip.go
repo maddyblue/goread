@@ -22,7 +22,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"code.google.com/p/go.net/html"
+	"golang.org/x/net/html"
 )
 
 var snipRe = regexp.MustCompile("[\\s]+")

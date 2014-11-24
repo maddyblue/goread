@@ -31,10 +31,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"code.google.com/p/go.net/html/charset"
-	"code.google.com/p/go.text/encoding"
-	"code.google.com/p/go.text/encoding/charmap"
-	"code.google.com/p/go.text/transform"
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 
