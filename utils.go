@@ -31,12 +31,12 @@ import (
 	"time"
 	"unicode/utf8"
 
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 
 	"appengine"
 	"appengine/memcache"

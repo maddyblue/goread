@@ -25,11 +25,12 @@ import (
 	"strings"
 	"time"
 
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
+
 	"appengine/datastore"
 	"appengine/urlfetch"
 	"appengine/user"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
 )
 
 type Plan struct {
