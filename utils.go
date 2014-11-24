@@ -411,6 +411,14 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 	return parseFix(c, feed, stories, fetchUrl)
 }
 
+func charsetReader(cs string, input io.Reader) (io.Reader, error) {
+	e, _ := charset.Lookup(cs)
+	if e == nil {
+		return nil, fmt.Errorf("cannot decode charset %v", cs)
+	}
+	return transform.NewReader(input, e.NewDecoder()), nil
+}
+
 func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
@@ -418,6 +426,7 @@ func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	a := atom.Feed{}
 	var fb, eb *url.URL
 	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
 	if err := d.Decode(&a); err != nil {
 		return nil, nil, err
 	}
@@ -484,6 +493,7 @@ func parseRSS(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	var s []*Story
 	r := rss.Rss{}
 	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
 	d.DefaultSpace = "DefaultSpace"
 	if err := d.Decode(&r); err != nil {
 		return nil, nil, err
@@ -539,6 +549,7 @@ func parseRDF(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	var s []*Story
 	rd := rdf.RDF{}
 	d := xml.NewDecoder(bytes.NewReader(body))
+	d.CharsetReader = charsetReader
 	if err := d.Decode(&rd); err != nil {
 		return nil, nil, err
 	}
