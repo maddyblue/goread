@@ -356,7 +356,7 @@ func parseDate(c appengine.Context, feed *Feed, ds ...string) (t time.Time, err 
 	return
 }
 
-func encodingReader(body []byte, contentType string) (io.Reader, error) {
+func encodingReader(body []byte, contentType string) (encoding.Encoding, error) {
 	preview := make([]byte, 1024)
 	var r io.Reader = bytes.NewReader(body)
 	n, err := io.ReadFull(r, preview)
@@ -374,32 +374,45 @@ func encodingReader(body []byte, contentType string) (io.Reader, error) {
 	if !certain && e == charmap.Windows1252 && utf8.Valid(body) {
 		e = encoding.Nop
 	}
-	if e != encoding.Nop {
-		r = transform.NewReader(r, e.NewDecoder())
+	return e, nil
+}
+
+func defaultCharsetReader(cs string, input io.Reader) (io.Reader, error) {
+	e, _ := charset.Lookup(cs)
+	if e == nil {
+		return nil, fmt.Errorf("cannot decode charset %v", cs)
 	}
-	return r, nil
+	return transform.NewReader(input, e.NewDecoder()), nil
+}
+
+func nilCharsetReader(cs string, input io.Reader) (io.Reader, error) {
+	return input, nil
 }
 
 func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body []byte) (*Feed, []*Story, error) {
+	cr := defaultCharsetReader
 	if !bytes.EqualFold(body[:len(xml.Header)], []byte(xml.Header)) {
-		reader, err := encodingReader(body, contentType)
+		enc, err := encodingReader(body, contentType)
 		if err != nil {
 			return nil, nil, err
 		}
-		body, err = ioutil.ReadAll(reader)
-		if err != nil {
-			return nil, nil, err
+		if enc != encoding.Nop {
+			cr = nilCharsetReader
+			body, err = ioutil.ReadAll(transform.NewReader(bytes.NewReader(body), enc.NewDecoder()))
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 	var feed *Feed
 	var stories []*Story
 	var atomerr, rsserr, rdferr error
-	feed, stories, atomerr = parseAtom(c, body)
+	feed, stories, atomerr = parseAtom(c, body, cr)
 	if feed == nil {
-		feed, stories, rsserr = parseRSS(c, body)
+		feed, stories, rsserr = parseRSS(c, body, cr)
 	}
 	if feed == nil {
-		feed, stories, rdferr = parseRDF(c, body)
+		feed, stories, rdferr = parseRDF(c, body, cr)
 	}
 	if feed == nil {
 		c.Warningf("atom parse error: %s", atomerr.Error())
@@ -411,15 +424,7 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 	return parseFix(c, feed, stories, fetchUrl)
 }
 
-func charsetReader(cs string, input io.Reader) (io.Reader, error) {
-	e, _ := charset.Lookup(cs)
-	if e == nil {
-		return nil, fmt.Errorf("cannot decode charset %v", cs)
-	}
-	return transform.NewReader(input, e.NewDecoder()), nil
-}
-
-func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+func parseAtom(c appengine.Context, body []byte,  charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	var err error
@@ -488,7 +493,7 @@ func parseAtom(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	return &f, s, nil
 }
 
-func parseRSS(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+func parseRSS(c appengine.Context, body []byte, charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	r := rss.Rss{}
@@ -544,7 +549,7 @@ func parseRSS(c appengine.Context, body []byte) (*Feed, []*Story, error) {
 	return &f, s, nil
 }
 
-func parseRDF(c appengine.Context, body []byte) (*Feed, []*Story, error) {
+func parseRDF(c appengine.Context, body []byte, charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	rd := rdf.RDF{}
