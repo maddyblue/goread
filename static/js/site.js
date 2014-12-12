@@ -999,6 +999,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	});
 	Mousetrap.bind('esc', function() {
 		$scope.shortcuts.modal('hide');
+		$('#messages').modal('hide');
 		return false;
 	});
 	Mousetrap.bind('r', function() {
