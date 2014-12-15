@@ -12,9 +12,9 @@ a google reader clone built with go on app engine and angularjs
 1. Download dependencies by running: `goapp get -d github.com/mjibson/goread`. This will download goread and all of its dependencies, and will stick them in your `GOPATH`. You will get messages about unrecognized imports. Ignore them.
 1. `cd $GOPATH/src/github.com/mjibson/goread`.
 1. `git checkout master` (bug in `go get`).
-1. Copy `app.sample.yaml` to `app.yaml`.
 1. In the `goread` directory, copy `settings.go.dist` to `settings.go`.
-1. From the `goread` directory, start the app with `goapp serve`. (On Windows, you may need to do this instead: `python C:\go_appengine\dev_appserver.py app.yaml`.)
+1. In the `goread/app` directory, copy `app.sample.yaml` to `app.yaml`.
+1. In the `goread/app` directory, start the app with `goapp serve`. (On Windows, you may need to do this instead: `python C:\go_appengine\dev_appserver.py app.yaml`.)
 1. View at [localhost:8080](http://localhost:8080), admin console at [localhost:8000](http://localhost:8000).
  
 ## developer notes
