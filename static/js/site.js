@@ -145,11 +145,6 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				$scope.untilDays = data.UntilDate ? moment.unix(data.UntilDate).diff(moment(), 'days') : 0;
 				$scope.opml = data.Opml || $scope.opml || [];
 				_.each(data.Feeds, function(e) {
-					if(e.Image) {
-						if (e.Image.slice(0, 5) === "http:") {
-							e.Image = e.Image.slice(5);
-						}
-					}
 					e.Checked = moment(e.Checked).fromNow();
 					e.NextUpdate = moment(e.NextUpdate).fromNow();
 					$scope.feeds[e.Url] = e;
