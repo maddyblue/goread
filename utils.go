@@ -424,7 +424,7 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 	return parseFix(c, feed, stories, fetchUrl)
 }
 
-func parseAtom(c appengine.Context, body []byte,  charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
+func parseAtom(c appengine.Context, body []byte, charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	var err error
@@ -822,8 +822,18 @@ func taskSender(c mpg.Context, queue string, tc chan *taskqueue.Task, done chan 
 	const taskLimit = 100
 	tasks := make([]*taskqueue.Task, 0, taskLimit)
 	send := func() {
-		taskqueue.AddMulti(c, tasks, queue)
-		c.Infof("added %v tasks", len(tasks))
+		errorCount := 0
+		queued, err := taskqueue.AddMulti(c, tasks, queue)
+		if me, ok := err.(appengine.MultiError); ok {
+			for i, merr := range me {
+				if merr == nil {
+					continue
+				}
+				errorCount++
+				c.Warningf("error for task %v: %v", queued[i], merr)
+			}
+		}
+		c.Infof("added %v tasks with %v errors", len(tasks), errorCount)
 		tasks = tasks[0:0]
 	}
 	for t := range tc {
