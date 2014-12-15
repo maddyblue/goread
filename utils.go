@@ -44,10 +44,10 @@ import (
 	"appengine/urlfetch"
 	"appengine/user"
 
-	"atom"
-	"rdf"
-	"rss"
-	"sanitizer"
+	"github.com/mjibson/goread/atom"
+	"github.com/mjibson/goread/rdf"
+	"github.com/mjibson/goread/rss"
+	"github.com/mjibson/goread/sanitizer"
 )
 
 func serveError(w http.ResponseWriter, err error) {
@@ -424,7 +424,7 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 	return parseFix(c, feed, stories, fetchUrl)
 }
 
-func parseAtom(c appengine.Context, body []byte,  charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
+func parseAtom(c appengine.Context, body []byte, charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	var err error
