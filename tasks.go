@@ -294,17 +294,18 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	limit := 10 * 60 * 2 // 10/s queue, 2 min cron
-	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", now).Limit(limit)
+	q := datastore.NewQuery("F").Filter("n <=", now).Limit(limit)
 	it := q.Run(appengine.Timeout(c, time.Minute))
 	tc := make(chan *taskqueue.Task)
 	done := make(chan bool)
 	i := 0
 	u := routeUrl("update-feed")
+	var feed Feed
 	var id string
 
 	go taskSender(c, "update-feed", tc, done)
 	for {
-		k, err := it.Next(nil)
+		k, err := it.Next(&feed)
 		if err == datastore.Done {
 			break
 		}
@@ -318,9 +319,12 @@ func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		// https://cloud.google.com/appengine/docs/go/taskqueue#Go_Task_names
 		// This is not an absolute guarantee, but should help.
 		newTask := taskqueue.NewPOSTTask(u, url.Values{"feed": {id}})
+		// Include the NextUpdate time because task names endure 7D or so.
 		// The URL is hex-escaped but hopefully still human-readable.
-		newTask.Name = taskNameEscape(id)
-		c.Infof("queuing feed %v", newTask.Name)
+		newTask.Name = fmt.Sprintf("%v_%v",
+			feed.NextUpdate.UTC().Format("2006-01-02T15-04-05Z07-00"),
+			taskNameEscape(id))
+		c.Debugf("queuing feed %v", newTask.Name)
 		tc <- newTask
 		i++
 	}
