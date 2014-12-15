@@ -53,8 +53,11 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
 	opml := Opml{}
-	gob.NewDecoder(
-		blobstore.NewReader(c, appengine.BlobKey(bk))).Decode(&opml)
+	dec := gob.NewDecoder(blobstore.NewReader(c, appengine.BlobKey(bk)))
+	err := dec.Decode(&opml)
+	if err != nil {
+		c.Warningf("gob decode failed: %v", err.Error())
+	}
 
 	remaining := skip
 	var userOpml []*OpmlOutline

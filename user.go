@@ -121,7 +121,12 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			var b bytes.Buffer
-			gob.NewEncoder(&b).Encode(&opml)
+			enc := gob.NewEncoder(&b)
+			err := enc.Encode(&opml)
+			if err != nil {
+				serveError(w, err)
+				return
+			}
 			bk, err := saveFile(c, b.Bytes())
 			if err != nil {
 				serveError(w, err)
