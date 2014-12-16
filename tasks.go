@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/xml"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,8 +31,6 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 
@@ -47,7 +45,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
 	bk := r.FormValue("key")
-	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -55,9 +52,15 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
-	var userOpml []*OpmlOutline
-	remaining := skip
+	opml := Opml{}
+	dec := gob.NewDecoder(blobstore.NewReader(c, appengine.BlobKey(bk)))
+	err := dec.Decode(&opml)
+	if err != nil {
+		c.Warningf("gob decode failed: %v", err.Error())
+	}
 
+	remaining := skip
+	var userOpml []*OpmlOutline
 	var proc func(label string, outlines []*OpmlOutline)
 	proc = func(label string, outlines []*OpmlOutline) {
 		for _, o := range outlines {
@@ -81,14 +84,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	opml := Opml{}
-	d := xml.NewDecoder(fr)
-	d.CharsetReader = charset.NewReader
-	d.Strict = false
-	if err := d.Decode(&opml); err != nil {
-		c.Errorf("opml error: %v", err.Error())
-		return
-	}
 	proc("", opml.Outline)
 
 	// todo: refactor below with similar from ImportReaderTask

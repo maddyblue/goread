@@ -35,10 +35,18 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';
 		$scope.loading++;
-		$('#import-opml-form').ajaxForm(function() {
-			$('#import-opml-form')[0].reset();
-			$scope.loaded();
-			$scope.showMessage("OPML import is happening. It can take a minute. Don't reorganize your feeds until it's completed importing. Refresh to see its progress.");
+		$('#import-opml-form').ajaxForm({
+			clearForm: true,
+			error: function(jqXHR, textStatus, errorThrown) {
+				$scope.showMessage(jqXHR.responseText);
+			},
+			success: function() {
+				$scope.loaded();
+				$scope.showMessage("OPML import is happening."
+					+ " It can take a minute. Don't reorganize your feeds"
+					+ " until it's completed importing."
+					+ " Refresh to see its progress.");
+			}
 		});
 	};
 
