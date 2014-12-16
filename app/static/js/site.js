@@ -42,10 +42,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			},
 			success: function() {
 				$scope.loaded();
-				$scope.showMessage("OPML import is happening."
-					+ " It can take a minute. Don't reorganize your feeds"
-					+ " until it's completed importing."
-					+ " Refresh to see its progress.");
+				$scope.showMessage("OPML import is happening." +
+					" It can take a minute." +
+					" Don't reorganize your feeds" +
+					" until it's completed importing." +
+					" Refresh to see its progress.");
 			}
 		});
 	};
@@ -68,14 +69,14 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			return false;
 		}
 		var btn = $(e.target);
-		btn.button('loading')
+		btn.button('loading');
 		$scope.loading++;
 		var f = $('#add-subscription-form');
 		$scope.http('POST', f.attr('data-url'), {
 			url: $scope.addFeedUrl
 		}).then(function() {
 			$scope.addFeedUrl = '';
-			btn.button('reset')
+			btn.button('reset');
 			// I think this is needed due to the datastore's eventual consistency.
 			// Without the delay we only get the feed data with no story data.
 			$timeout(function() {
@@ -90,7 +91,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				alert(data.data);
 			}
 			$scope.loaded();
-			btn.button('reset')
+			btn.button('reset');
 		});
 	};
 
@@ -201,8 +202,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.updateTitle = function() {
-		var ur = $scope.unread['all'] || 0;
-		document.title = 'go read' + (ur != 0 ? ' (' + ur + ')' : '');
+		var ur = $scope.unread.all || 0;
+		document.title = 'go read' + (ur !== 0 ? ' (' + ur + ')' : '');
 	};
 
 	/* options dictionary:
@@ -285,8 +286,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.shouldHideEmpty = function(f) {
 		if (!$scope.opts.hideEmpty) return false;
-		var cnt = f.Outline ? $scope.unread['folders'][f.Title] : $scope.unread['feeds'][f.XmlUrl];
-		return cnt == 0;
+		var cnt = f.Outline ? $scope.unread.folders[f.Title] : $scope.unread.feeds[f.XmlUrl];
+		return cnt === 0;
 	};
 
 	$scope.next = function(page, opts) {
@@ -320,22 +321,22 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 		_.each($scope.opml, function(f) {
 			if (f.Outline) {
-				$scope.unread['folders'][f.Title] = 0;
+				$scope.unread.folders[f.Title] = 0;
 				_.each(f.Outline, function(subf) {
-					$scope.unread['feeds'][subf.XmlUrl] = 0;
+					$scope.unread.feeds[subf.XmlUrl] = 0;
 				});
 			} else {
-				$scope.unread['feeds'][f.XmlUrl] = 0;
+				$scope.unread.feeds[f.XmlUrl] = 0;
 			}
 		});
 
 		_.each($scope.stories, function(s) {
 			if (!s.read) {
-				$scope.unread['all']++;
-				$scope.unread['feeds'][s.feed.XmlUrl]++;
+				$scope.unread.all++;
+				$scope.unread.feeds[s.feed.XmlUrl]++;
 				var folder = s.feed.folder;
 				if (folder) {
-					$scope.unread['folders'][folder]++;
+					$scope.unread.folders[folder]++;
 				}
 			}
 		});
@@ -392,7 +393,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	};
 
 	$scope.nothing = function() {
-		return $scope.loading == 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about' && $scope.shown != 'account' && $scope.shown != 'feed-history';
+		return $scope.loading === 0 && $scope.stories && !$scope.numfeeds && $scope.shown != 'about' && $scope.shown != 'account' && $scope.shown != 'feed-history';
 	};
 
 	$scope.toggleNav = function() {
@@ -456,7 +457,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 
 	$scope.fetchContents = function() {
 		delete $scope.fetchPromise;
-		if ($scope.toFetch.length == 0) {
+		if ($scope.toFetch.length === 0) {
 			return;
 		}
 		var tofetch = $scope.toFetch;
@@ -490,7 +491,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.resetLimit = function() {
 		$scope.dispLimit = limitInc;
 		$scope.checkLoadNextPage();
-	}
+	};
 
 	$scope.setActive = function(type, value) {
 		delete $scope.activeFeed;
@@ -549,7 +550,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 			$scope.dispStories.push(s);
 		});
 
-		var swap = $scope.opts.sort == 'oldest'
+		var swap = $scope.opts.sort == 'oldest';
 		if (swap) {
 			// turn off swap for all items mode on a feed
 			if ($scope.activeFeed && $scope.opts.mode == 'all')
@@ -672,7 +673,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				if (!folder)
 					return;
 				feed = f;
-				$scope.opml.splice(i, 1)
+				$scope.opml.splice(i, 1);
 			}
 		}
 		if (!feed) return;
@@ -685,10 +686,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					Title: folder
 				});
 			}
-			for (var i = 0; i < $scope.opml.length; i++) {
-				var f = $scope.opml[i];
-				if (f.Outline && f.Title == folder) {
-					$scope.opml[i].Outline.push(feed);
+			for (var k = 0; k < $scope.opml.length; k++) {
+				var fk = $scope.opml[k];
+				if (fk.Outline && fk.Title == folder) {
+					$scope.opml[k].Outline.push(feed);
 				}
 			}
 		}
@@ -717,15 +718,17 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.cursors = {};
 	$scope.fetching = {};
 	$scope.getFeed = function() {
+		var success = null;
+		var url = null;
 		if ($scope.activeFeed) {
 			var f = $scope.activeFeed;
 			if ($scope.fetching[f]) return;
 			$scope.fetching[f] = true;
-			var url = sl.attr('data-url-get-feed') + '?' + $.param({
+			url = sl.attr('data-url-get-feed') + '?' + $.param({
 				f: f,
 				c: $scope.cursors[f] || ''
 			});
-			var success = function (data) {
+			success = function (data) {
 				if (!data.Stories) return;
 				delete $scope.fetching[f];
 				$scope.cursors[f] = data.Cursor;
@@ -737,15 +740,15 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				});
 			};
 		} else if ($scope.activeStar) {
-			if ($scope.fetching['stars']) return;
-			$scope.fetching['stars'] = true;
-			var url = sl.attr('data-url-get-stars') + '?' + $.param({
-				c: $scope.cursors['stars'] || ''
+			if ($scope.fetching.stars) return;
+			$scope.fetching.stars = true;
+			url = sl.attr('data-url-get-stars') + '?' + $.param({
+				c: $scope.cursors.stars || ''
 			});
-			var success = function(data) {
+			success = function(data) {
 				if (!data.Stories) return;
-				delete $scope.fetching['stars'];
-				$scope.cursors['stars'] = data.Cursor;
+				delete $scope.fetching.stars;
+				$scope.cursors.stars = data.Cursor;
 				_.each(data.Feeds, function(f) {
 					if (!$scope.feeds[f.Url]) {
 						$scope.feeds[f.Url] = f;
@@ -763,10 +766,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		} else {
 			return;
 		}
-		if ($scope.dispStories.length != 0) {
+		if ($scope.dispStories.length !== 0) {
 			var sh = sl[0].scrollHeight;
 			var h = sl.height();
-			var st = sl.scrollTop()
+			var st = sl.scrollTop();
 			if (sh - (st + h) > 200) {
 				return;
 			}
