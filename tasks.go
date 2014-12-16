@@ -288,9 +288,16 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 		},
 	}
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
-		reader := io.LimitReader(resp.Body, 1<<21)
+		const sz = 1 << 21
+		reader := &io.LimitedReader{R: resp.Body, N: sz}
 		defer resp.Body.Close()
-		b, _ := ioutil.ReadAll(reader)
+		b, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, nil, err
+		}
+		if reader.N == 0 {
+			return nil, nil, fmt.Errorf("feed larger than %d bytes", sz)
+		}
 		if autoUrl, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
 			if autoU, err := url.Parse(autoUrl); err == nil {
 				if autoU.Scheme == "" {
