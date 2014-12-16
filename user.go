@@ -37,14 +37,13 @@ import (
 	_ "code.google.com/p/go-charset/data"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/sanitizer"
 
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/user"
-
-	"sanitizer"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {

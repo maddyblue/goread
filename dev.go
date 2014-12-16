@@ -28,15 +28,6 @@ import (
 	"appengine/user"
 )
 
-func init() {
-	if !isDevServer {
-		return
-	}
-	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
-	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
-	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
-}
-
 func ClearRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if !isDevServer {
 		return

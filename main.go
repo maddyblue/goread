@@ -50,6 +50,13 @@ func init() {
 	); err != nil {
 		log.Fatal(err)
 	}
+
+	miniprofiler.ToggleShortcut = "Alt+C"
+	miniprofiler.Position = "bottomleft"
+}
+
+func RegisterHandlers(r *mux.Router) {
+	router = r
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
@@ -91,8 +98,6 @@ func init() {
 
 	//router.Handle("/tasks/delete-blobs", mpg.NewHandler(DeleteBlobs)).Name("delete-blobs")
 
-	http.Handle("/", router)
-
 	if len(PUBSUBHUBBUB_HOST) > 0 {
 		u := url.URL{
 			Scheme:   "http",
@@ -103,8 +108,12 @@ func init() {
 		subURL = u.String()
 	}
 
-	miniprofiler.ToggleShortcut = "Alt+C"
-	miniprofiler.Position = "bottomleft"
+	if !isDevServer {
+		return
+	}
+	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
+	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
+	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {

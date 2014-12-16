@@ -33,6 +33,10 @@ import (
 
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/atom"
+	"github.com/mjibson/goread/rdf"
+	"github.com/mjibson/goread/rss"
+	"github.com/mjibson/goread/sanitizer"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
@@ -43,11 +47,6 @@ import (
 	"appengine/taskqueue"
 	"appengine/urlfetch"
 	"appengine/user"
-
-	"atom"
-	"rdf"
-	"rss"
-	"sanitizer"
 )
 
 func serveError(w http.ResponseWriter, err error) {
