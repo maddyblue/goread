@@ -474,6 +474,12 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 				_.each(data, function(d, i) {
 					var div = $('<div>' + d + '</div>');
 					$('a', div).attr('target', '_blank');
+					$('iframe', div).each(function() {
+						if (this.src.indexOf("http://") !== 0) {
+							return;
+						}
+						this.src = this.src.substr(5);
+					});
 					tofetch[i].contents = $sce.trustAsHtml(div.html());
 				});
 			});
