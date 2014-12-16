@@ -424,7 +424,7 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 	return parseFix(c, feed, stories, fetchUrl)
 }
 
-func parseAtom(c appengine.Context, body []byte,  charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
+func parseAtom(c appengine.Context, body []byte, charsetReader func(string, io.Reader) (io.Reader, error)) (*Feed, []*Story, error) {
 	var f Feed
 	var s []*Story
 	var err error
