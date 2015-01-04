@@ -794,8 +794,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.onScroll = _.debounce(function() {
 		$scope.$apply(function() {
 			$scope.applyGetFeed();
-			$scope.scrollRead();
 			$scope.collapsed = $(window).width() <= 768;
+			$scope.scrollRead();
 			$scope.checkLoadNextPage();
 		});
 	}, 100);
@@ -826,7 +826,8 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$window.onresize = $scope.onScroll;
 
 	$scope.scrollRead = function() {
-		if (!$scope.opts.scrollRead || !$scope.opts.expanded) return;
+		if (!$scope.opts.scrollRead || !$scope.opts.expanded || scope.collapsed)
+			return;
 		var sl = $('#story-list');
 		var slh = sl.height();
 		var sle = sl[0];
