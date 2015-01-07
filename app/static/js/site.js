@@ -826,7 +826,7 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$window.onresize = $scope.onScroll;
 
 	$scope.scrollRead = function() {
-		if (!$scope.opts.scrollRead || !$scope.opts.expanded || scope.collapsed)
+		if (!$scope.opts.scrollRead || !$scope.opts.expanded || $scope.collapsed)
 			return;
 		var sl = $('#story-list');
 		var slh = sl.height();
