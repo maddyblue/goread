@@ -194,6 +194,9 @@
 			#feed-list {
 				display: none;
 			}
+			.optional-text {
+				display: none;
+			}
 			#story-list {
 				position: static;
 			}
@@ -672,25 +675,25 @@
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="mailto:?subject={{`{{s.Title | encodeURI}}`}}&body={{`{{s.Link | encodeURI}}`}}">
 										<i class="fa fa-envelope"></i>
-										email
+										<span class="optional-text">email</span>
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="https://twitter.com/intent/tweet?text={{`{{s.Title | encodeURI}}`}}&url={{`{{s.Link | encodeURI}}`}}&via=GoReadRss">
 										<i class="fa fa-twitter"></i>
-										tweet
+										<span class="optional-text">tweet</span>
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="https://plus.google.com/share?url={{`{{s.Link | encodeURI}}`}}">
 										<i class="fa fa-google-plus"></i>
-										google
+										<span class="optional-text">google</span>
 									</a>
 								</li>
 								<li style="vertical-align: middle">
 									<a target="_blank" ng-href="http://www.tumblr.com/share/link?url={{`{{s.Link | encodeURI}}`}}&name={{`{{s.Title | encodeURI}}`}}">
 										<i class="fa fa-tumblr"></i>
-										tumblr
+										<span class="optional-text">tumblr</span>
 									</a>
 								</li>
 								<li style="vertical-align: middle">
