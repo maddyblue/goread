@@ -33,10 +33,10 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/charset"
+	_ "github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/data"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 	"github.com/mjibson/goread/sanitizer"
 
 	"appengine"
