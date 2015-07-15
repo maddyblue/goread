@@ -35,10 +35,18 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 	$scope.importOpml = function() {
 		$scope.shown = 'feeds';
 		$scope.loading++;
-		$('#import-opml-form').ajaxForm({
+		$scope.http('GET', $('#import-opml-form').attr('data-upload-url'))
+			.then(processImport);
+	};
+
+	function processImport(data) {
+		var f = $('#import-opml-form');
+		f.prop('action', data.data);
+		f.ajaxSubmit({
 			clearForm: true,
 			error: function(jqXHR, textStatus, errorThrown) {
 				$scope.showMessage(jqXHR.responseText);
+				$scope.$apply();
 			},
 			success: function() {
 				$scope.loaded();
@@ -47,9 +55,10 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 					" Don't reorganize your feeds" +
 					" until it's completed importing." +
 					" Refresh to see its progress.");
+				$scope.$apply();
 			}
 		});
-	};
+	}
 
 	$scope.loaded = function() {
 		$scope.loading--;

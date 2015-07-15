@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"encoding/gob"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -31,6 +31,7 @@ import (
 	"sync"
 	"time"
 
+	"code.google.com/p/go-charset/charset"
 	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goon"
 
@@ -45,6 +46,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
 	bk := r.FormValue("key")
+	del := func() {
+		blobstore.Delete(c, appengine.BlobKey(bk))
+	}
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -52,11 +56,15 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
+	d := xml.NewDecoder(blobstore.NewReader(c, appengine.BlobKey(bk)))
+	d.CharsetReader = charset.NewReader
+	d.Strict = false
 	opml := Opml{}
-	dec := gob.NewDecoder(blobstore.NewReader(c, appengine.BlobKey(bk)))
-	err := dec.Decode(&opml)
+	err := d.Decode(&opml)
 	if err != nil {
+		del()
 		c.Warningf("gob decode failed: %v", err.Error())
+		return
 	}
 
 	remaining := skip
@@ -124,6 +132,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 		taskqueue.Add(c, task, "import-reader")
 	} else {
+		del()
 		c.Infof("opml import done: %v", userid)
 	}
 }

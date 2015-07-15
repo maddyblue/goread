@@ -445,13 +445,13 @@
 
 		<div class="row top-margin" ng-show="shown == 'import-opml' || nothing()">
 			<div class="col-md-offset-2 col-md-8">
-				<form id="import-opml-form" enctype="multipart/form-data" method="POST" action="{{url "import-opml"}}">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" data-upload-url="{{url "upload-url"}}">
 					<legend>Upload OPML file</legend>
 					<div class="form-group">
 						<input type="file" name="file">
 					</div>
-					<button ng-click="importOpml()" type="submit" class="btn btn-default">upload</button>
 				</form>
+				<button ng-click="importOpml()" class="btn btn-default">upload</button>
 			</div>
 		</div>
 
