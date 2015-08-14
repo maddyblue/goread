@@ -31,10 +31,10 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/charset"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
@@ -46,7 +46,9 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
 	bk := r.FormValue("key")
-	fr := blobstore.NewReader(c, appengine.BlobKey(bk))
+	del := func() {
+		blobstore.Delete(c, appengine.BlobKey(bk))
+	}
 
 	var skip int
 	if s, err := strconv.Atoi(r.FormValue("skip")); err == nil {
@@ -54,9 +56,19 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.Debugf("reader import for %v, skip %v", userid, skip)
 
-	var userOpml []*OpmlOutline
-	remaining := skip
+	d := xml.NewDecoder(blobstore.NewReader(c, appengine.BlobKey(bk)))
+	d.CharsetReader = charset.NewReader
+	d.Strict = false
+	opml := Opml{}
+	err := d.Decode(&opml)
+	if err != nil {
+		del()
+		c.Warningf("gob decode failed: %v", err.Error())
+		return
+	}
 
+	remaining := skip
+	var userOpml []*OpmlOutline
 	var proc func(label string, outlines []*OpmlOutline)
 	proc = func(label string, outlines []*OpmlOutline) {
 		for _, o := range outlines {
@@ -80,14 +92,6 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	opml := Opml{}
-	d := xml.NewDecoder(fr)
-	d.CharsetReader = charset.NewReader
-	d.Strict = false
-	if err := d.Decode(&opml); err != nil {
-		c.Errorf("opml error: %v", err.Error())
-		return
-	}
 	proc("", opml.Outline)
 
 	// todo: refactor below with similar from ImportReaderTask
@@ -128,6 +132,7 @@ func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		})
 		taskqueue.Add(c, task, "import-reader")
 	} else {
+		del()
 		c.Infof("opml import done: %v", userid)
 	}
 }
@@ -292,9 +297,16 @@ func fetchFeed(c mpg.Context, origUrl, fetchUrl string) (*Feed, []*Story, error)
 		},
 	}
 	if resp, err := cl.Get(fetchUrl); err == nil && resp.StatusCode == http.StatusOK {
-		reader := io.LimitReader(resp.Body, 1<<21)
+		const sz = 1 << 21
+		reader := &io.LimitedReader{R: resp.Body, N: sz}
 		defer resp.Body.Close()
-		b, _ := ioutil.ReadAll(reader)
+		b, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, nil, err
+		}
+		if reader.N == 0 {
+			return nil, nil, fmt.Errorf("feed larger than %d bytes", sz)
+		}
 		if autoUrl, err := Autodiscover(b); err == nil && origUrl == fetchUrl {
 			if autoU, err := url.Parse(autoUrl); err == nil {
 				if autoU.Scheme == "" {

@@ -33,15 +33,17 @@ import (
 	"sync"
 	"time"
 
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/charset"
+	_ "github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/data"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+	"github.com/mjibson/goread/sanitizer"
+
 	"appengine"
 	"appengine/blobstore"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/user"
-
-	"sanitizer"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -79,6 +81,15 @@ func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
+func UploadUrl(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	uploadURL, err := blobstore.UploadURL(c, routeUrl("import-opml"), nil)
+	if err != nil {
+		serveError(w, err)
+		return
+	}
+	w.Write([]byte(uploadURL.String()))
+}
+
 func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
@@ -89,35 +100,61 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	}
 	backupOPML(c)
 
-	if file, _, err := r.FormFile("file"); err == nil {
-		if fdata, err := ioutil.ReadAll(file); err == nil {
-			buf := bytes.NewReader(fdata)
-			// attempt to extract from google reader takeout zip
-			if zb, zerr := zip.NewReader(buf, int64(len(fdata))); zerr == nil {
-				for _, f := range zb.File {
-					if strings.HasSuffix(f.FileHeader.Name, "Reader/subscriptions.xml") {
-						if rc, rerr := f.Open(); rerr == nil {
-							if fb, ferr := ioutil.ReadAll(rc); ferr == nil {
-								fdata = fb
-								break
-							}
-						}
+	blobs, _, err := blobstore.ParseUpload(r)
+	if err != nil {
+		serveError(w, err)
+		return
+	}
+	fs := blobs["file"]
+	if len(fs) == 0 {
+		serveError(w, fmt.Errorf("no uploaded file found"))
+		return
+	}
+	file := fs[0]
+	fr := blobstore.NewReader(c, file.BlobKey)
+	del := func() {
+		blobstore.Delete(c, file.BlobKey)
+	}
+
+	fdata, err := ioutil.ReadAll(fr)
+	if err != nil {
+		del()
+		serveError(w, err)
+		return
+	}
+
+	buf := bytes.NewReader(fdata)
+	// attempt to extract from google reader takeout zip
+	if zb, zerr := zip.NewReader(buf, int64(len(fdata))); zerr == nil {
+		for _, f := range zb.File {
+			if strings.HasSuffix(f.FileHeader.Name, "Reader/subscriptions.xml") {
+				if rc, rerr := f.Open(); rerr == nil {
+					if fb, ferr := ioutil.ReadAll(rc); ferr == nil {
+						fdata = fb
+						break
 					}
 				}
 			}
-
-			bk, err := saveFile(c, fdata)
-			if err != nil {
-				serveError(w, err)
-				return
-			}
-			task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
-				"key":  {string(bk)},
-				"user": {cu.ID},
-			})
-			taskqueue.Add(c, task, "import-reader")
 		}
 	}
+
+	// Preflight the OPML, so we can report any errors.
+	d := xml.NewDecoder(bytes.NewReader(fdata))
+	d.CharsetReader = charset.NewReader
+	d.Strict = false
+	opml := Opml{}
+	if err := d.Decode(&opml); err != nil {
+		del()
+		serveError(w, err)
+		c.Errorf("opml error: %v", err.Error())
+		return
+	}
+
+	task := taskqueue.NewPOSTTask(routeUrl("import-opml-task"), url.Values{
+		"key":  {string(file.BlobKey)},
+		"user": {cu.ID},
+	})
+	taskqueue.Add(c, task, "import-reader")
 }
 
 func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -152,20 +189,6 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
 	backupOPML(c)
-}
-
-func saveFile(c appengine.Context, b []byte) (appengine.BlobKey, error) {
-	w, err := blobstore.Create(c, "application/json")
-	if err != nil {
-		return "", err
-	}
-	if _, err := w.Write(b); err != nil {
-		return "", err
-	}
-	if err := w.Close(); err != nil {
-		return "", err
-	}
-	return w.Key()
 }
 
 const oldDuration = time.Hour * 24 * 7 * 2 // two weeks

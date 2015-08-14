@@ -25,11 +25,12 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+
 	"appengine"
 	"appengine/datastore"
 	"appengine/taskqueue"
 	"appengine/user"
-	"github.com/mjibson/goon"
 )
 
 type User struct {

@@ -27,8 +27,8 @@ import (
 	"appengine/datastore"
 	"appengine/memcache"
 
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 )
 
 func AllFeedsOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {

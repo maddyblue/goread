@@ -21,21 +21,12 @@ import (
 	"net/http"
 	"time"
 
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goon"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
 	"appengine/datastore"
 	"appengine/user"
 )
-
-func init() {
-	if !isDevServer {
-		return
-	}
-	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
-	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
-	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
-}
 
 func ClearRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if !isDevServer {

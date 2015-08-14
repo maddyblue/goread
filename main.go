@@ -25,10 +25,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/MiniProfiler/go/miniprofiler"
-	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/gorilla/mux"
-	"github.com/mjibson/goon"
+	"github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler"
+	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goread/_third_party/github.com/gorilla/mux"
+	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+
 	"appengine"
 	"appengine/datastore"
 )
@@ -49,6 +50,13 @@ func init() {
 	); err != nil {
 		log.Fatal(err)
 	}
+
+	miniprofiler.ToggleShortcut = "Alt+C"
+	miniprofiler.Position = "bottomleft"
+}
+
+func RegisterHandlers(r *mux.Router) {
+	router = r
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
@@ -68,6 +76,7 @@ func init() {
 	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
 	router.Handle("/user/get-feed", mpg.NewHandler(GetFeed)).Name("get-feed")
 	router.Handle("/user/get-stars", mpg.NewHandler(GetStars)).Name("get-stars")
+	router.Handle("/user/import/get-url", mpg.NewHandler(UploadUrl)).Name("upload-url")
 	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
 	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
 	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
@@ -90,8 +99,6 @@ func init() {
 
 	//router.Handle("/tasks/delete-blobs", mpg.NewHandler(DeleteBlobs)).Name("delete-blobs")
 
-	http.Handle("/", router)
-
 	if len(PUBSUBHUBBUB_HOST) > 0 {
 		u := url.URL{
 			Scheme:   "http",
@@ -102,8 +109,12 @@ func init() {
 		subURL = u.String()
 	}
 
-	miniprofiler.ToggleShortcut = "Alt+C"
-	miniprofiler.Position = "bottomleft"
+	if !isDevServer {
+		return
+	}
+	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
+	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
+	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {

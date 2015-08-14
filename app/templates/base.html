@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="goReadApp">
+<head>
+	<title>go read</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="{{.BootstrapCss}}" rel="stylesheet" media="screen">
+	<link href="{{.FontAwesome}}" rel="stylesheet">
+	<style>
+		.ng-cloak {
+			display: none;
+		}
+		body {
+			padding-top: 70px;
+		}
+		.hand {
+			cursor: hand;
+			cursor: pointer;
+		}
+		label.normal {
+			font-weight: normal;
+		}
+		#nav-right {
+			position: absolute;
+			right: 15px;
+			left: auto;
+		}
+		.nav li .btn-sm i {
+			font-size: 14px;
+		}
+		.nav .btn.dropdown-toggle .caret {
+			border-top-color: #333;
+			border-bottom-color: #333;
+		}
+		.story {
+			border-bottom: 1px solid #ccc;
+			border-left: 1px solid #fff;
+		}
+		.story.selected {
+			border-left: 1px solid #0088cc;
+		}
+		.story-header {
+			position: relative;
+			padding-left: 155px;
+			padding-right: 120px;
+			width: 100%;
+			box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			height: 33px;
+			line-height: 33px;
+			font-size: 13px;
+		}
+		.story-title, .feed-title, .folder-title {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.story-header.read .story-title strong {
+			font-weight: normal !important;
+		}
+		.story-link {
+			color: #333;
+		}
+		.feed-title, .folder-title {
+			padding: 2px;
+		}
+		.feed-title:hover, .folder-title:hover {
+			background-color: #eee;
+		}
+		.story-header.read {
+			background-color: #f5f5f5;
+		}
+		.story-star {
+			position: absolute;
+			left: 5px;
+			color: rgba(0, 0, 0, 0.4);
+		}
+		.story-star:hover {
+			color: rgba(0, 0, 0, 1);
+		}
+		.story-feed {
+			width: 130px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			position: absolute;
+			white-space: nowrap;
+			left: 20px;
+		}
+		.story-date {
+			position: absolute;
+			right: 5px;
+			top: 0;
+		}
+		.story-content h3 {
+			margin: 0;
+			margin-top: 4px;
+			line-height: 24px;
+		}
+		.story-content {
+			margin: 0.5em;
+		}
+		.story-content.short {
+			max-width: 650px;
+		}
+		.story-content-switch {
+			position: relative;
+		}
+		.story-footer {
+			background-color: #f5f5f5;
+			padding-left: 7px;
+			height: 25px;
+			overflow: hidden;
+		}
+		.story-footer a {
+			color: #333;
+			text-decoration: none;
+		}
+		.active-name {
+			font-weight: bold;
+			padding: 10px 0;
+		}
+		#story-list {
+			position: absolute;
+			left: 245px;
+			overflow-y: auto;
+			-webkit-overflow-scrolling: touch;
+			top: 50px;
+			bottom: 0;
+			right: 0;
+		}
+		#story-list.no-nav {
+			left: 20px;
+		}
+		#story-list .config {
+			margin-right: 20px;
+		}
+		#feed-list {
+			position: absolute;
+			font-size: 13px;
+			width: 220px;
+			top: 50px;
+			bottom: 0;
+			overflow: hidden;
+			left: 20px;
+			padding-top: 10px;
+		}
+		#feed-list:hover {
+			overflow-y: auto;
+		}
+		.active {
+			color: #d14;
+		}
+		.feed-child {
+			margin-left: 20px;
+		}
+		.feed-icon {
+			width: 16px;
+			height: 16px;
+		}
+		.all-subs {
+			font-weight: bold;
+			padding: 5px 0;
+		}
+		.top-margin {
+			margin-top: 20px;
+		}
+		a.navbar-brand {
+			background-image: url("/static/icon.png");
+			background-repeat: no-repeat;
+			background-position: 20px 12px;
+			background-size: 24px;
+			padding-left: 54px !important;
+		}
+		.bold {
+			font-weight: bold;
+		}
+		.story-header i.fa-share {
+			color: #333;
+		}
+		#story-list::-webkit-scrollbar { width: 8px; height: 8px }
+		#story-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#story-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		#feed-list::-webkit-scrollbar { width: 8px; }
+		#feed-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+		#feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
+		@media (max-width: 768px) {
+			body {
+				padding-top: 50px;
+			}
+			#nav-right {
+				position: static;
+				left: auto;
+				right: auto;
+			}
+			#feed-list {
+				display: none;
+			}
+			.optional-text {
+				display: none;
+			}
+			#story-list {
+				position: static;
+			}
+			.story-header {
+				padding: 0;
+				height: 43px;
+				line-height: 43px;
+			}
+			.story-title {
+				margin-left: 20px;
+			}
+			.form-inline .checkbox {
+				display: inline-block;
+				margin-top: 0;
+				margin-bottom: 0;
+			}
+		}
+	</style>
+	<link rel="shortcut icon" href="/static/favicon.png">
+</head>
+<body ng-controller="GoreadCtrl" class="ng-cloak">
+	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#" ng-click="shown = '{{if .User}}feeds{{end}}'">go read</a>
+		</div>
+		<div class="collapse navbar-collapse navbar-ex1-collapse">
+			<ul class="nav navbar-nav">
+				<li ng-class="{active: shown == 'about'}"><a href="#" ng-click="shown = 'about'">about</a></li>
+			{{if .User}}
+				<li ng-class="{active: shown == 'feeds'}" ng-init="shown = 'feeds'"><a href="#" ng-click="shown = 'feeds'; setActive();">feeds</a></li>
+				<li ng-click="shown = 'feeds'" class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<span ng-show="opts.mode == 'unread'">{{`{{unread.current || 'no'}}`}} unread items</span>
+						<span ng-hide="opts.mode == 'unread'">all items</span>
+						<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a href="#" ng-show="opts.mode != 'unread'" ng-click="setMode('unread')">{{`{{unread.current || 'no'}}`}} unread items</a></li>
+						<li><a href="#" ng-hide="opts.mode != 'unread'" ng-click="setMode('all')">all items</a></li>
+					</ul>
+				</li>
+				<li>
+					<button
+						id="mark-all-read"
+						class="btn btn-default navbar-btn btn-sm"
+						ng-click="markAllRead()"
+						ng-disabled="stories.length == 0"
+						data-url-read="{{url "mark-read"}}"
+						data-url-unread="{{url "mark-unread"}}"
+						data-url-contents="{{url "get-contents"}}"
+						data-url-star="{{url "set-star"}}"
+						>mark all read</button>
+					<button
+						id="refresh"
+						class="btn btn-default navbar-btn btn-sm"
+						ng-click="refresh()"
+						data-url-feeds="{{url "list-feeds"}}"
+						><i class="fa fa-refresh"></i></button>
+					<div class="btn-group">
+						<button class="btn btn-default navbar-btn btn-sm" ng-click="next()" ng-disabled="stories.length == 0"><i class="fa fa-chevron-down"></i></button>
+						<button class="btn btn-default navbar-btn btn-sm" ng-click="prev()" ng-disabled="stories.length == 0"><i class="fa fa-chevron-up"></i></button>
+					</div>
+					<div class="btn-group">
+						<a href="#" class="btn btn-default navbar-btn btn-sm dropdown-toggle" data-toggle="dropdown">
+							view
+							<b class="caret"></b>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" ng-click="toggleExpanded()">
+								expanded view
+								<i class="fa fa-check" ng-show="opts.expanded"></i>
+							</a></li>
+							<li><a href="#" ng-click="toggleExpanded()">
+								list view
+								<i class="fa fa-check" ng-show="!opts.expanded"></i>
+							</a></li>
+							<li class="divider"></li>
+							<li><a href="#" ng-click="setSort('newest')">
+								sort by newest
+								<i class="fa fa-check" ng-show="opts.sort != 'oldest'"></i>
+							</a></li>
+							<li><a href="#" ng-click="setSort('oldest')">
+								sort by oldest
+								<i class="fa fa-check" ng-show="opts.sort == 'oldest'"></i>
+							</a></li>
+							<li class="divider"></li>
+							<li><a href="#" ng-click="toggleHideEmpty()">
+								hide empty feeds/folders <i ng-show="opts.hideEmpty" class="fa fa-check"></i></a>
+							</li>
+							<li><a href="#" ng-click="toggleScrollRead()">
+								mark as read on scroll <i ng-show="opts.scrollRead" class="fa fa-check"></i></a>
+							</li>
+							<li><a href="#" ng-click="toggleNav()">
+								show left hand side module <i ng-show="opts.nav" class="fa fa-check"></i></a>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li><a ng-show="loading" style="position: absolute">loading...</a></li>
+			{{end}}
+			</ul>
+			<ul class="nav navbar-nav navbar-right" id="nav-right">
+			{{if .User}}
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						{{.User}}
+						<b class="caret"></b>
+					</a>
+					<ul class="dropdown-menu">
+						{{if .StripeKey}}
+						<li><a href="#" ng-click="getAccount()">account</a></li>
+						{{end}}
+						<li><a href="#" ng-click="setAddSubscription()">add subscription</a></li>
+						<li><a href="#" ng-click="shown = 'import-opml'">import opml</a></li>
+						<li class="divider"></li>
+						<li><a href="{{url "export-opml"}}">export opml</a></li>
+						<li><a href="{{url "logout"}}">logout</a></li>
+						<li class="divider"></li>
+						<li><a href="#" data-url="{{url "feed-history"}}" id="feed-history" ng-click="getFeedHistory()">feed history</a></li>
+						<li><a href="#" ng-click="clearFeeds()">clear feeds</a></li>
+						<li><a href="#" data-url="{{url "delete-account"}}" id="delete-account" ng-click="deleteAccount()">delete account</a></li>
+					</ul>
+				</li>
+			{{else}}
+				<li><a href="{{url "login-google"}}">sign up / log in</a></li>
+			{{end}}
+			</ul>
+		</div>
+	</nav>
+	<div class="container">
+		{{if and .User .StripeKey}}
+		<div
+			class="row"
+			ng-show="shown == 'account'"
+			id="account"
+			data-url-charge="{{url "charge"}}"
+			data-url-account="{{url "account"}}"
+			data-url-uncheckout="{{url "uncheckout"}}"
+			data-stripe-key="{{.StripeKey}}"
+			ng-init="accountType = {{.User.Account}}"
+			>
+			<div class="col-md-offset-3 col-md-6">
+				<h1>Account</h1>
+				<div ng-hide="accountType">
+					<p>Go Read's <a href="https://github.com/mjibson/goread">software</a> is free, but its servers are not. A 30-day free trial is provided, after which we require a paid subscription.</p>
+					<div>
+						{{range .StripePlans}}
+						<button
+							class="btn btn-primary btn-lg"
+							ng-click="checkout('{{.Id}}', '{{.Desc}}', {{.Amount}})"
+							data-loading-text="Working..."
+							id="button{{.Id}}"
+							>Subscribe for {{.Name}}</button>
+						{{end}}
+					</div>
+					<br>
+					<a href="https://stripe.com" target="_blank"><img src="/static/img/stripe.png"></a>
+				</div>
+				<div ng-show="accountType">
+					<h3>Subscribed on <span ng-bind="date(account.Created)"></span></h3>
+					<h5>Next payment:
+						<span ng-show="account">
+							${{`{{account.Amount/100}}`}} on {{`{{date(account.Next)}}`}}, recurring each {{`{{account.Interval}}`}}
+						</span>
+					</h5>
+					<button class="btn" ng-click="unCheckout()" data-loading-text="Working..." id="uncheckoutButton">Unsubscribe</button>
+				</div>
+				<div>
+					<h3>Support</h3>
+					<p>Email <a href="mailto:support@goread.io">support@goread.io</a></p>
+					<p>Tweet <a href="http://twitter.com/goreadrss">@GoReadRss</a>
+					<p>Save a copy of your feeds with the <strong>export oml</strong> option under your username menu.</p>
+				</div>
+			</div>
+		</div>
+		{{end}}
+		<div class="row" ng-show="shown == 'about'">
+			<div class="col-md-offset-1 col-md-10">
+				<h1>About</h1>
+				<p>Go Read is a web-based RSS reader.</p>
+				<p>It is designed to be as useful as Google Reader.</p>
+				<p>
+					Built by <a href="http://twitter.com/mjibson">Matt Jibson</a>.
+					Runs on <a href="https://developers.google.com/appengine/">Google App Engine</a>.
+					Powered by <a href="http://golang.org/">Go</a> and <a href="http://angularjs.org/">AngularJS</a>.
+					Code on <a href="https://github.com/mjibson/goread">GitHub</a>.
+				</p>
+				<h1>Help</h1>
+				<p>Problems? Try one of these:</p>
+				<p>Tweet <a href="https://twitter.com/goreadrss">@GoReadRss</a></p>
+				<p>Email <a href="mailto:support@goread.io">support@goread.io</a></p>
+				<p>Submit a <a href="https://github.com/mjibson/goread/issues">GitHub issue</a></p>
+				<h1>FAQ</h1>
+				<p>
+					<strong>Are there keyboard shortcuts?</strong>
+					Yes, press <button class="btn" ng-click="shortcuts.modal('toggle')">?</button>.
+				</p>
+				<p>
+					<strong>What is on your todo list?</strong>
+					Check the <a href="https://github.com/mjibson/goread/issues">GitHub issues</a> page.
+				</p>
+				<p>
+					<strong>Is there a bookmarklet/submit URL?</strong>
+					Drag this link to your browser toolbar:
+					<h4><a href="javascript:window.location=%22http://www.goread.io/user/add-subscription?url=%22+encodeURIComponent(document.location)">add to go read</a></h4>
+					Or submit to <code>http://www.goread.io/user/add-subscription?url=%s</code> where <code>%s</code> is the feed URL.
+					Firefox users can <a href="#" ng-click="registerHandler()">register go read as an RSS reader</a>.
+				</p>
+				{{if .StripeKey}}
+				<p>
+					<strong>How much does a paid subscription cost?</strong>
+					Either $3/month or $30/year. A 30-day free trial is provided. Please contact support if you have questions.
+					If you are not able to pay, setting up your own server is not difficult (and free for a few hundred feeds). Follow the instructions on the <a href="https://github.com/mjibson/goread">GitHub page</a>. 
+				</p>
+				{{end}}
+			</div>
+		</div>
+
+		{{if .User}}
+		<div ng-show="nothing()" class="row top-margin">
+			<div class="col-md-offset-2 col-md-8">
+				<p>You don't have any feeds.</p>
+				<p>Add some, or upload an OPML file.</p>
+			</div>
+		</div>
+
+		<div class="row top-margin" ng-show="shown == 'add-subscription' || nothing()">
+			<div class="col-md-offset-2 col-md-8">
+				<form id="add-subscription-form" data-url="{{url "add-subscription"}}">
+					<legend>Feed URL</legend>
+					<div class="form-group">
+						<input type="text" class="form-control" ng-model="addFeedUrl">
+					</div>
+					<input type="submit" ng-click="addSubscription($event)" data-loading-text="importing.." class="btn btn-default" value="import">
+				</form>
+			</div>
+		</div>
+
+		<div class="row" ng-show="nothing()"><p></p></div>
+
+		<div class="row top-margin" ng-show="shown == 'import-opml' || nothing()">
+			<div class="col-md-offset-2 col-md-8">
+				<form id="import-opml-form" enctype="multipart/form-data" method="POST" data-upload-url="{{url "upload-url"}}">
+					<legend>Upload OPML file</legend>
+					<div class="form-group">
+						<input type="file" name="file">
+					</div>
+				</form>
+				<button ng-click="importOpml()" class="btn btn-default">upload</button>
+			</div>
+		</div>
+
+		<div class="row" ng-show="shown == 'feed-history'">
+			<div class="col-md-offset-2 col-md-8">
+				<h1>Feed History</h1>
+				<ul class="list-unstyled">
+					<li ng-repeat="h in feedHistory">
+						<a ng-href="{{url "feed-history"}}?v={{`{{h.value}}`}}" ng-bind="h.time"></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		{{else}}
+			<div class="row" ng-init="nouser = true">
+				<div class="col-md-offset-1 col-md-10" ng-hide="shown">
+					<div class="jumbotron">
+						<h1>Hi, RSS user</h1>
+						<p>Go Read is a web-based RSS reader.</p>
+						<p>It is designed to be as useful as Google Reader.</p>
+						<p><a class="btn btn-primary btn-lg" href="{{url "login-google"}}">sign up / log in with google</a></p>
+						<p class="alert alert-info">We've just released! Read the <strong><a href="http://mattjibson.com/blog/2013/06/26/go-read-open-source-google-reader-clone/">blog post</a></strong> about it.</p>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-offset-1 col-md-5">
+					<div class="panel panel-default">
+						<div class="panel-heading"><h3>features</h3></div>
+						<div class="panel-body">
+							<ul>
+								<li><a href="https://play.google.com/store/apps/details?id=com.goread.goreader">free android client</a></li>
+								<li>same keyboard shortcuts as Google Reader</li>
+								<li>fast, snappy, and clean</li>
+								<li>mobile friendly</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-5">
+					<div class="panel panel-default">
+						<div class="panel-heading"><h3>recent updates</h3></div>
+						<div class="panel-body">
+							<ul>
+								<li>starred items</li>
+								<li>android client</li>
+								<li>HTTPS for all</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row hidden-sm hidden-xs">
+				<div class="col-md-offset-1 col-md-10">
+					<h2>Screenshot</h2>
+					<a href="/static/img/preview.png"><img src="/static/img/preview.png" alt="screenshot" class="img-responsive"></a>
+				</div>
+			</div>
+		{{end}}
+	</div>
+
+	{{if .User}}
+		<div ng-init="clear(); update(); setActive(); refresh()">
+			<div ng-show="opts.nav && !nothing() && shown == 'feeds'" id="feed-list">
+				<ul class="list-unstyled">
+					<li>
+						<button class="btn btn-primary" ng-click="setAddSubscription()">subscribe</button>
+					<li>
+					<li class="all-subs hand" ng-click="setActive()" ng-class="{active: activeAll}" ng-hide="loading">
+						all items ({{`{{unread.all || 0}}`}})
+					</li>
+					<li class="all-subs hand" ng-click="setActive('star')" ng-class="{active: activeStar}" ng-hide="loading">
+						starred items
+					</li>
+					<li class="all-subs" ng-show="loading">loading...</li>
+				</ul>
+				{{if .StripeKey}}
+				<ul class="list-unstyled" ng-show="accountType == 0">
+					<li><button class="btn btn-success" ng-click="getAccount()">upgrade</button></li>
+					<li ng-show="trialRemaining > 0">{{`{{trialRemaining}}`}} days remaining of free trial</li>
+					<li ng-show="untilDays > 0">{{`{{untilDays}}`}} days remaining of subscription</li>
+				</ul>
+				{{end}}
+				<ul class="list-unstyled" ui-sortable="sortableOptions" ng-model="opml">
+					<li ng-repeat="f in opml" ng-hide="shouldHideEmpty(f)">
+						<div class="hand feed-title" ng-class="{active: activeFeed == f.XmlUrl}" ng-hide="f.Outline" ng-click="setActive('feed', f.XmlUrl)" title="{{`{{f.Title}}`}}">
+							<img {{htmlattr `ng-src="{{feeds[f.XmlUrl].Image || '/static/img/feed.png'}}"`}} class="feed-icon">
+							<span class="label label-danger" ng-show="feeds[f.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
+							<span ng-class="{bold: unread.feeds[f.XmlUrl]}" ng-bind="f.Title" dir="auto"></span>
+							<span ng-show="unread.feeds[f.XmlUrl]">
+								({{`{{unread.feeds[f.XmlUrl]}}`}})
+							</span>
+						</div>
+						<div ng-show="f.Outline">
+							<div class="hand folder-title" ng-class="{active: activeFolder == f.Title}" ng-show="f.Outline" ng-click="setActive('folder', f.Title)" title="{{`{{f.Title}}`}}">
+								<i class="fa fa-folder-open hand" ng-hide="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = true; saveOpts(); $event.stopPropagation()"></i>
+								<i class="fa fa-folder hand" ng-show="opts.folderClose[f.Title]" ng-click="opts.folderClose[f.Title] = false; saveOpts(); $event.stopPropagation()"></i>
+								<span ng-class="{bold: unread.folders[f.Title]}" ng-bind="f.Title"></span>
+								<span ng-show="unread.folders[f.Title]">
+									({{`{{unread.folders[f.Title]}}`}})
+								</span>
+							</div>
+							<ul class="list-unstyled" ng-hide="opts.folderClose[f.Title]" ui-sortable="sortableOptions" ng-model="f.Outline">
+								<li ng-repeat="o in f.Outline" ng-hide="shouldHideEmpty(o)">
+									<div class="hand feed-title feed-child" ng-class="{active: activeFeed == o.XmlUrl}" ng-click="setActive('feed', o.XmlUrl)" title="{{`{{o.Title}}`}}">
+										<img {{htmlattr `ng-src="{{feeds[o.XmlUrl].Image || '/static/img/feed.png'}}"`}} class="feed-icon hand">
+										<span class="label label-danger" ng-show="feeds[o.XmlUrl].Errors" title="This feed currently experiencing update errors.">!</span>
+										<span ng-class="{bold: unread.feeds[o.XmlUrl]}" ng-bind="o.Title"></span>
+										<span ng-show="unread.feeds[o.XmlUrl]">
+											({{`{{unread.feeds[o.XmlUrl]}}`}})
+										</span>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div
+				ng-show="loading == 0 && shown == 'feeds' && numfeeds"
+				ng-class="navspan()"
+				ng-style="navmargin()"
+				id="story-list"
+				data-url-upload="{{url "upload-opml"}}"
+				data-url-options="{{url "save-options"}}"
+				data-url-get-feed="{{url "get-feed"}}"
+				data-url-get-stars="{{url "get-stars"}}"
+			>
+				<div class="active-name story">
+					<span ng-show="activeAll || activeStar" ng-bind="active()"></span>
+					<div ng-show="activeFolder">
+						<span ng-bind="activeFolder"></span>
+						<div class="pull-right btn-group config">
+							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
+								<i class="fa fa-cog"></i>
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" ng-click="renameFolder(activeFolder)">rename</a></li>
+								<li><a href="#" ng-click="deleteFolder(activeFolder)">delete</a></li>
+							</ul>
+						</div>
+					</div>
+					<div ng-show="activeFeed">
+						<a ng-href="{{`{{feeds[activeFeed].HtmlUrl || ''}}`}}" style="color: #333" target="_blank">
+							{{`{{active()}}`}} »
+						</a>
+						<div class="pull-right btn-group config">
+							<a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" href="#">
+								<i class="fa fa-cog"></i>
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="#" ng-click="rename(activeFeed)">rename</a></li>
+								<li><a href="#" ng-click="unsubscribe(activeFeed)">unsubscribe</a></li>
+								{{if .IsAdmin}}
+									<li><a ng-href="{{url "admin-feed"}}?f={{`{{encode(activeFeed)}}`}}">admin</a></li>
+								{{end}}
+								<li class="divider"></li>
+								<li class="dropdown-header">move to folder</li>
+								<li><a href="#" ng-click="moveFeed(activeFeed)">[root]</a></li>
+								<li ng-repeat="(f, _) in unread.folders">
+									<a href="#" ng-bind="f" ng-click="moveFeed(activeFeed, f)"></a>
+								</li>
+								<li><a href="#" ng-click="moveFeedNew(activeFeed)">[new folder]</a></li>
+								<li class="divider"></li>
+								<li class="dropdown-header">last update</li>
+								<li><a href="#" ng-bind="feeds[activeFeed].Checked"></a></li>
+								<li class="dropdown-header">next update</li>
+								<li><a href="#" ng-bind="feeds[activeFeed].NextUpdate"></a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div
+					ng-repeat="s in dispStories | limitTo:dispLimit"
+					class="story"
+					ng-mouseenter="overContents(s)"
+					ng-mouseleave="leaveContents(s)"
+					id="storydiv{{`{{$index}}`}}"
+					ng-class="{selected: $index == currentStory}"
+				>
+					<div class="story-header hand" ng-class="{read: s.read}" ng-click="setCurrent($index, {collapse: 'toggle'})">
+						<div class="story-star" ng-click="toggleStar(s); $event.stopPropagation()">
+							<i ng-class="s.star ? 'fa fa-star' : 'fa fa-star-o'"></i>
+						</div>
+						<div class="story-feed muted hidden-xs" ng-bind="s.feed.Title"></div>
+						<div class="story-title" title="{{`{{s.Title}}`}}" dir="auto">
+							<a ng-href="{{`{{s.Link}}`}}" ng-click="setCurrent($index, {preventDefault: true}, $event); $event.stopPropagation()" class="story-link"><strong ng-bind="s.Title"></strong></a>
+							<span class="story-summary muted" ng-show="s.Summary" ng-bind="'- ' + s.Summary"></span>
+						</div>
+						<div class="story-date muted hidden-xs">
+							<span ng-bind="s.dispdate"></span>
+							<a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-click="setCurrent($index, {noOpen: true}); $event.stopPropagation()"><i class="fa fa-share"></i></a>
+						</div>
+					</div>
+					<div ng-if="($index == currentStory || (opts.expanded && !collapsed)) && (opts.expanded || !storyCollapse)">
+						<div class="story-content" ng-click="setCurrent($index, null, $event)" ng-class="{short: opts.nav}">
+							<div class="story-content-switch" ng-class="{tall: $index == currentStory && opts.nav && adTall}">
+								<h3 dir="auto"><a ng-href="{{`{{s.Link}}`}}" target="_blank" ng-bind="s.Title"></a></h3>
+								<p><small>
+									from <a ng-href="{{`{{s.feed.HtmlUrl}}`}}" ng-bind="s.feed.Title" target="_blank"></a>
+									<span ng-show="s.Author">by {{`{{s.Author}}`}}</span>
+								</small></p>
+								<div ng-bind-html="s.contents" class="clearfix" dir="auto"></div>
+								<div ng-if="s.MediaContent">
+									<audio {{htmlattr `ng-src="{{s.MediaContent}}"`}} controls="controls"></audio>
+									<a ng-href="{{`{{s.MediaContent}}`}}" target="_blank">Original audio source</a>
+								</div>
+							</div>
+						</div>
+						<div class="story-footer">
+							<ul class="list-inline">
+								<li style="vertical-align: middle">
+									<a href="#" ng-click="toggleStar(s); $event.stopPropagation()">
+										<i ng-class="stars[s.guid] ? 'fa fa-star' : 'fa fa-star-o'"></i>
+									</a>
+								</li>
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="mailto:?subject={{`{{s.Title | encodeURI}}`}}&body={{`{{s.Link | encodeURI}}`}}">
+										<i class="fa fa-envelope"></i>
+										<span class="optional-text">email</span>
+									</a>
+								</li>
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="https://twitter.com/intent/tweet?text={{`{{s.Title | encodeURI}}`}}&url={{`{{s.Link | encodeURI}}`}}&via=GoReadRss">
+										<i class="fa fa-twitter"></i>
+										<span class="optional-text">tweet</span>
+									</a>
+								</li>
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="https://plus.google.com/share?url={{`{{s.Link | encodeURI}}`}}">
+										<i class="fa fa-google-plus"></i>
+										<span class="optional-text">google</span>
+									</a>
+								</li>
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="http://www.tumblr.com/share/link?url={{`{{s.Link | encodeURI}}`}}&name={{`{{s.Title | encodeURI}}`}}">
+										<i class="fa fa-tumblr"></i>
+										<span class="optional-text">tumblr</span>
+									</a>
+								</li>
+								<li style="vertical-align: middle">
+									<a target="_blank" ng-href="http://www.instapaper.com/hello2?url={{`{{s.Link | encodeURI}}`}}&title={{`{{s.Title | encodeURI}}`}}">
+										save to Instapaper
+									</a>
+								</li>
+								<li ng-show="s.canUnread">
+									<form class="form-inline">
+										<label class="checkbox normal" ng-click="$event.stopPropagation()">
+											<input type="checkbox" ng-model="s.Unread" ng-change="markUnread(s)">
+											keep unread
+										</label>
+									</form>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div ng-show="loading == 0 && shown == 'feeds' && numfeeds && dispStories.length == 0" class="top-margin">
+					<div class="col-md-offset-2 col-md-8">
+						<div class="jumbotron">
+							<p class="text-center" ng-show="!activeFeed && !activeFolder">Your reading list has no unread items.</p>
+							<p class="text-center" ng-show="activeFolder">You have no unread &quot;{{`{{activeFolder}}`}}&quot; items.</p>
+							<div ng-show="activeFeed">
+								<p class="text-center">&quot;{{`{{feeds[activeFeed].Title}}`}}&quot; has no unread items.</p>
+								<p class="text-center"><a href="#" ng-click="setMode('all')"><small>View all items</small></a></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	{{end}}
+
+	<div id="shortcuts" class="modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4>keyboard shortcuts</h4>
+				</div>
+				<div class="modal-body">
+					<table class="table">
+						<tbody>
+							<tr><td><strong>j/k</strong></td><td>selects the next/previous item in the list</td></tr>
+							<tr><td><strong>n/p</strong></td><td>in list view, selects the next item without opening it</td></tr>
+							<tr><td><strong>o</strong></td><td>in list view, expands or collapses the selected item</td></tr>
+							<tr><td><strong>enter</strong></td><td>in list view, expands or collapses the selected item</td></tr>
+							<tr><td><strong>r</strong></td><td>refresh</td></tr>
+							<tr><td><strong>space</strong></td><td>next item</td></tr>
+							<tr><td><strong>&lt;Shift&gt; space</strong></td><td>previous item</td></tr>
+							<tr><td><strong>v</strong></td><td>view original</td></tr>
+							<tr><td><strong>b</strong></td><td>view original in new background tab</td></tr>
+							<tr><td><strong>&lt;Shift&gt; a</strong></td><td>mark all as read</td></tr>
+							<tr><td><strong>a</strong></td><td>add subscription</td></tr>
+							<tr><td><strong>g a</strong></td><td>go to all items</td></tr>
+							<tr><td><strong>u</strong></td><td>hides/unhides the left hand side module</td></tr>
+							<tr><td><strong>1</strong></td><td>switch to expanded view</td></tr>
+							<tr><td><strong>2</strong></td><td>switch to list view</td></tr>
+							<tr><td><strong>m</strong></td><td>mark as read/unread</td></tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="messages" class="modal" data-show="{{if .Messages}}true{{end}}">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<div id="message-list">
+					{{range .Messages}}
+						<p>{{.}}</p>
+					{{end}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!--[if lt IE 9]>
+	    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<![endif]-->
+	<!--[if gte IE 9]><!-->
+		<script src="{{.Jquery}}"></script>
+	<!--<![endif]-->
+	<script src="{{.JqueryUI}}"></script>
+	<script src="{{.Underscore}}"></script>
+	<script src="{{.BootstrapJs}}"></script>
+	<script src="/static/js/jquery.form.js"></script>
+	<script src="/static/js/mousetrap.min.js"></script>
+	<script src="{{.Angular}}"></script>
+	<script src="/static/js/sortable.js"></script>
+	<script src="/static/js/moment.min.js"></script>
+	<script src="/static/js/site.js"></script>
+
+	{{.MiniProfiler}}
+
+	{{if .GoogleAnalyticsId}}
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		ga('create', '{{.GoogleAnalyticsId}}', '{{.GoogleAnalyticsHost}}');
+		ga('send', 'pageview');
+	</script>
+	{{end}}
+
+	{{if .IsDev}}
+		<script type="text/javascript">
+			Mousetrap.bind('c', function() {
+				window.location.replace("{{url "clear-feeds"}}");
+			});
+			Mousetrap.bind('y', function() {
+				window.location.replace("{{url "clear-read"}}");
+			});
+		</script>
+	{{end}}
+
+	{{if .SubURL}}
+	<iframe style="display:none;" src='https://www.subtome.com/register.html?name=go read&url={{.SubURL}}' />
+	{{end}}
+</body>
+</html>
