@@ -69,21 +69,22 @@ func RegisterHandlers(r *mux.Router) {
 	router.Handle("/tasks/update-feeds", mpg.NewHandler(UpdateFeeds)).Name("update-feeds")
 	router.Handle("/tasks/delete-old-feeds", mpg.NewHandler(DeleteOldFeeds)).Name("delete-old-feeds")
 	router.Handle("/tasks/delete-old-feed", mpg.NewHandler(DeleteOldFeed)).Name("delete-old-feed")
-	router.Handle("/user/add-subscription", mpg.NewHandler(AddSubscription)).Name("add-subscription")
-	router.Handle("/user/delete-account", mpg.NewHandler(DeleteAccount)).Name("delete-account")
-	router.Handle("/user/export-opml", mpg.NewHandler(ExportOpml)).Name("export-opml")
-	router.Handle("/user/feed-history", mpg.NewHandler(FeedHistory)).Name("feed-history")
-	router.Handle("/user/get-contents", mpg.NewHandler(GetContents)).Name("get-contents")
-	router.Handle("/user/get-feed", mpg.NewHandler(GetFeed)).Name("get-feed")
-	router.Handle("/user/get-stars", mpg.NewHandler(GetStars)).Name("get-stars")
-	router.Handle("/user/import/get-url", mpg.NewHandler(UploadUrl)).Name("upload-url")
-	router.Handle("/user/import/opml", mpg.NewHandler(ImportOpml)).Name("import-opml")
-	router.Handle("/user/list-feeds", mpg.NewHandler(ListFeeds)).Name("list-feeds")
-	router.Handle("/user/mark-read", mpg.NewHandler(MarkRead)).Name("mark-read")
-	router.Handle("/user/mark-unread", mpg.NewHandler(MarkUnread)).Name("mark-unread")
-	router.Handle("/user/save-options", mpg.NewHandler(SaveOptions)).Name("save-options")
-	router.Handle("/user/set-star", mpg.NewHandler(SetStar)).Name("set-star")
-	router.Handle("/user/upload-opml", mpg.NewHandler(UploadOpml)).Name("upload-opml")
+
+	router.Handle("/user/add-subscription", wrap(AddSubscription)).Name("add-subscription")
+	router.Handle("/user/delete-account", wrap(DeleteAccount)).Name("delete-account")
+	router.Handle("/user/export-opml", wrap(ExportOpml)).Name("export-opml")
+	router.Handle("/user/feed-history", wrap(FeedHistory)).Name("feed-history")
+	router.Handle("/user/get-contents", wrap(GetContents)).Name("get-contents")
+	router.Handle("/user/get-feed", wrap(GetFeed)).Name("get-feed")
+	router.Handle("/user/get-stars", wrap(GetStars)).Name("get-stars")
+	router.Handle("/user/import/get-url", wrap(UploadUrl)).Name("upload-url")
+	router.Handle("/user/import/opml", wrap(ImportOpml)).Name("import-opml")
+	router.Handle("/user/list-feeds", wrap(ListFeeds)).Name("list-feeds")
+	router.Handle("/user/mark-read", wrap(MarkRead)).Name("mark-read")
+	router.Handle("/user/mark-unread", wrap(MarkUnread)).Name("mark-unread")
+	router.Handle("/user/save-options", wrap(SaveOptions)).Name("save-options")
+	router.Handle("/user/set-star", wrap(SetStar)).Name("set-star")
+	router.Handle("/user/upload-opml", wrap(UploadOpml)).Name("upload-opml")
 
 	router.Handle("/admin/all-feeds", mpg.NewHandler(AllFeeds)).Name("all-feeds")
 	router.Handle("/admin/all-feeds-opml", mpg.NewHandler(AllFeedsOpml)).Name("all-feeds-opml")
@@ -115,6 +116,18 @@ func RegisterHandlers(r *mux.Router) {
 	router.Handle("/user/clear-feeds", mpg.NewHandler(ClearFeeds)).Name("clear-feeds")
 	router.Handle("/user/clear-read", mpg.NewHandler(ClearRead)).Name("clear-read")
 	router.Handle("/test/atom.xml", mpg.NewHandler(TestAtom)).Name("test-atom")
+}
+
+func wrap(f func(mpg.Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := mpg.NewHandler(f)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		o := r.Header.Get("Origin")
+		if isDevServer || o == "https://m.goread.io" {
+			w.Header().Add("Access-Control-Allow-Origin", o)
+			w.Header().Add("Access-Control-Allow-Credentials", "true")
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
