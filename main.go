@@ -41,13 +41,13 @@ func init() {
 	var err error
 	if templates, err = template.New("").Funcs(funcs).
 		ParseFiles(
-		"templates/base.html",
-		"templates/admin-all-feeds.html",
-		"templates/admin-date-formats.html",
-		"templates/admin-feed.html",
-		"templates/admin-stats.html",
-		"templates/admin-user.html",
-	); err != nil {
+			"templates/base.html",
+			"templates/admin-all-feeds.html",
+			"templates/admin-date-formats.html",
+			"templates/admin-feed.html",
+			"templates/admin-stats.html",
+			"templates/admin-user.html",
+		); err != nil {
 		log.Fatal(err)
 	}
 
