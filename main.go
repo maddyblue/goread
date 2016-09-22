@@ -121,9 +121,8 @@ func RegisterHandlers(r *mux.Router) {
 func wrap(f func(mpg.Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := mpg.NewHandler(f)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o := r.Header.Get("Origin")
-		if isDevServer || o == "https://m.goread.io" {
-			w.Header().Add("Access-Control-Allow-Origin", o)
+		if isDevServer {
+			w.Header().Add("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
 		}
 		handler.ServeHTTP(w, r)
