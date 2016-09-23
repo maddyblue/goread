@@ -129,7 +129,7 @@ type Feed struct {
 	Date       time.Time     `datastore:"d,noindex" json:"-"`
 	Checked    time.Time     `datastore:"c,noindex"`
 	NextUpdate time.Time     `datastore:"n"`
-	Link       string        `datastore:"l,noindex" json:"-"`
+	Link       string        `datastore:"l,noindex"`
 	Hub        string        `datastore:"h,noindex" json:"-"`
 	Errors     int           `datastore:"e,noindex"`
 	Image      string        `datastore:"i,noindex"`

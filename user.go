@@ -60,6 +60,15 @@ func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 }
 
+func LoginRedirect(c mpg.Context, w http.ResponseWriter, r *http.Request) {
+	url, err := user.LoginURL(c, r.FormValue("redirect"))
+	if err != nil {
+		serveError(w, err)
+		return
+	}
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
 func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if appengine.IsDevAppServer() {
 		if u, err := user.LogoutURL(c, routeUrl("main")); err == nil {

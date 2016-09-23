@@ -59,6 +59,7 @@ func RegisterHandlers(r *mux.Router) {
 	router = r
 	router.Handle("/", mpg.NewHandler(Main)).Name("main")
 	router.Handle("/login/google", mpg.NewHandler(LoginGoogle)).Name("login-google")
+	router.Handle("/login/redirect", mpg.NewHandler(LoginRedirect))
 	router.Handle("/logout", mpg.NewHandler(Logout)).Name("logout")
 	router.Handle("/push", mpg.NewHandler(SubscribeCallback)).Name("subscribe-callback")
 	router.Handle("/tasks/import-opml", mpg.NewHandler(ImportOpmlTask)).Name("import-opml-task")
@@ -121,8 +122,9 @@ func RegisterHandlers(r *mux.Router) {
 func wrap(f func(mpg.Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := mpg.NewHandler(f)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if isDevServer {
-			w.Header().Add("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+		o := r.Header.Get("Origin")
+		if isDevServer || o == "https://m.goread.io" || o == "http://localhost:3000" {
+			w.Header().Add("Access-Control-Allow-Origin", o)
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
 		}
 		handler.ServeHTTP(w, r)
