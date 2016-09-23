@@ -66,7 +66,9 @@ func LoginRedirect(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	http.Redirect(w, r, url, http.StatusFound)
+	b, _ := json.Marshal(url)
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Write(b)
 }
 
 func Logout(c mpg.Context, w http.ResponseWriter, r *http.Request) {
