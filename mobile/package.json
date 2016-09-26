@@ -1,0 +1,26 @@
+{
+  "name": "goread-react",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "react-scripts": "0.4.2",
+    "sw-precache": "^4.0.0"
+  },
+  "dependencies": {
+    "idb-keyval": "^2.1.2",
+    "material-design-lite": "^1.2.1",
+    "material-ui": "^0.15.4",
+    "react": "^15.3.1",
+    "react-dom": "^15.3.1",
+    "react-tap-event-plugin": "^1.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build && rm build/static/css/*.map build/static/js/*.map && cp manifest.json build/ && sw-precache --root='build/' --static-file-globs='build/**/!(*map*)' && git clean -f ../app/static && rm -f ../app/static/js/main.* ../app/static/css/main.* && cp -R build/static/* ../app/static/ && cp build/*.* ../app/static/",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "./node_modules/react-scripts/config/eslint.js"
+  }
+}
