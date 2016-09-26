@@ -28,10 +28,6 @@ handlers:
   upload: static/index.html
   application_readable: true
 
-- url: /login/redirect
-  script: _go_app
-  secure: always
-
 - url: /static
   static_dir: static
 
