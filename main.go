@@ -20,9 +20,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler"
@@ -34,8 +36,11 @@ import (
 	"appengine/datastore"
 )
 
-var router = new(mux.Router)
-var templates *template.Template
+var (
+	router      = new(mux.Router)
+	templates   *template.Template
+	mobileIndex []byte
+)
 
 func init() {
 	var err error
@@ -48,6 +53,10 @@ func init() {
 			"templates/admin-stats.html",
 			"templates/admin-user.html",
 		); err != nil {
+		log.Fatal(err)
+	}
+	mobileIndex, err = ioutil.ReadFile("static/index.html")
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -122,9 +131,8 @@ func RegisterHandlers(r *mux.Router) {
 func wrap(f func(mpg.Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := mpg.NewHandler(f)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o := r.Header.Get("Origin")
-		if isDevServer || o == "https://m.goread.io" || o == "http://localhost:3000" {
-			w.Header().Add("Access-Control-Allow-Origin", o)
+		if isDevServer {
+			w.Header().Add("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
 		}
 		handler.ServeHTTP(w, r)
@@ -132,11 +140,24 @@ func wrap(f func(mpg.Context, http.ResponseWriter, *http.Request)) http.Handler 
 }
 
 func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
-		c.Errorf("%v", err)
-		serveError(w, err)
+	ua := r.Header.Get("User-Agent")
+	mobile := strings.Contains(ua, "Mobi")
+	if desktop, _ := r.Cookie("goread-desktop"); desktop != nil {
+		switch desktop.Value {
+		case "desktop":
+			mobile = false
+		case "mobile":
+			mobile = true
+		}
 	}
-	return
+	if mobile {
+		w.Write(mobileIndex)
+	} else {
+		if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
+			c.Errorf("%v", err)
+			serveError(w, err)
+		}
+	}
 }
 
 func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
