@@ -5,12 +5,15 @@ import idbKeyval from 'idb-keyval';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import AppBar from 'material-ui/AppBar';
+import Dialog from 'material-ui/Dialog';
 import IconButton from 'material-ui/IconButton';
 import IconMenu from 'material-ui/IconMenu';
+import FlatButton from 'material-ui/FlatButton';
 import MenuItem from 'material-ui/MenuItem';
 import MenuIcon from 'material-ui/svg-icons/navigation/menu';
 import NavigationRefresh from 'material-ui/svg-icons/navigation/refresh';
 import Snackbar from 'material-ui/Snackbar';
+import TextField from 'material-ui/TextField';
 import {Card, CardHeader, CardText, CardTitle} from 'material-ui/Card';
 
 var appState = 'app-state';
@@ -180,6 +183,33 @@ class App extends Component {
 		document.cookie = 'goread-desktop=desktop; max-age=31536000';
 		location.reload();
 	}
+	subscribe = () => {
+		this.setState({openSubscribeFeed: true});
+	}
+	closeSubscribeFeed = () => {
+		this.setState({openSubscribeFeed: false});
+	}
+	subscribeFeed = () => {
+		var form = new FormData();
+		form.append('url', this.state.subscribeFeed);
+		this.fetch('/user/add-subscription', {
+			body: form,
+		}, true)
+		.then(() => {
+			this.refresh();
+		}, data => {
+			this.setState({snack: data});
+		});
+		this.setState({
+			openSubscribeFeed: false,
+			subscribeFeed: '',
+		});
+	}
+	setSubscribeFeed = (event) => {
+		this.setState({
+			subscribeFeed: event.target.value,
+		});
+	}
 	render() {
 		this._expanded = null;
 		return (
@@ -193,6 +223,10 @@ class App extends Component {
 									<IconButton><MenuIcon color={'white'} /></IconButton>
 								}
 							>
+								<MenuItem
+									primaryText="subscribe to feed"
+									onTouchTap={this.subscribe}
+								/>
 								<MenuItem
 									primaryText="desktop site"
 									onTouchTap={this.toDesktop}
@@ -242,6 +276,32 @@ class App extends Component {
 						autoHideDuration={4000}
 						onRequestClose={this.closeSnack}
 					/>
+					<Dialog
+						title="subscribe to feed"
+						type="url"
+						actions={[
+							<FlatButton
+								label="cancel"
+								primary={true}
+								onTouchTap={this.closeSubscribeFeed}
+							/>,
+							<FlatButton
+								label="subscribe"
+								primary={true}
+								keyboardFocused={true}
+								onTouchTap={this.subscribeFeed}
+							/>,
+						]}
+						open={this.state.openSubscribeFeed || false}
+						onRequestClose={this.closeSubscribeFeed}
+					>
+						<TextField
+							hintText="feed URL"
+							value={this.state.subscribeFeed || ''}
+							onChange={this.setSubscribeFeed}
+							fullWidth={true}
+						/>
+					</Dialog>
 				</div>
 			</MuiThemeProvider>
 		);
