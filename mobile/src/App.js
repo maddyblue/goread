@@ -180,6 +180,13 @@ class App extends Component {
 		this.setState({snack: null});
 	}
 	toDesktop() {
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.getRegistration().then(r => {
+				if (r) {
+					r.unregister();
+				}
+			});
+		}
 		document.cookie = 'goread-desktop=desktop; max-age=31536000';
 		location.reload();
 	}

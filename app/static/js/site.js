@@ -890,6 +890,11 @@ goReadAppModule.controller('GoreadCtrl', function($scope, $http, $timeout, $wind
 		});
 	};
 
+	$scope.mobileSite = function() {
+		document.cookie = 'goread-desktop=mobile; max-age=31536000';
+		location.reload();
+	};
+
 	$scope.clearFeeds = function() {
 		if (!confirm('Remove all folders and subscriptions?')) return;
 		$scope.feeds = {};
