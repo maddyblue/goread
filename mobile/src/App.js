@@ -285,7 +285,6 @@ class App extends Component {
 					/>
 					<Dialog
 						title="subscribe to feed"
-						type="url"
 						actions={[
 							<FlatButton
 								label="cancel"
@@ -304,6 +303,7 @@ class App extends Component {
 					>
 						<TextField
 							hintText="feed URL"
+							type="url"
 							value={this.state.subscribeFeed || ''}
 							onChange={this.setSubscribeFeed}
 							fullWidth={true}
