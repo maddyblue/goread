@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mjibson/goread/_third_party/golang.org/x/net/html"
+	"golang.org/x/net/html"
 )
 
 func sanitizeLink(u *url.URL, v string) string {

@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"time"
 
-	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/mjibson/goon"
 
 	"appengine/datastore"
 	"appengine/user"

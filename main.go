@@ -27,10 +27,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler"
-	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
-	"github.com/mjibson/goread/_third_party/github.com/gorilla/mux"
-	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+	"github.com/MiniProfiler/go/miniprofiler"
+	mpg "github.com/MiniProfiler/go/miniprofiler_gae"
+	"github.com/gorilla/mux"
+	"github.com/mjibson/goon"
 
 	"appengine"
 	"appengine/datastore"

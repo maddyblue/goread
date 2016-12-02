@@ -25,7 +25,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
+	"github.com/mjibson/goon"
 
 	"appengine"
 	"appengine/datastore"
