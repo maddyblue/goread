@@ -399,7 +399,7 @@ func ParseFeed(c appengine.Context, contentType, origUrl, fetchUrl string, body 
 		if enc != encoding.Nop {
 			cr = nilCharsetReader
 			preview := string(body[:128]) // <?xml version="1.0" encoding="windows-1251" ?>
-			r := regexp.MustCompile(`<?xml.*encoding="(.*)".*?>`)
+			r := regexp.MustCompile(`<\?xml.*encoding="(.*)".*\?>`)
 			rr := r.FindStringSubmatch(preview)
 			if len(rr) > 1 {
 				enc, _ = charset.Lookup(rr[1])
