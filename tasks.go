@@ -42,6 +42,60 @@ import (
 	"appengine/urlfetch"
 )
 
+func taskNameShouldEscape(c byte) bool {
+	switch {
+	case 'a' <= c && c <= 'z', 'A' <= c && c <= 'Z', '0' <= c && c <= '9':
+		return false
+	case '-' == c:
+		return false
+	}
+	// We use underscore to escape other characters, so escape it.
+	return true
+}
+
+/*
+Hex-escape characters that are not allowed in appengine task names.
+This is like URL hex-escaping, but using '_' instead of '%'.
+This means '_' must also be escaped.
+
+https://cloud.google.com/appengine/docs/go/taskqueue#Go_Task_names
+[0-9a-zA-Z\-\_]{1,500}
+
+This function does not try to enforce length.
+
+The golang implementation of taskqueue does not enforce any of these rules,
+but it seems prudent to comply unless Google changes the documentation.
+*/
+func taskNameEscape(s string) string {
+	// Or we could trade memory for cycles and assume hexCount = len(s)
+	hexCount := 0
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if taskNameShouldEscape(c) {
+			hexCount++
+		}
+	}
+	if hexCount == 0 {
+		return s
+	}
+
+	t := make([]byte, len(s)+2*hexCount)
+	j := 0
+	for i := 0; i < len(s); i++ {
+		switch c := s[i]; {
+		case taskNameShouldEscape(c):
+			t[j] = '_'
+			t[j+1] = "0123456789ABCDEF"[c>>4]
+			t[j+2] = "0123456789ABCDEF"[c&15]
+			j += 3
+		default:
+			t[j] = s[i]
+			j++
+		}
+	}
+	return string(t)
+}
+
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	gn := goon.FromContext(c)
 	userid := r.FormValue("user")
@@ -242,25 +296,40 @@ func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	q := datastore.NewQuery("F").KeysOnly().Filter("n <=", time.Now())
-	q = q.Limit(10 * 60 * 2) // 10/s queue, 2 min cron
+	now := time.Now()
+	limit := 10 * 60 * 2 // 10/s queue, 2 min cron
+	q := datastore.NewQuery("F").Filter("n <=", now).Limit(limit)
 	it := q.Run(appengine.Timeout(c, time.Minute))
 	tc := make(chan *taskqueue.Task)
 	done := make(chan bool)
 	i := 0
 	u := routeUrl("update-feed")
+	var feed Feed
+	var id string
+
 	go taskSender(c, "update-feed", tc, done)
 	for {
-		k, err := it.Next(nil)
+		k, err := it.Next(&feed)
 		if err == datastore.Done {
 			break
-		} else if err != nil {
+		}
+		if err != nil {
 			c.Errorf("next error: %v", err.Error())
 			break
 		}
-		tc <- taskqueue.NewPOSTTask(u, url.Values{
-			"feed": {k.StringID()},
-		})
+		id = k.StringID()
+		// To guard against queuing duplicate feeds,
+		// use the feed id (URL) as the task name.
+		// https://cloud.google.com/appengine/docs/go/taskqueue#Go_Task_names
+		// This is not an absolute guarantee, but should help.
+		newTask := taskqueue.NewPOSTTask(u, url.Values{"feed": {id}})
+		// Include the NextUpdate time because task names endure 7D or so.
+		// The URL is hex-escaped but hopefully still human-readable.
+		newTask.Name = fmt.Sprintf("%v_%v",
+			feed.NextUpdate.UTC().Format("2006-01-02T15-04-05Z07-00"),
+			taskNameEscape(id))
+		c.Debugf("queuing feed %v", newTask.Name)
+		tc <- newTask
 		i++
 	}
 	close(tc)

@@ -821,8 +821,18 @@ func taskSender(c mpg.Context, queue string, tc chan *taskqueue.Task, done chan 
 	const taskLimit = 100
 	tasks := make([]*taskqueue.Task, 0, taskLimit)
 	send := func() {
-		taskqueue.AddMulti(c, tasks, queue)
-		c.Infof("added %v tasks", len(tasks))
+		errorCount := 0
+		queued, err := taskqueue.AddMulti(c, tasks, queue)
+		if me, ok := err.(appengine.MultiError); ok {
+			for i, merr := range me {
+				if merr == nil {
+					continue
+				}
+				errorCount++
+				c.Warningf("error for task %v: %v", queued[i], merr)
+			}
+		}
+		c.Infof("added %v tasks with %v errors", len(tasks), errorCount)
 		tasks = tasks[0:0]
 	}
 	for t := range tc {
