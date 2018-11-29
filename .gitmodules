@@ -1,0 +1,27 @@
+[submodule "vendor/golang.org/x/text"]
+	path = vendor/golang.org/x/text
+	url = https://go.googlesource.com/text
+[submodule "vendor/code.google.com/p/go-charset"]
+	path = vendor/code.google.com/p/go-charset
+	url = https://github.com/rogpeppe/go-charset
+[submodule "vendor/github.com/golang/protobuf"]
+	path = vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url = https://go.googlesource.com/net
+[submodule "vendor/github.com/gorilla/context"]
+	path = vendor/github.com/gorilla/context
+	url = https://github.com/gorilla/context
+[submodule "vendor/github.com/gorilla/mux"]
+	path = vendor/github.com/gorilla/mux
+	url = https://github.com/gorilla/mux
+[submodule "vendor/github.com/MiniProfiler/go"]
+	path = vendor/github.com/MiniProfiler/go
+	url = https://github.com/MiniProfiler/go
+[submodule "vendor/github.com/mjibson/goon"]
+	path = vendor/github.com/mjibson/goon
+	url = https://github.com/mjibson/goon
+[submodule "vendor/github.com/mjibson/appstats"]
+	path = vendor/github.com/mjibson/appstats
+	url = https://github.com/mjibson/appstats

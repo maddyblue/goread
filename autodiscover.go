@@ -21,8 +21,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/mjibson/goread/_third_party/golang.org/x/net/html"
-	"github.com/mjibson/goread/_third_party/golang.org/x/net/html/atom"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 var (
