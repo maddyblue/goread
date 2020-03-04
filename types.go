@@ -27,10 +27,12 @@ import (
 
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
-	"appengine"
-	"appengine/datastore"
-	"appengine/taskqueue"
-	"appengine/user"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/user"
 )
 
 type User struct {
@@ -100,7 +102,7 @@ type UserStar struct {
 	Created time.Time      `datastore:"c"`
 }
 
-func starKey(c appengine.Context, feed, story string) *UserStar {
+func starKey(c context.Context, feed, story string) *UserStar {
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
 	u := User{Id: cu.ID}
@@ -140,7 +142,7 @@ type Feed struct {
 	NoAds      bool          `datastore:"o,noindex" json:"-"`
 }
 
-func (f *Feed) Subscribe(c appengine.Context) {
+func (f *Feed) Subscribe(c context.Context) {
 	if !f.IsSubscribed() {
 		gn := goon.FromContext(c)
 		gn.Put(&Log{
@@ -152,9 +154,9 @@ func (f *Feed) Subscribe(c appengine.Context) {
 			"feed": {f.Url},
 		})
 		if _, err := taskqueue.Add(c, t, "update-manual"); err != nil {
-			c.Errorf("taskqueue error: %v", err.Error())
+			log.Errorf(c, "taskqueue error: %v", err.Error())
 		} else {
-			c.Warningf("subscribe feed: %v", f.Url)
+			log.Warningf(c, "subscribe feed: %v", f.Url)
 		}
 	}
 }

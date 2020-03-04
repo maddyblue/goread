@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 // Count returns the number of results for the query.

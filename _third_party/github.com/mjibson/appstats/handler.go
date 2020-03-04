@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
-	"appengine"
-	"appengine/memcache"
-	"appengine/user"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/user"
 )
 
 var templates *template.Template
@@ -91,7 +91,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		keys[i] = fmt.Sprintf(keyPart, i*distance)
 	}
 
-	c := context(r)
+	c := _context(r)
 	items, err := memcache.GetMulti(c, keys)
 	if err != nil {
 		return
@@ -238,7 +238,7 @@ func details(w http.ResponseWriter, r *http.Request) {
 	qtime := roundTime(i)
 	key := fmt.Sprintf(keyFull, qtime)
 
-	c := context(r)
+	c := _context(r)
 
 	v := struct {
 		Env             map[string]string
@@ -306,7 +306,7 @@ func file(w http.ResponseWriter, r *http.Request) {
 	fname := r.URL.Query().Get("f")
 	n := r.URL.Query().Get("n")
 	lineno, _ := strconv.Atoi(n)
-	c := context(r)
+	c := _context(r)
 
 	f, err := ioutil.ReadFile(fname)
 	if err != nil {

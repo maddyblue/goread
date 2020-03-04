@@ -23,13 +23,13 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"time"
 
-	"appengine"
-	"appengine/memcache"
-	"appengine/user"
-	"appengine_internal"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/user"
 )
 
 var (
@@ -69,20 +69,21 @@ func DefaultShouldRecord(r *http.Request) bool {
 	return rand.Float64() < RecordFraction
 }
 
-// Context is a timing-aware appengine.Context.
+// Context is a timing-aware context.Context.
 type Context struct {
-	appengine.Context
+	context.Context
 	header http.Header
 	stats  *requestStats
 }
 
-// Call times an appengine.Context Call. Internal use only.
-func (c Context) Call(service, method string, in, out appengine_internal.ProtoMessage, opts *appengine_internal.CallOptions) error {
+// Call times an context.Context Call. Internal use only.
+/*
+func (c Context) Call(service, method string, in, out internal.Proto.Message) error {
 	c.stats.wg.Add(1)
 	defer c.stats.wg.Done()
 
 	if service == "__go__" {
-		return c.Context.Call(service, method, in, out, opts)
+		return c.Context.Call(service, method, in, out)
 	}
 
 	stat := rpcStat{
@@ -92,7 +93,7 @@ func (c Context) Call(service, method string, in, out appengine_internal.ProtoMe
 		Offset:    time.Since(c.stats.Start),
 		StackData: string(debug.Stack()),
 	}
-	err := c.Context.Call(service, method, in, out, opts)
+	err := c.Context.Call(service, method, in, out)
 	stat.Duration = time.Since(stat.Start)
 	stat.In = in.String()
 	stat.Out = out.String()
@@ -110,7 +111,7 @@ func (c Context) Call(service, method string, in, out appengine_internal.ProtoMe
 	c.stats.Cost += stat.Cost
 	c.stats.lock.Unlock()
 	return err
-}
+}*/
 
 // NewContext creates a new timing-aware context from req.
 func NewContext(req *http.Request) Context {
@@ -137,7 +138,7 @@ func NewContext(req *http.Request) Context {
 
 // WithContext enables profiling of functions without a corresponding request,
 // as in the appengine/delay package. method and path may be empty.
-func WithContext(context appengine.Context, method, path string, f func(Context)) {
+func WithContext(context context.Context, method, path string, f func(Context)) {
 	var uname string
 	var admin bool
 	if u := user.Current(context); u != nil {
@@ -170,7 +171,7 @@ func (c Context) save() {
 		Stats:  c.stats,
 	}
 	if err := gob.NewEncoder(&buf_full).Encode(&full); err != nil {
-		c.Errorf("appstats Save error: %v", err)
+		log.Errorf(c.Context, "appstats Save error: %v", err)
 		return
 	} else if buf_full.Len() > bufMaxLen {
 		// first try clearing stack traces
@@ -187,7 +188,7 @@ func (c Context) save() {
 		part.RPCStats[i].Out = ""
 	}
 	if err := gob.NewEncoder(&buf_part).Encode(&part); err != nil {
-		c.Errorf("appstats Save error: %v", err)
+		log.Errorf(c.Context, "appstats Save error: %v", err)
 		return
 	}
 
@@ -201,7 +202,7 @@ func (c Context) save() {
 		Value: buf_full.Bytes(),
 	}
 
-	c.Infof("Saved; %s: %s, %s: %s, link: %v",
+	log.Infof(c.Context, "Saved; %s: %s, %s: %s, link: %v",
 		item_part.Key,
 		byteSize(len(item_part.Value)),
 		item_full.Key,
@@ -222,12 +223,12 @@ func (c Context) URL() string {
 	return u.String()
 }
 
-func (c Context) storeContext() appengine.Context {
+func (c Context) storeContext() context.Context {
 	nc, _ := appengine.Namespace(c.Context, Namespace)
 	return nc
 }
 
-func context(r *http.Request) appengine.Context {
+func _context(r *http.Request) context.Context {
 	c := appengine.NewContext(r)
 	nc, _ := appengine.Namespace(c, Namespace)
 	return nc
@@ -235,18 +236,18 @@ func context(r *http.Request) appengine.Context {
 
 // handler is an http.Handler that records RPC statistics.
 type handler struct {
-	f func(appengine.Context, http.ResponseWriter, *http.Request)
+	f func(context.Context, http.ResponseWriter, *http.Request)
 }
 
 // NewHandler returns a new Handler that will execute f.
-func NewHandler(f func(appengine.Context, http.ResponseWriter, *http.Request)) http.Handler {
+func NewHandler(f func(context.Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return handler{
 		f: f,
 	}
 }
 
 // NewHandlerFunc returns a new HandlerFunc that will execute f.
-func NewHandlerFunc(f func(appengine.Context, http.ResponseWriter, *http.Request)) http.HandlerFunc {
+func NewHandlerFunc(f func(context.Context, http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := handler{
 			f: f,

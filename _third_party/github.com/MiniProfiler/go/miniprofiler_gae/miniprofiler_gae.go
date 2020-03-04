@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"appengine"
-	"appengine/memcache"
-	"appengine/user"
-	"appengine_internal"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/user"
 	"github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/appstats"
 )
@@ -84,16 +84,17 @@ type Context struct {
 	miniprofiler.Timer
 }
 
-func (c Context) Call(service, method string, in, out appengine_internal.ProtoMessage, opts *appengine_internal.CallOptions) (err error) {
+/*
+func (c Context) Call(service, method string, in, out internal.Proto.Message) (err error) {
 	if c.Timer != nil && service != "__go__" {
 		c.StepCustomTiming(service, method, fmt.Sprintf("%v\n\n%v", method, in.String()), func() {
-			err = c.Context.Call(service, method, in, out, opts)
+			err = c.Context.Call(service, method, in, out)
 		})
 	} else {
-		err = c.Context.Call(service, method, in, out, opts)
+		err = c.Context.Call(service, method, in, out)
 	}
 	return
-}
+}*/
 
 func (c Context) Step(name string, f func(Context)) {
 	if c.Timer != nil {
@@ -110,7 +111,7 @@ func (c Context) Step(name string, f func(Context)) {
 
 // NewHandler returns a profiled, appstats-aware appengine.Context.
 func NewHandler(f func(Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return appstats.NewHandler(func(c appengine.Context, w http.ResponseWriter, r *http.Request) {
+	return appstats.NewHandler(func(c context.Context, w http.ResponseWriter, r *http.Request) {
 		h := miniprofiler.NewHandler(func(t miniprofiler.Timer, w http.ResponseWriter, r *http.Request) {
 			pc := Context{
 				Context: c.(appstats.Context),

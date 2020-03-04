@@ -27,10 +27,9 @@ import (
 
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
-
-	"appengine/datastore"
-	"appengine/urlfetch"
-	"appengine/user"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/user"
 )
 
 type Plan struct {
@@ -112,7 +111,7 @@ func Charge(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			serveError(w, fmt.Errorf("Error"))
 		}
-		c.Errorf("status: %v, %s", resp.StatusCode, b)
+		log.Errorf(c, "status: %v, %s", resp.StatusCode, b)
 		return
 	}
 	uc, err = setCharge(c, resp)
@@ -171,7 +170,7 @@ func Account(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			if resp, err := stripe(c, "GET", "customers/"+uc.Customer, ""); err == nil {
 				if nuc, err := setCharge(c, resp); err == nil {
 					uc = nuc
-					c.Infof("updated user charge %v", cu.ID)
+					log.Infof(c, "updated user charge %v", cu.ID)
 				}
 			}
 		}
@@ -208,8 +207,8 @@ func doUncheckout(c mpg.Context) (*UserCharge, error) {
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode != http.StatusOK {
-		c.Errorf("%s", resp.Body)
-		c.Errorf("stripe delete error, but proceeding")
+		log.Errorf(c, "%s", resp.Body)
+		log.Errorf(c, "stripe delete error, but proceeding")
 	}
 	if err := gn.RunInTransaction(func(gn *goon.Goon) error {
 		if err := gn.Get(&u); err != nil && err != datastore.ErrNoSuchEntity {
@@ -231,12 +230,8 @@ func doUncheckout(c mpg.Context) (*UserCharge, error) {
 }
 
 func stripe(c mpg.Context, method, urlStr, body string) (*http.Response, error) {
-	cl := &http.Client{
-		Transport: &urlfetch.Transport{
-			Context:  c,
-			Deadline: time.Minute,
-		},
-	}
+  cl, cf := createHttpClient(c, time.Minute)
+	defer cf()
 	req, err := http.NewRequest(method, fmt.Sprintf("https://api.stripe.com/v1/%s", urlStr), strings.NewReader(body))
 	if err != nil {
 		return nil, err
