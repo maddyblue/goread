@@ -37,11 +37,11 @@ import (
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/blobstore"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/blobstore"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 func ImportOpmlTask(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -159,20 +159,11 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(r.FormValue("hub.challenge")))
 		i, _ := strconv.Atoi(r.FormValue("hub.lease_seconds"))
 		f.Subscribed = time.Now().Add(time.Second * time.Duration(i))
-		gn.PutMulti([]interface{}{&f, &Log{
-			Parent: gn.Key(&f),
-			Id:     time.Now().UnixNano(),
-			Text:   "SubscribeCallback - subscribed - " + f.Subscribed.String(),
-		}})
+		gn.Put(&f)
 		log.Debugf(c, "subscribed: %v - %v", f.Url, f.Subscribed)
 		return
 	} else if !f.NotViewed() {
 		log.Infof(c, "push: %v", f.Url)
-		gn.Put(&Log{
-			Parent: gn.Key(&f),
-			Id:     time.Now().UnixNano(),
-			Text:   "SubscribeCallback - push update",
-		})
 		defer r.Body.Close()
 		b, _ := ioutil.ReadAll(r.Body)
 		nf, ss, err := ParseFeed(c, r.Header.Get("Content-Type"), f.Url, f.Url, b)
@@ -190,18 +181,9 @@ func SubscribeCallback(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 // Task used to subscribe a feed to push.
 func SubscribeFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
 	gn := goon.FromContext(c)
 	f := Feed{Url: r.FormValue("feed")}
-	fk := gn.Key(&f)
 	s := ""
-	defer func() {
-		gn.Put(&Log{
-			Parent: fk,
-			Id:     time.Now().UnixNano(),
-			Text:   "SubscribeFeed - start " + start.String() + " - f.sub " + f.Subscribed.String() + " - " + s,
-		})
-	}()
 	if err := gn.Get(&f); err != nil {
 		log.Errorf(c, "%v: %v", err, f.Url)
 		serveError(w, err)
@@ -333,11 +315,7 @@ func updateFeed(c mpg.Context, url string, feed *Feed, stories []*Story, updateA
 	if err := gn.Get(&f); err != nil {
 		return fmt.Errorf("feed not found: %s", url)
 	}
-	gn.Put(&Log{
-		Parent: gn.Key(&f),
-		Id:     time.Now().UnixNano(),
-		Text:   "feed update",
-	})
+	log.Infof(c, "feed update: %s", url)
 
 	// Compare the feed's listed update to the story's update.
 	// Note: these may not be accurate, hence, only compare them to each other,
@@ -453,15 +431,8 @@ func UpdateFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	last := len(r.FormValue("last")) > 0
 	f := Feed{Url: url}
 	s := ""
-	defer func() {
-		gn.Put(&Log{
-			Parent: gn.Key(&f),
-			Id:     time.Now().UnixNano(),
-			Text:   "UpdateFeed - " + s,
-		})
-	}()
 	if err := gn.Get(&f); err == datastore.ErrNoSuchEntity {
-		log.Errorf(c, "no such entity - " + url)
+		log.Errorf(c, "no such entity - "+url)
 		s += "NSE"
 		return
 	} else if err != nil {

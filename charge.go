@@ -27,9 +27,9 @@ import (
 
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/user"
 )
 
 type Plan struct {
@@ -230,7 +230,7 @@ func doUncheckout(c mpg.Context) (*UserCharge, error) {
 }
 
 func stripe(c mpg.Context, method, urlStr, body string) (*http.Response, error) {
-  cl, cf := createHttpClient(c, time.Minute)
+	cl, cf := createHttpClient(c, time.Minute)
 	defer cf()
 	req, err := http.NewRequest(method, fmt.Sprintf("https://api.stripe.com/v1/%s", urlStr), strings.NewReader(body))
 	if err != nil {

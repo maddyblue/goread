@@ -28,11 +28,11 @@ import (
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/taskqueue"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/v2/user"
 )
 
 type User struct {
@@ -144,12 +144,7 @@ type Feed struct {
 
 func (f *Feed) Subscribe(c context.Context) {
 	if !f.IsSubscribed() {
-		gn := goon.FromContext(c)
-		gn.Put(&Log{
-			Parent: gn.Key(&f),
-			Id:     time.Now().UnixNano(),
-			Text:   fmt.Sprintf("Subscribe %v", f.Subscribed.String()),
-		})
+		log.Infof(c, "Subscribe %v", f.Subscribed.String())
 		t := taskqueue.NewPOSTTask(routeUrl("subscribe-feed"), url.Values{
 			"feed": {f.Url},
 		})

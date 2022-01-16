@@ -22,10 +22,10 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/aetest"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/aetest"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 // *[]S, *[]*S, *[]I, []S, []*S, []I

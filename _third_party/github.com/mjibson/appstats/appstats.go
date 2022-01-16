@@ -26,10 +26,10 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/memcache"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/memcache"
+	"google.golang.org/appengine/v2/user"
 )
 
 var (

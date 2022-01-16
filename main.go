@@ -33,8 +33,8 @@ import (
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
-	alog "google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2/datastore"
+	alog "google.golang.org/appengine/v2/log"
 )
 
 var (
@@ -64,9 +64,9 @@ func init() {
 	miniprofiler.ToggleShortcut = "Alt+C"
 	miniprofiler.Position = "bottomleft"
 
-  router := mux.NewRouter()
-  RegisterHandlers(router)
-  http.Handle("/", router)
+	router := mux.NewRouter()
+	RegisterHandlers(router)
+	http.Handle("/", router)
 }
 
 func RegisterHandlers(r *mux.Router) {

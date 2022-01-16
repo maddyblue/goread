@@ -24,9 +24,9 @@ import (
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/user"
 )
 
 func ClearRead(c mpg.Context, w http.ResponseWriter, r *http.Request) {

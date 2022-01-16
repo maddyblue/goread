@@ -1,4 +1,5 @@
-runtime: go111
+runtime: go116
+app_engine_apis: true
 
 automatic_scaling:
   min_idle_instances: 1

@@ -43,22 +43,22 @@ import (
 	"github.com/mjibson/goread/sanitizer"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/memcache"
-	"google.golang.org/appengine/taskqueue"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/memcache"
+	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/v2/urlfetch"
+	"google.golang.org/appengine/v2/user"
 )
 
 func createHttpClient(c context.Context, t time.Duration) (*http.Client, context.CancelFunc) {
 	c1, cf := context.WithTimeout(c, t)
 	cl := &http.Client{
 		Transport: &urlfetch.Transport{
-			Context:  c1,
+			Context: c1,
 		},
 	}
-  return cl, cf
+	return cl, cf
 }
 
 func serveError(w http.ResponseWriter, err error) {

@@ -41,12 +41,12 @@ import (
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 	"github.com/mjibson/goread/sanitizer"
 
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/blobstore"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/taskqueue"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/blobstore"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/v2/user"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -192,11 +192,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	gn.PutMulti([]interface{}{&ud, &Log{
-		Parent: ud.Parent,
-		Id:     time.Now().UnixNano(),
-		Text:   fmt.Sprintf("add sub: %v", url),
-	}})
+	log.Infof(c, "add sub: %v", url)
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
@@ -216,12 +212,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	l := &Log{
-		Parent: ud.Parent,
-		Id:     time.Now().UnixNano(),
-		Text:   "list feeds",
-	}
-	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
+	l := "list feeds"
+	l += fmt.Sprintf(", len opml %v", len(ud.Opml))
 	putU := false
 	putUD := false
 	fixRead := false
@@ -229,7 +221,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		u.Read = time.Now().Add(-oldDuration)
 		putU = true
 		fixRead = true
-		l.Text += ", u.Read"
+		l += ", u.Read"
 	}
 	trialRemaining := 0
 	if STRIPE_KEY != "" && ud.Opml != nil && u.Account == AFree && u.Until.Before(time.Now()) {
@@ -313,7 +305,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						gn.GetMulti(stories)
 					}
 					if f.Link != opmlMap[f.Url].HtmlUrl {
-						l.Text += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
+						l += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
 						updatedLinks = true
 						opmlMap[f.Url].HtmlUrl = f.Link
 					}
@@ -415,7 +407,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				gob.NewEncoder(&b).Encode(&read)
 				ud.Read = b.Bytes()
 				putUD = true
-				l.Text += ", fix read"
+				l += ", fix read"
 			}
 		})
 	}
@@ -431,7 +423,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fl[k] = newStories
 	}
 	if numStories == 0 {
-		l.Text += ", clear read"
+		l += ", clear read"
 		fixRead = false
 		if ud.Read != nil {
 			putUD = true
@@ -454,21 +446,21 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if o, err := json.Marshal(&uf); err == nil {
 			ud.Opml = o
 			putUD = true
-			l.Text += ", update links"
+			l += ", update links"
 		} else {
 			log.Errorf(c, "json UL err: %v, %v", err, uf)
 		}
 	}
 	if putU {
 		gn.Put(u)
-		l.Text += ", putU"
+		l += ", putU"
 	}
 	if putUD {
 		gn.Put(ud)
-		l.Text += ", putUD"
+		l += ", putUD"
 	}
-	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
-	gn.Put(l)
+	l += fmt.Sprintf(", len opml %v", len(ud.Opml))
+	log.Infof(c, l)
 	c.Step("json marshal", func(c mpg.Context) {
 		gn := goon.FromContext(c)
 		o := struct {
@@ -660,13 +652,9 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		log.Errorf(c, "json err: %v", err)
 		return
 	} else {
-		l := Log{
-			Parent: ud.Parent,
-			Id:     time.Now().UnixNano(),
-			Text:   fmt.Sprintf("upload opml: %v -> %v", len(ud.Opml), len(b)),
-		}
+		log.Infof(c, "upload opml: %v -> %v", len(ud.Opml), len(b))
 		ud.Opml = b
-		if _, err := gn.PutMulti([]interface{}{&ud, &l}); err != nil {
+		if _, err := gn.Put(&ud); err != nil {
 			serveError(w, err)
 			return
 		}
@@ -734,11 +722,8 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		u.Options = r.FormValue("options")
-		_, err := gn.PutMulti([]interface{}{&u, &Log{
-			Parent: gn.Key(&u),
-			Id:     time.Now().UnixNano(),
-			Text:   fmt.Sprintf("save options: %v", len(u.Options)),
-		}})
+		_, err := gn.Put(&u)
+		log.Infof(c, "save options: %v", len(u.Options))
 		return err
 	}, nil)
 }

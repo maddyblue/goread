@@ -21,9 +21,9 @@ import (
 	"net/http"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/memcache"
-	"google.golang.org/appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/memcache"
+	"google.golang.org/appengine/v2/user"
 	"github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/appstats"
 )

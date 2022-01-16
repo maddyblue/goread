@@ -29,7 +29,7 @@ func main() {
 */
 
 import (
-  "google.golang.org/appengine"
+  "google.golang.org/appengine/v2"
   _ "github.com/mjibson/goread"
   _ "github.com/mjibson/goread/_third_party/github.com/mjibson/appstats"
 )
