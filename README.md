@@ -2,6 +2,11 @@
 
 a google reader clone built with go on app engine and angularjs
 
+# Current build instructions:
+* Use this:
+  Building: `GOPATH=$(GOPATH) GO111MODULE=auto go build app.go`
+  Deploy: `GOPATH=$(GOPATH) gcloud beta app deploy`
+
 ## setting up a local dev environment
 
 1. Install [Python 2.7](http://www.python.org/download/releases/2.7.5/) and make sure it is in your `PATH`. (Google App Engine doesn't yet work with Python 3.)

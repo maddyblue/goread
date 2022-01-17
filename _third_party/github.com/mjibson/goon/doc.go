@@ -88,7 +88,7 @@ datastore:
 	type Group struct {
 		Name string
 	}
-	c := appengine.NewContext(r)
+	c := r.NewContext()
 	g := &Group{Name: "name"}
 	k := datastore.NewIncompleteKey(c, "Group", nil)
 	err := datastore.Put(c, k, g)
@@ -110,7 +110,7 @@ datastore:
 	type Group struct {
 		Name string
 	}
-	c := appengine.NewContext(r)
+	c := r.NewContext()
 	g := &Group{}
 	k := datastore.NewKey(c, "Group", "", 1, nil)
 	err := datastore.Get(c, k, g)

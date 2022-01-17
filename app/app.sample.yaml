@@ -1,7 +1,5 @@
-application: go-read
-version: 1
-runtime: go
-api_version: go1
+runtime: go116
+app_engine_apis: true
 
 automatic_scaling:
   min_idle_instances: 1
@@ -26,34 +24,33 @@ handlers:
 - url: /index.html
   static_files: static/index.html
   upload: static/index.html
-  application_readable: true
 
 - url: /static
   static_dir: static
 
 - url: /login/google
   login: required
-  script: _go_app
+  script: auto
   secure: always
 
 - url: /user/.*
   login: required
-  script: _go_app
+  script: auto
   secure: always
 
 - url: /task/.*
   login: admin
-  script: _go_app
+  script: auto
   secure: always
 
 - url: /admin/.*
   login: admin
-  script: _go_app
+  script: auto
   secure: always
 
 - url: /push
-  script: _go_app
+  script: auto
 
 - url: /.*
-  script: _go_app
+  script: auto
   secure: always

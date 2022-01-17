@@ -24,8 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"appengine/datastore"
-	"appengine/memcache"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/memcache"
 
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
@@ -90,28 +91,13 @@ func AdminFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	gn.GetMulti(stories)
-	lk := gn.Key(&Log{Parent: fk, Id: time.Now().Add(-time.Hour * 6).UnixNano()})
-	q = datastore.NewQuery(lk.Kind()).KeysOnly()
-	q = q.Ancestor(fk)
-	q = q.Filter("__key__ >", lk)
-	keys, _ = gn.GetAll(q, nil)
-	logs := make([]*Log, len(keys))
-	for j, key := range keys {
-		logs[j] = &Log{
-			Id:     key.IntID(),
-			Parent: fk,
-		}
-	}
-	gn.GetMulti(logs)
 
 	templates.ExecuteTemplate(w, "admin-feed.html", struct {
 		Feed    *Feed
-		Logs    []*Log
 		Stories []*Story
 		Now     time.Time
 	}{
 		&f,
-		logs,
 		stories,
 		time.Now(),
 	})
@@ -175,8 +161,7 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	it := gn.Run(q)
 	var u User
 	ud := UserData{Id: "data"}
-	var h []Log
-	k, err := it.Next(&u)
+	_, err := it.Next(&u)
 	if err != nil {
 		serveError(w, err)
 		return
@@ -199,18 +184,14 @@ func AdminUser(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			serveError(w, err)
 			return
 		}
-		c.Infof("opml updated")
+		log.Infof(c, "opml updated")
 	}
-	q = datastore.NewQuery(gn.Kind(&Log{})).Ancestor(k)
-	_, err = gn.GetAll(q, &h)
 	if err := templates.ExecuteTemplate(w, "admin-user.html", struct {
 		User User
 		Data UserData
-		Log  []Log
 	}{
 		u,
 		ud,
-		h,
 	}); err != nil {
 		serveError(w, err)
 	}

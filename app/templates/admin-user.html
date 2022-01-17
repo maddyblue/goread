@@ -25,14 +25,5 @@
 </textarea>
 <br><input type="submit" value="save">
 </form>
-<table>
-{{range .Log}}
-	<tr>
-		<td>{{nanotime .Id | since}}</td>
-		<td>{{nanotime .Id}}</td>
-		<td>{{.Text}}</td>
-	</tr>
-{{end}}
-</table>
 </body>
 </html>

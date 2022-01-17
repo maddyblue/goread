@@ -32,8 +32,9 @@ import (
 	"github.com/mjibson/goread/_third_party/github.com/gorilla/mux"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 
-	"appengine"
-	"appengine/datastore"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/v2/datastore"
+	alog "google.golang.org/appengine/v2/log"
 )
 
 var (
@@ -62,6 +63,10 @@ func init() {
 
 	miniprofiler.ToggleShortcut = "Alt+C"
 	miniprofiler.Position = "bottomleft"
+
+	router := mux.NewRouter()
+	RegisterHandlers(router)
+	http.Handle("/", router)
 }
 
 func RegisterHandlers(r *mux.Router) {
@@ -154,7 +159,7 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		w.Write(mobileIndex)
 	} else {
 		if err := templates.ExecuteTemplate(w, "base.html", includes(c, w, r)); err != nil {
-			c.Errorf("%v", err)
+			alog.Errorf(c, "%v", err)
 			serveError(w, err)
 		}
 	}
@@ -163,7 +168,7 @@ func Main(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	gn := goon.FromContext(c)
 	o := outline.Outline[0]
-	c.Infof("adding feed %v to user %s", o.XmlUrl, userid)
+	alog.Infof(c, "adding feed %v to user %s", o.XmlUrl, userid)
 	fu, ferr := url.Parse(o.XmlUrl)
 	if ferr != nil {
 		return ferr
@@ -208,7 +213,7 @@ func addFeed(c mpg.Context, userid string, outline *OpmlOutline) error {
 	return nil
 }
 
-func mergeUserOpml(c appengine.Context, ud *UserData, outlines ...*OpmlOutline) error {
+func mergeUserOpml(c context.Context, ud *UserData, outlines ...*OpmlOutline) error {
 	var fs Opml
 	json.Unmarshal(ud.Opml, &fs)
 	urls := make(map[string]bool)

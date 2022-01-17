@@ -26,8 +26,8 @@ import (
 	"sync"
 	"time"
 
-	"appengine"
-	"appengine/datastore"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type fieldInfo struct {

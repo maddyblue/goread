@@ -33,17 +33,20 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/charset"
 	_ "github.com/mjibson/goread/_third_party/code.google.com/p/go-charset/data"
 	mpg "github.com/mjibson/goread/_third_party/github.com/MiniProfiler/go/miniprofiler_gae"
 	"github.com/mjibson/goread/_third_party/github.com/mjibson/goon"
 	"github.com/mjibson/goread/sanitizer"
 
-	"appengine"
-	"appengine/blobstore"
-	"appengine/datastore"
-	"appengine/taskqueue"
-	"appengine/user"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/blobstore"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/taskqueue"
+	"google.golang.org/appengine/v2/user"
 )
 
 func LoginGoogle(c mpg.Context, w http.ResponseWriter, r *http.Request) {
@@ -155,7 +158,7 @@ func ImportOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if err := d.Decode(&opml); err != nil {
 		del()
 		serveError(w, err)
-		c.Errorf("opml error: %v", err.Error())
+		log.Errorf(c, "opml error: %v", err.Error())
 		return
 	}
 
@@ -176,7 +179,7 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	if err := addFeed(c, cu.ID, o); err != nil {
-		c.Errorf("add sub error (%s): %s", url, err.Error())
+		log.Errorf(c, "add sub error (%s): %s", url, err.Error())
 		serveError(w, err)
 		return
 	}
@@ -185,15 +188,11 @@ func AddSubscription(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data", Parent: gn.Key(&User{Id: cu.ID})}
 	gn.Get(&ud)
 	if err := mergeUserOpml(c, &ud, o); err != nil {
-		c.Errorf("add sub error opml (%v): %v", url, err)
+		log.Errorf(c, "add sub error opml (%v): %v", url, err)
 		serveError(w, err)
 		return
 	}
-	gn.PutMulti([]interface{}{&ud, &Log{
-		Parent: ud.Parent,
-		Id:     time.Now().UnixNano(),
-		Text:   fmt.Sprintf("add sub: %v", url),
-	}})
+	log.Infof(c, "add sub: %v", url)
 	if r.Method == "GET" {
 		http.Redirect(w, r, routeUrl("main"), http.StatusFound)
 	}
@@ -213,12 +212,8 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		serveError(w, err)
 		return
 	}
-	l := &Log{
-		Parent: ud.Parent,
-		Id:     time.Now().UnixNano(),
-		Text:   "list feeds",
-	}
-	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
+	l := "list feeds"
+	l += fmt.Sprintf(", len opml %v", len(ud.Opml))
 	putU := false
 	putUD := false
 	fixRead := false
@@ -226,7 +221,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		u.Read = time.Now().Add(-oldDuration)
 		putU = true
 		fixRead = true
-		l.Text += ", u.Read"
+		l += ", u.Read"
 	}
 	trialRemaining := 0
 	if STRIPE_KEY != "" && ud.Opml != nil && u.Account == AFree && u.Until.Before(time.Now()) {
@@ -254,7 +249,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	opmlMap := make(map[string]*OpmlOutline)
 	var merr error
 	c.Step("fetch feeds", func(c mpg.Context) {
-		gn := goon.FromContext(appengine.Timeout(c, time.Minute))
+		ctx, cf := context.WithTimeout(c, time.Minute)
+		defer cf()
+		gn := goon.FromContext(ctx)
 		for _, outline := range uf.Outline {
 			if outline.XmlUrl == "" {
 				for _, so := range outline.Outline {
@@ -290,7 +287,9 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				c.Step(f.Title, func(c mpg.Context) {
 					defer wg.Done()
 					var stories []*Story
-					gn := goon.FromContext(appengine.Timeout(c, time.Minute))
+					ctx, cf := context.WithTimeout(c, time.Minute)
+					defer cf()
+					gn := goon.FromContext(ctx)
 
 					if !f.Date.Before(u.Read) {
 						fk := gn.Key(f)
@@ -306,7 +305,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 						gn.GetMulti(stories)
 					}
 					if f.Link != opmlMap[f.Url].HtmlUrl {
-						l.Text += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
+						l += fmt.Sprintf(", link: %v -> %v", opmlMap[f.Url].HtmlUrl, f.Link)
 						updatedLinks = true
 						opmlMap[f.Url].HtmlUrl = f.Link
 					}
@@ -408,7 +407,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				gob.NewEncoder(&b).Encode(&read)
 				ud.Read = b.Bytes()
 				putUD = true
-				l.Text += ", fix read"
+				l += ", fix read"
 			}
 		})
 	}
@@ -424,7 +423,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		fl[k] = newStories
 	}
 	if numStories == 0 {
-		l.Text += ", clear read"
+		l += ", clear read"
 		fixRead = false
 		if ud.Read != nil {
 			putUD = true
@@ -436,7 +435,7 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 				last = v.Date
 			}
 		}
-		c.Infof("nothing here, move up: %v -> %v", u.Read, last)
+		log.Infof(c, "nothing here, move up: %v -> %v", u.Read, last)
 		if u.Read.Before(last) {
 			putU = true
 			u.Read = last
@@ -447,21 +446,21 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		if o, err := json.Marshal(&uf); err == nil {
 			ud.Opml = o
 			putUD = true
-			l.Text += ", update links"
+			l += ", update links"
 		} else {
-			c.Errorf("json UL err: %v, %v", err, uf)
+			log.Errorf(c, "json UL err: %v, %v", err, uf)
 		}
 	}
 	if putU {
 		gn.Put(u)
-		l.Text += ", putU"
+		l += ", putU"
 	}
 	if putUD {
 		gn.Put(ud)
-		l.Text += ", putUD"
+		l += ", putUD"
 	}
-	l.Text += fmt.Sprintf(", len opml %v", len(ud.Opml))
-	gn.Put(l)
+	l += fmt.Sprintf(", len opml %v", len(ud.Opml))
+	log.Infof(c, l)
 	c.Step("json marshal", func(c mpg.Context) {
 		gn := goon.FromContext(c)
 		o := struct {
@@ -485,13 +484,13 @@ func ListFeeds(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		}
 		b, err := json.Marshal(o)
 		if err != nil {
-			c.Errorf("cleaning")
+			log.Errorf(c, "cleaning")
 			for _, v := range fl {
 				for _, s := range v {
 					n := sanitizer.CleanNonUTF8(s.Summary)
 					if n != s.Summary {
 						s.Summary = n
-						c.Errorf("cleaned %v", s.Id)
+						log.Errorf(c, "cleaned %v", s.Id)
 						gn.Put(s)
 					}
 				}
@@ -645,21 +644,17 @@ func UploadOpml(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	ud := UserData{Id: "data", Parent: gn.Key(&u)}
 	if err := gn.Get(&ud); err != nil {
 		serveError(w, err)
-		c.Errorf("get err: %v", err)
+		log.Errorf(c, "get err: %v", err)
 		return
 	}
 	if b, err := json.Marshal(&opml); err != nil {
 		serveError(w, err)
-		c.Errorf("json err: %v", err)
+		log.Errorf(c, "json err: %v", err)
 		return
 	} else {
-		l := Log{
-			Parent: ud.Parent,
-			Id:     time.Now().UnixNano(),
-			Text:   fmt.Sprintf("upload opml: %v -> %v", len(ud.Opml), len(b)),
-		}
+		log.Infof(c, "upload opml: %v -> %v", len(ud.Opml), len(b))
 		ud.Opml = b
-		if _, err := gn.PutMulti([]interface{}{&ud, &l}); err != nil {
+		if _, err := gn.Put(&ud); err != nil {
 			serveError(w, err)
 			return
 		}
@@ -682,7 +677,7 @@ func backupOPML(c mpg.Context) {
 		gz.Close()
 		uo.Compressed = buf.Bytes()
 	} else {
-		c.Errorf("gz err: %v", err)
+		log.Errorf(c, "gz err: %v", err)
 		uo.Opml = ud.Opml
 	}
 	gn.Put(&uo)
@@ -727,11 +722,8 @@ func SaveOptions(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		u.Options = r.FormValue("options")
-		_, err := gn.PutMulti([]interface{}{&u, &Log{
-			Parent: gn.Key(&u),
-			Id:     time.Now().UnixNano(),
-			Text:   fmt.Sprintf("save options: %v", len(u.Options)),
-		}})
+		_, err := gn.Put(&u)
+		log.Infof(c, "save options: %v", len(u.Options))
 		return err
 	}, nil)
 }
@@ -798,7 +790,7 @@ func GetFeed(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 
 func DeleteAccount(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := doUncheckout(c); err != nil {
-		c.Errorf("uncheckout err: %v", err)
+		log.Errorf(c, "uncheckout err: %v", err)
 	}
 	cu := user.Current(c)
 	gn := goon.FromContext(c)
@@ -833,7 +825,7 @@ func SetStar(c mpg.Context, w http.ResponseWriter, r *http.Request) {
 		us.Created = time.Now()
 		_, err := gn.Put(us)
 		if err != nil {
-			c.Errorf("star put err: %v", err)
+			log.Errorf(c, "star put err: %v", err)
 			serveError(w, err)
 		}
 	}
